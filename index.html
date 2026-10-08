@@ -274,7 +274,8 @@ zh: {
   toastNeedName:'请填写任务名称',
   toastNeedDates:'请选择开始和结束日期', toastEndBeforeStart:'结束日期不能早于开始日期',
   toastNoChart:'暂无甘特图可导出，请先填写节点日期',
-  toastJSONOk:'JSON 数据已导入', toastJSONBad:'JSON 文件无效，导入失败'
+  toastJSONOk:'JSON 数据已导入', toastJSONBad:'JSON 文件无效，导入失败',
+  toastCascade:'已按预设间隔自动填充后续节点日期'
 },
 en: {
   title:'Customer Milestone Gantt Tool', brand:'Customer Milestones',
@@ -302,7 +303,8 @@ en: {
   toastNeedName:'Please enter a task name',
   toastNeedDates:'Please select start and end dates', toastEndBeforeStart:'End date must not be earlier than start date',
   toastNoChart:'No chart to export yet — please fill in milestone dates first',
-  toastJSONOk:'JSON data imported', toastJSONBad:'Invalid JSON file'
+  toastJSONOk:'JSON data imported', toastJSONBad:'Invalid JSON file',
+  toastCascade:'Subsequent milestone dates auto-filled by preset intervals'
 },
 de: {
   title:'Kundenmeilenstein-Gantt-Tool', brand:'Kundenmeilensteine',
@@ -330,7 +332,8 @@ de: {
   toastNeedName:'Bitte Aufgabennamen eingeben',
   toastNeedDates:'Bitte Start- und Enddatum wählen', toastEndBeforeStart:'Enddatum darf nicht vor dem Startdatum liegen',
   toastNoChart:'Kein Diagramm zum Exportieren – bitte zuerst Meilensteintermine eintragen',
-  toastJSONOk:'JSON-Daten importiert', toastJSONBad:'Ungültige JSON-Datei'
+  toastJSONOk:'JSON-Daten importiert', toastJSONBad:'Ungültige JSON-Datei',
+  toastCascade:'Folgemeilensteine automatisch nach voreingestellten Intervallen eingetragen'
 }};
 function tr(k){ var d = I18N[lang] || I18N.zh; return (d[k] !== undefined) ? d[k] : (I18N.zh[k] !== undefined ? I18N.zh[k] : k); }
 function pick(o){
@@ -444,10 +447,15 @@ function renderNodes(){
   var inputs = list.querySelectorAll('input[type=date]');
   for(var k = 0; k < inputs.length; k++){
     inputs[k].addEventListener('change', function(){
-      state.dates[this.dataset.node] = this.value;
+      var node = this.dataset.node;
+      state.dates[node] = this.value;
       save();
-      updateNodeWarns();
-      renderChart();
+      if(this.value && isFirstCheckedNode(node)){
+        cascadeDates(node);
+      } else {
+        updateNodeWarns();
+        renderChart();
+      }
     });
   }
   var checks = list.querySelectorAll('.inc');
@@ -1006,6 +1014,35 @@ function importJSON(file){
     }catch(e){ toast(tr('toastJSONBad')); }
   };
   rd.readAsText(file);
+}
+
+/* ---------- 日期级联：输入首个客户节点日期后，按预设间隔自动填充后续节点 ---------- */
+/* 相邻两节点的默认间隔（天）。BMW 按 G78 STPPP 实际里程碑推演，其余按通用节奏预填 */
+var CASCADE_GAPS = {
+  "BMW(宝马)": [180,90,90,120,175,140,50,30,100,30,30,30,60,90],
+  "DEFAULT": [180,150,120,100,90,80,70,60,60,50,45,45,40,35,30,30,30,30,30,45,60,90]
+};
+function isFirstCheckedNode(name){
+  var ns = nodes();
+  for(var i = 0; i < ns.length; i++){
+    if(!state.excluded[ns[i][0]]) return ns[i][0] === name;
+  }
+  return false;
+}
+function cascadeDates(fromName){
+  var d0 = parseD(state.dates[fromName] || '');
+  if(!d0) return;
+  var all = nodes(), i0 = -1;
+  for(var i = 0; i < all.length; i++){ if(all[i][0] === fromName){ i0 = i; break; } }
+  if(i0 < 0) return;
+  var gaps = CASCADE_GAPS[state.oem] || CASCADE_GAPS.DEFAULT;
+  var cum = 0;
+  for(var k = i0 + 1; k < all.length; k++){
+    cum += (typeof gaps[k-1] === 'number' ? gaps[k-1] : 30);
+    state.dates[all[k][0]] = fmtD(addDays(d0, cum));
+  }
+  save(); renderAll();
+  toast(tr('toastCascade'));
 }
 
 /* ---------- 操作 ---------- */
