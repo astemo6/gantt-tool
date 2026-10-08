@@ -559,7 +559,7 @@ function renderChart(){
     s += '<g><title>' + esc(label + '\n' + fmtD(m.d)) + '</title>'
       + '<rect x="' + (cx-r).toFixed(1) + '" y="' + (msCY-r).toFixed(1) + '" width="' + (r*2) + '" height="' + (r*2)
       + '" transform="rotate(45 ' + cx.toFixed(1) + ' ' + msCY + ')" fill="' + fill + '" stroke="' + stroke + '" stroke-width="1.5"/>'
-      + '<text x="' + (cx-9).toFixed(1) + '" y="' + ly + '" transform="rotate(-30 ' + (cx-9).toFixed(1) + ' ' + ly + ')" text-anchor="end" class="mlabel">' + esc(trunc(abbr(m.name), 10)) + '</text>'
+      + '<text x="' + (cx-9).toFixed(1) + '" y="' + ly + '" transform="rotate(-30 ' + (cx-9).toFixed(1) + ' ' + ly + ')" text-anchor="end" class="mlabel">' + esc(abbr(m.name)) + '</text>'
       + '<text x="' + cx.toFixed(1) + '" y="' + (msCY+24) + '" text-anchor="middle" class="mdate">' + (m.d.getMonth()+1) + '/' + m.d.getDate() + '</text>'
       + '</g>';
   });
