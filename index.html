@@ -909,23 +909,29 @@ function textW(s){
   for(var i = 0; i < s.length; i++){ w += s.charCodeAt(i) > 255 ? 11 : 6; }
   return w + 8;
 }
-/* 标签重叠时左右错开（返回每项的水平偏移量，不上下窜行） */
+/* 标签重叠时左右微调（返回每项的水平偏移量，不上下窜行）
+   只按实际重叠量做最小平移，且偏移封顶 30px，保证标签不脱离自己的菱形 */
 function deoverlapX(items){
   var placed = [], dxs = [];
+  var MAXDX = 30;
   var order = items.map(function(it, i){ return i; }).sort(function(a, b){ return items[a].x - items[b].x; });
   order.forEach(function(i){
     var it = items[i], w = it.w, dx = 0;
-    var step = w/2 + 6;
-    var candidates = [0];
-    for(var k = 1; k <= 4; k++){ candidates.push(-k*step, k*step); }
-    for(var c = 0; c < candidates.length; c++){
-      var cx = it.x + candidates[c];
-      var x0 = cx - w/2, x1 = cx + w/2;
-      var clash = placed.some(function(p){ return x0 < p.x1 + 3 && x1 > p.x0 - 3; });
-      if(!clash){ dx = candidates[c]; break; }
+    var cx = it.x, x0 = cx - w/2, x1 = cx + w/2;
+    for(var p = 0; p < placed.length; p++){
+      var pl = placed[p];
+      if(x0 < pl.x1 + 2 && x1 > pl.x0 - 2){
+        /* 与已放置的标签重叠：计算左右两个方向的最小脱离量，取小的 */
+        var shiftR = (pl.x1 + 2 + w/2) - it.x;
+        var shiftL = (pl.x0 - 2 - w/2) - it.x;
+        var s = Math.abs(shiftR) <= Math.abs(shiftL) ? shiftR : shiftL;
+        if(s > MAXDX) s = MAXDX;
+        if(s < -MAXDX) s = -MAXDX;
+        dx = s;
+        cx = it.x + dx; x0 = cx - w/2; x1 = cx + w/2;
+      }
     }
-    var fx = it.x + dx;
-    placed.push({x0: fx - w/2, x1: fx + w/2});
+    placed.push({x0:x0, x1:x1});
     dxs[i] = dx;
   });
   return dxs;
