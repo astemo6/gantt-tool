@@ -505,10 +505,10 @@ function renderChart(){
   var W = Math.ceil(GUT + 24 + totalDays * pxDay);
   function X(d){ return GUT + diffDays(min, d) * pxDay; }
 
-  var AXIS_H = 30, PH_Y = 30, PH_H = 48, MS_Y = PH_Y + PH_H, MS_H = 112;
+  var AXIS_H = 30, PH_Y = 30, PH_H = 48, MS_Y = PH_Y + PH_H, MS_H = 124;
   var TK_Y = MS_Y + MS_H, TK_H = 36;
   var H = TK_Y + laneTasks.length * TK_H + 10;
-  var msCY = MS_Y + 74;
+  var msCY = MS_Y + MS_H/2;
   var sys = phaseSys();
 
   // 阶段锚点（提前计算：保证最后一个阶段条有足够的标签显示空间）
