@@ -387,6 +387,12 @@ function monthLabel(d){
   if(lang === 'zh') return d.getFullYear() + '年' + (d.getMonth()+1) + '月';
   return MONTHS[lang][d.getMonth()] + ' ' + d.getFullYear();
 }
+/* 紧凑版月份标签（空间不足时）：只显示月份，1月带年份 */
+function monthLabelShort(d){
+  var m = d.getMonth();
+  if(lang === 'zh') return (m === 0 ? d.getFullYear() + '年' : '') + (m+1) + '月';
+  return (m === 0 ? d.getFullYear() + ' ' : '') + MONTHS[lang][m];
+}
 var OEM_I18N = {
   "BENZ(奔驰)":{en:"BENZ",de:"BENZ"}, "Ford(福特)":{en:"Ford",de:"Ford"},
   "JAC(江淮)":{en:"JAC",de:"JAC"}, "DYK(东风悦达起亚)":{en:"DYK (Dongfeng Yueda Kia)",de:"DYK (Dongfeng Yueda Kia)"},
@@ -1023,14 +1029,14 @@ function renderChart(){
   // 月份刻度 + 网格
   var cur = new Date(min.getFullYear(), min.getMonth(), 1);
   var endM = new Date(max.getFullYear(), max.getMonth(), 1);
-  var mi = 0, step = Math.max(1, Math.ceil(90 / (pxDay * 30)));
+  /* 每月都显示刻度与标签 */
+  var monthW = pxDay * 30;
   while(cur <= endM){
     var x = X(cur);
     s += '<line x1="' + x.toFixed(1) + '" y1="26" x2="' + x.toFixed(1) + '" y2="' + H + '" stroke="#eef2f7"/>';
-    if(mi % step === 0){
-      s += '<text x="' + (x+4).toFixed(1) + '" y="20" class="axis">' + monthLabel(cur) + '</text>';
-    }
-    cur.setMonth(cur.getMonth()+1); mi++;
+    var mlbl = monthW < 55 ? monthLabelShort(cur) : monthLabel(cur);
+    s += '<text x="' + (x+4).toFixed(1) + '" y="20" class="axis">' + mlbl + '</text>';
+    cur.setMonth(cur.getMonth()+1);
   }
   // 行分隔线 + 左侧标签（阶段行在上，里程碑行在下；阶段行可隐藏）
   if(showPH){
