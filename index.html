@@ -511,6 +511,29 @@ function renderChart(){
   var msCY = MS_Y + 74;
   var sys = phaseSys();
 
+  // 阶段锚点（提前计算：保证最后一个阶段条有足够的标签显示空间）
+  var phaseMap = OEM_PHASES[state.oem] || {};
+  var anchors = [];
+  Object.keys(PHASE_SYSTEMS[sys].phases).forEach(function(pid){
+    var nn = phaseMap[pid];
+    if(!nn || state.excluded[nn]) return;
+    var d = parseD(state.dates[nn]);
+    if(!d) return;
+    if(!anchors.some(function(a){ return a.name === nn; }))
+      anchors.push({ pid:pid, name:nn, d:d });
+  });
+  anchors.sort(function(a,b){ return a.d - b.d; });
+  if(anchors.length){
+    var lastD = anchors[anchors.length-1].d;
+    for(var _k = 0; _k < 12; _k++){
+      if(X(max) - X(lastD) >= 150) break;
+      max = addDays(max, 30);
+      totalDays = Math.max(diffDays(min, max), 1);
+      pxDay = Math.max((wrapW - GUT - 24) / totalDays, 0.6);
+      W = Math.ceil(GUT + 24 + totalDays * pxDay);
+    }
+  }
+
   var s = '';
   // 月份刻度 + 网格
   var cur = new Date(min.getFullYear(), min.getMonth(), 1);
@@ -564,17 +587,6 @@ function renderChart(){
       + '</g>';
   });
   // 阶段区间条：按phase锚点划分区间（锚点来自客户节点-phase对照）；最后一个阶段延伸到图表结尾
-  var phaseMap = OEM_PHASES[state.oem] || {};
-  var anchors = [];
-  Object.keys(PHASE_SYSTEMS[sys].phases).forEach(function(pid){
-    var nn = phaseMap[pid];
-    if(!nn || state.excluded[nn]) return;
-    var d = parseD(state.dates[nn]);
-    if(!d) return;
-    if(!anchors.some(function(a){ return a.name === nn; }))
-      anchors.push({ pid:pid, name:nn, d:d });
-  });
-  anchors.sort(function(a,b){ return a.d - b.d; });
   for(var i = 0; i < anchors.length; i++){
     var a = anchors[i], b = anchors[i+1];
     var x1 = X(a.d), x2 = b ? X(b.d) : X(max), bw = x2 - x1;
