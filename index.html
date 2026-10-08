@@ -72,6 +72,7 @@ svg text{font-size:11px;fill:#4b5563}
 .cm-drag{cursor:grab;user-select:none;-webkit-user-select:none;color:#9ca3af;font-size:15px;letter-spacing:-2px;padding:2px 6px 2px 2px;touch-action:none}
 .cm-drag:active{cursor:grabbing}
 .cm-head .mini{padding:3px 8px;margin-left:4px}
+.cm-lane.collapsed .cm-dates,.cm-lane.collapsed .cm-gen{display:none}
 .cm-head{display:flex;gap:6px;margin-bottom:6px}
 .cm-head input[type=text]{flex:1;min-width:0;margin-bottom:0}
 .cm-dates{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
@@ -638,11 +639,12 @@ function renderCustomMs(){
         + '<input type="text" class="cmnd" data-i="' + i + '" data-j="' + j + '" value="' + esc(cmName(x)) + '" placeholder="' + esc(tr('cmDateNamePh')) + '">'
         + '<button class="cmx" data-i="' + i + '" data-j="' + j + '">×</button></span>';
     }).join('');
-    return '<div class="cm-lane" data-i="' + i + '"><div class="cm-head">'
+    return '<div class="cm-lane' + (l.collapsed ? ' collapsed' : '') + '" data-i="' + i + '"><div class="cm-head">'
       + '<span class="cm-drag" draggable="true" data-i="' + i + '" title="' + esc(tr('dragTip')) + '">⋮⋮</span>'
       + '<input type="text" class="cmn" data-i="' + i + '" value="' + esc(l.name || '') + '" placeholder="' + esc(tr('cmNamePh')) + '">'
       + '<button class="mini ghost cm-up" data-i="' + i + '" title="' + esc(tr('moveUp')) + '">↑</button>'
       + '<button class="mini ghost cm-down" data-i="' + i + '" title="' + esc(tr('moveDown')) + '">↓</button>'
+      + '<button class="mini ghost cm-fold" data-i="' + i + '" title="' + esc(tr(l.collapsed ? 'secExpand' : 'secCollapse')) + '">' + (l.collapsed ? '▲' : '▼') + '</button>'
       + '<button class="del" data-i="' + i + '">' + tr('delTask') + '</button></div>'
       + '<div class="cm-dates">' + dates + '<button class="cmadd" data-i="' + i + '">' + esc(tr('btnAddDate')) + '</button></div>'
       + '<div class="cm-gen"><span>' + tr('genStart') + '</span><input type="text" class="cgs date" placeholder="YYYY-MM-DD" inputmode="numeric" data-i="' + i + '">'
@@ -721,6 +723,22 @@ function renderCustomMs(){
   var dns = list.querySelectorAll('.cm-down');
   for(var dn = 0; dn < dns.length; dn++){
     dns[dn].addEventListener('click', function(){ cmMove(+this.dataset.i, 1); });
+  }
+  /* 单排折叠 / 展开 */
+  var folds = list.querySelectorAll('.cm-fold');
+  for(var fl = 0; fl < folds.length; fl++){
+    folds[fl].addEventListener('click', function(){
+      var i = +this.dataset.i;
+      var lane = state.customMs[i];
+      lane.collapsed = !lane.collapsed;
+      save();
+      var laneEl = list.querySelector('.cm-lane[data-i="' + i + '"]');
+      if(laneEl){
+        laneEl.classList.toggle('collapsed', !!lane.collapsed);
+        this.textContent = lane.collapsed ? '▲' : '▼';
+        this.title = tr(lane.collapsed ? 'secExpand' : 'secCollapse');
+      }
+    });
   }
   /* 排序：拖拽手柄 */
   var lanes = list.querySelectorAll('.cm-lane');
