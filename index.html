@@ -129,7 +129,9 @@ h3 .mini{font-size:11px;padding:3px 10px;font-weight:500;margin-left:8px;vertica
     </div>
     <button id="btnSample" data-i18n="btnSample">载入示例日期</button>
     <button id="btnPDF" data-i18n="btnPDF">导出 PDF</button>
-    <button id="btnJPG" class="ghost" data-i18n="btnJPG">导出 JPG</button>
+    <button id="btnJSON" class="ghost" data-i18n="btnJSON">导出 JSON</button>
+    <button id="btnImport" class="ghost" data-i18n="btnImport">导入 JSON</button>
+    <input type="file" id="fileJSON" accept=".json,application/json" style="display:none">
   </div>
 </header>
 <div class="mobile-tabs">
@@ -249,7 +251,7 @@ var I18N = {
 zh: {
   title:'客户节点甘特图工具', brand:'客户节点甘特图',
   projectNamePh:'项目名称（例如：XX车型项目）',
-  btnSample:'载入示例日期', btnPDF:'导出 PDF', btnJPG:'导出 JPG',
+  btnSample:'载入示例日期', btnPDF:'导出 PDF', btnJSON:'导出 JSON', btnImport:'导入 JSON',
   tabForm:'填写数据', tabChart:'查看甘特图',
   secOem:'主机厂', oemPlaceholder:'请选择主机厂', oemHint:'切换主机厂后，客户节点清单自动更换；同名节点的日期会保留。',
   secNodes:'客户节点日期', nodeHint:'勾选参与本项目的节点，未勾选的不进入甘特图；日期倒置（后一节点早于前一节点）会标红提醒。',
@@ -271,12 +273,13 @@ zh: {
   secNodeRef:'客户节点说明', refAbbr:'缩写', refName:'节点名称', refDesc:'含义及要求',
   toastNeedName:'请填写任务名称',
   toastNeedDates:'请选择开始和结束日期', toastEndBeforeStart:'结束日期不能早于开始日期',
-  toastNoChart:'暂无甘特图可导出，请先填写节点日期'
+  toastNoChart:'暂无甘特图可导出，请先填写节点日期',
+  toastJSONOk:'JSON 数据已导入', toastJSONBad:'JSON 文件无效，导入失败'
 },
 en: {
   title:'Customer Milestone Gantt Tool', brand:'Customer Milestones',
   projectNamePh:'Project name (e.g. XX model project)',
-  btnSample:'Load sample dates', btnPDF:'Export PDF', btnJPG:'Export JPG',
+  btnSample:'Load sample dates', btnPDF:'Export PDF', btnJSON:'Export JSON', btnImport:'Import JSON',
   tabForm:'Input data', tabChart:'View Gantt',
   secOem:'OEM', oemPlaceholder:'Select OEM', oemHint:'Switching OEM reloads the milestone list; dates of same-named milestones are kept.',
   secNodes:'Customer milestone dates', nodeHint:'Tick milestones included in this project; unticked ones are excluded from the chart. Inverted dates (a later milestone earlier than the previous one) are flagged red.',
@@ -298,12 +301,13 @@ en: {
   secNodeRef:'Milestone reference', refAbbr:'Abbr.', refName:'Milestone name', refDesc:'Description & requirements',
   toastNeedName:'Please enter a task name',
   toastNeedDates:'Please select start and end dates', toastEndBeforeStart:'End date must not be earlier than start date',
-  toastNoChart:'No chart to export yet — please fill in milestone dates first'
+  toastNoChart:'No chart to export yet — please fill in milestone dates first',
+  toastJSONOk:'JSON data imported', toastJSONBad:'Invalid JSON file'
 },
 de: {
   title:'Kundenmeilenstein-Gantt-Tool', brand:'Kundenmeilensteine',
   projectNamePh:'Projektname (z. B. Projekt Modell XX)',
-  btnSample:'Beispieldaten laden', btnPDF:'PDF exportieren', btnJPG:'JPG exportieren',
+  btnSample:'Beispieldaten laden', btnPDF:'PDF exportieren', btnJSON:'JSON exportieren', btnImport:'JSON importieren',
   tabForm:'Daten eingeben', tabChart:'Gantt ansehen',
   secOem:'OEM', oemPlaceholder:'OEM wählen', oemHint:'Beim OEM-Wechsel wird die Meilensteinliste neu geladen; Daten gleichnamiger Meilensteine bleiben erhalten.',
   secNodes:'Termine der Kundenmeilensteine', nodeHint:'Meilensteine dieses Projekts anhaken; nicht angehakte erscheinen nicht im Diagramm. Verdrehte Daten (späterer Meilenstein vor früherem) werden rot markiert.',
@@ -325,7 +329,8 @@ de: {
   secNodeRef:'Meilenstein-Referenz', refAbbr:'Abk.', refName:'Meilensteinname', refDesc:'Beschreibung und Anforderungen',
   toastNeedName:'Bitte Aufgabennamen eingeben',
   toastNeedDates:'Bitte Start- und Enddatum wählen', toastEndBeforeStart:'Enddatum darf nicht vor dem Startdatum liegen',
-  toastNoChart:'Kein Diagramm zum Exportieren – bitte zuerst Meilensteintermine eintragen'
+  toastNoChart:'Kein Diagramm zum Exportieren – bitte zuerst Meilensteintermine eintragen',
+  toastJSONOk:'JSON-Daten importiert', toastJSONBad:'Ungültige JSON-Datei'
 }};
 function tr(k){ var d = I18N[lang] || I18N.zh; return (d[k] !== undefined) ? d[k] : (I18N.zh[k] !== undefined ? I18N.zh[k] : k); }
 function pick(o){
@@ -920,13 +925,6 @@ function svgToCanvas(cb){
   img.onerror = function(){ URL.revokeObjectURL(url); toast(tr('toastNoChart')); };
   img.src = url;
 }
-function exportJPG(){
-  svgToCanvas(function(c){
-    c.toBlob(function(b){
-      if(b) downloadURL(URL.createObjectURL(b), fileBase() + '.jpg');
-    }, 'image/jpeg', 0.92);
-  });
-}
 /* 极简 PDF：单页 + 单张 JPEG 图 */
 function buildPdf(jpeg, w, h){
   var pw = (w * 0.375).toFixed(2), ph = (h * 0.375).toFixed(2);
@@ -973,6 +971,41 @@ function exportPDF(){
       fr.readAsArrayBuffer(blob);
     }, 'image/jpeg', 0.92);
   });
+}
+/* ---------- JSON 导出 / 导入：保存与恢复填写的数据 ---------- */
+function exportJSON(){
+  var data = { app:'gantt-tool', v:1, oem:state.oem, projectName:state.projectName,
+    dates:state.dates, excluded:state.excluded, recTasks:state.recTasks,
+    tasks:state.tasks, customMs:state.customMs, showPhase:state.showPhase !== false };
+  downloadURL(URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type:'application/json' })), fileBase() + '.json');
+}
+function importJSON(file){
+  var rd = new FileReader();
+  rd.onload = function(){
+    try{
+      var d = JSON.parse(rd.result);
+      if(!d || typeof d !== 'object') throw 0;
+      if(d.oem && !OEM_NODES[d.oem]) throw 0;
+      state.oem = d.oem || '';
+      state.projectName = (typeof d.projectName === 'string') ? d.projectName : '';
+      state.dates = (d.dates && typeof d.dates === 'object') ? d.dates : {};
+      state.excluded = (d.excluded && typeof d.excluded === 'object') ? d.excluded : {};
+      state.recTasks = (d.recTasks && typeof d.recTasks === 'object') ? d.recTasks : {};
+      state.tasks = Array.isArray(d.tasks) ? d.tasks : [];
+      state.customMs = Array.isArray(d.customMs) ? d.customMs : [];
+      state.showPhase = d.showPhase !== false;
+      var names = {};
+      nodes().forEach(function(n){ names[n[0]] = true; });
+      Object.keys(state.dates).forEach(function(k){ if(!names[k]) delete state.dates[k]; });
+      Object.keys(state.excluded).forEach(function(k){ if(!names[k]) delete state.excluded[k]; });
+      $('oemSelect').value = state.oem;
+      $('projectName').value = state.projectName;
+      $('ckPhase').checked = state.showPhase;
+      save(); renderAll();
+      toast(tr('toastJSONOk'));
+    }catch(e){ toast(tr('toastJSONBad')); }
+  };
+  rd.readAsText(file);
 }
 
 /* ---------- 操作 ---------- */
@@ -1021,8 +1054,13 @@ function init(){
     tabBtns[ti].addEventListener('click', function(){ setTab(this.dataset.tab); });
   }
   $('btnSample').addEventListener('click', sampleDates);
-  $('btnJPG').addEventListener('click', exportJPG);
   $('btnPDF').addEventListener('click', exportPDF);
+  $('btnJSON').addEventListener('click', exportJSON);
+  $('btnImport').addEventListener('click', function(){ $('fileJSON').click(); });
+  $('fileJSON').addEventListener('change', function(){
+    if(this.files && this.files[0]) importJSON(this.files[0]);
+    this.value = '';
+  });
   $('btnAddTask').addEventListener('click', function(){
     var name = $('taskName').value.trim();
     var s = $('taskStart').value, e = $('taskEnd').value;
