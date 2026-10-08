@@ -21,7 +21,13 @@ aside h3{font-size:13px;margin:16px 0 8px;color:#374151}
 aside h3:first-child{margin-top:0}
 aside select,aside input[type=date],aside input[type=text]{font-size:13px;padding:6px 8px;border:1px solid #d1d5db;border-radius:6px;width:100%;background:#fff}
 .node-row{display:flex;align-items:center;gap:8px;padding:5px 4px;border-bottom:1px solid #f3f4f6;flex-wrap:wrap}
-.ndesc{flex:1 1 100%;margin:1px 0 3px 46px;font-size:11px;color:#6b7280;line-height:1.5}
+.noderef{margin-top:12px;background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:10px 12px;overflow-x:auto}
+.noderef h3{margin:0 0 8px;font-size:13px}
+.reftable{width:100%;border-collapse:collapse;font-size:12px;min-width:520px}
+.reftable th,.reftable td{border:1px solid #e5e7eb;padding:6px 8px;text-align:left;vertical-align:top}
+.reftable th{background:#f9fafb;font-weight:600;white-space:nowrap}
+.reftable td.ra{font-weight:700;white-space:nowrap}
+.reftable td:last-child{color:#4b5563;line-height:1.6}
 .langbtns{display:flex;gap:4px}
 .langbtns button{padding:6px 10px;font-size:12px;background:#4b5563;color:#d1d5db}
 .langbtns button.on{background:#f59e0b;color:#1f2937}
@@ -154,6 +160,10 @@ svg text{font-size:11px;fill:#4b5563}
       <div id="chart"></div>
       <div id="emptyHint" data-i18n="emptyHint">请先选择主机厂，并在左侧填写各客户节点的日期，甘特图将自动生成。<br>也可以点「载入示例日期」先看效果。</div>
     </div>
+    <section class="noderef">
+      <h3 data-i18n="secNodeRef">客户节点说明</h3>
+      <div id="nodeRef"></div>
+    </section>
   </main>
 </div>
 <script>
@@ -190,7 +200,7 @@ function diffDays(a,b){
 }
 function addDays(d,n){ var x = new Date(d.getTime()); x.setDate(x.getDate()+n); return x; }
 function trunc(s,n){ s = String(s); return s.length > n ? s.slice(0,n-1) + '…' : s; }
-function abbr(s){ return String(s).replace(/\s*\([^()]*\)$/, ''); }
+function abbr(s){ return String(s).replace(/\s*[\(（][^()（）]*[\)）]$/, ''); }
 
 /* ---------- 多语言（中/英/德） ---------- */
 var lang = 'zh';
@@ -212,6 +222,7 @@ zh: {
   anchor:'锚点', week:'周', recWait:'待锚点日期', recInvert:'起止倒置',
   offStartTitle:'开始偏移（周），负数为锚点之前', offEndTitle:'结束偏移（周），负数为锚点之前',
   nodeCount:'（共{total}个，已选{sel}个）', nodeInvert:'日期倒置',
+  secNodeRef:'客户节点说明', refAbbr:'缩写', refName:'节点名称', refDesc:'含义及要求',
   toastImportFail:'导入失败：文件格式不正确', toastNeedName:'请填写任务名称',
   toastNeedDates:'请选择开始和结束日期', toastEndBeforeStart:'结束日期不能早于开始日期'
 },
@@ -232,6 +243,7 @@ en: {
   anchor:'Anchor', week:'wk', recWait:'Waiting for anchor date', recInvert:'Start/end inverted',
   offStartTitle:'Start offset (weeks), negative = before anchor', offEndTitle:'End offset (weeks), negative = before anchor',
   nodeCount:'({total} total, {sel} selected)', nodeInvert:'Inverted dates',
+  secNodeRef:'Milestone reference', refAbbr:'Abbr.', refName:'Milestone name', refDesc:'Description & requirements',
   toastImportFail:'Import failed: invalid file format', toastNeedName:'Please enter a task name',
   toastNeedDates:'Please select start and end dates', toastEndBeforeStart:'End date must not be earlier than start date'
 },
@@ -252,6 +264,7 @@ de: {
   anchor:'Anker', week:'Wo.', recWait:'Wartet auf Ankerdatum', recInvert:'Start/Ende verdreht',
   offStartTitle:'Start-Offset (Wochen), negativ = vor Anker', offEndTitle:'End-Offset (Wochen), negativ = vor Anker',
   nodeCount:'({total} gesamt, {sel} ausgewählt)', nodeInvert:'Verdrehte Daten',
+  secNodeRef:'Meilenstein-Referenz', refAbbr:'Abk.', refName:'Meilensteinname', refDesc:'Beschreibung und Anforderungen',
   toastImportFail:'Import fehlgeschlagen: ungültiges Dateiformat', toastNeedName:'Bitte Aufgabennamen eingeben',
   toastNeedDates:'Bitte Start- und Enddatum wählen', toastEndBeforeStart:'Enddatum darf nicht vor dem Startdatum liegen'
 }};
@@ -342,7 +355,6 @@ function renderNodes(){
       + '<span class="seq">' + (i+1) + '</span>'
       + '<span class="nname" title="' + esc(label) + '">' + esc(abbr(name)) + '</span>'
       + '<input type="date" data-node="' + esc(name) + '" value="' + esc(v) + '">'
-      + (desc ? '<span class="ndesc">' + esc(desc) + '</span>' : '')
       + '</div>';
   });
   list.innerHTML = html || '<p class="hint">' + tr('hintNoNodes') + '</p>';
@@ -578,7 +590,19 @@ function renderChart(){
   chart.innerHTML = '<svg width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" xmlns="http://www.w3.org/2000/svg">' + s + '</svg>';
 }
 
-function renderAll(){ renderNodes(); renderRecTasks(); renderTasks(); renderChart(); }
+/* ---------- 右侧：客户节点说明表（甘特图下方） ---------- */
+function renderNodeRef(){
+  var el = $('nodeRef');
+  var ns = nodes();
+  if(!ns.length){ el.innerHTML = ''; return; }
+  var html = '<table class="reftable"><thead><tr><th>' + tr('refAbbr') + '</th><th>' + tr('refName') + '</th><th>' + tr('refDesc') + '</th></tr></thead><tbody>';
+  ns.forEach(function(n){
+    html += '<tr><td class="ra">' + esc(abbr(n[0])) + '</td><td>' + esc(n[0]) + '</td><td>' + esc(nodeDesc(n)) + '</td></tr>';
+  });
+  el.innerHTML = html + '</tbody></table>';
+}
+
+function renderAll(){ renderNodes(); renderRecTasks(); renderTasks(); renderChart(); renderNodeRef(); }
 
 /* ---------- 移动端标签页 ---------- */
 function setTab(which){
