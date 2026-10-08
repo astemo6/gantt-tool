@@ -1023,7 +1023,13 @@ function chartSVGString(){
   return { str:new XMLSerializer().serializeToString(clone), w:+svg.getAttribute('width'), h:+svg.getAttribute('height') };
 }
 /* ---------- 导出：高分辨率 JPG / PDF（含标题、图例、页脚） ---------- */
-var EXPORT_SCALE = 3;
+var EXPORT_DPI = 600;
+function exportScale(cssW, cssH){
+  var s = EXPORT_DPI / 96;
+  var maxPx = 80000000; /* 浏览器 canvas 安全上限，超大图表自动降档 */
+  if(cssW * cssH * s * s > maxPx) s = Math.sqrt(maxPx / (cssW * cssH));
+  return s;
+}
 function drawExportLegend(ctx, w, y0){
   var items = [
     {c:'#dc2626', t:tr('legendMs'), diamond:true},
@@ -1070,11 +1076,12 @@ function renderExportCanvas(cb){
     var titleH = 92, legendH = 44;
     var footerH = 26 + (showCreator && creator ? 22 : 0) + (showDate ? 22 : 0);
     var cssW = info.w, cssH = titleH + info.h + legendH + footerH;
+    var scale = exportScale(cssW, cssH);
     var c = document.createElement('canvas');
-    c.width = Math.round(cssW * EXPORT_SCALE);
-    c.height = Math.round(cssH * EXPORT_SCALE);
+    c.width = Math.round(cssW * scale);
+    c.height = Math.round(cssH * scale);
     var ctx = c.getContext('2d');
-    ctx.scale(EXPORT_SCALE, EXPORT_SCALE);
+    ctx.scale(scale, scale);
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, cssW, cssH);
     /* 标题 */
@@ -1101,7 +1108,7 @@ function renderExportCanvas(cb){
   img.onerror = function(){ URL.revokeObjectURL(url); toast(tr('toastNoChart')); };
   img.src = url;
 }
-/* 极简 PDF：单页 + 单张 JPEG 图；页面按 CSS 尺寸（96dpi），图片 3x 像素 = 高分辨率 */
+/* 极简 PDF：单页 + 单张 JPEG 图；页面按 CSS 尺寸（96dpi），图片按导出 DPI = 高分辨率 */
 function buildPdf(jpeg, w, h, dispW, dispH){
   var pw = (dispW * 0.75).toFixed(2), ph = (dispH * 0.75).toFixed(2);
   var out = [];
