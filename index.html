@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>客户节点甘特图工具 v1</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif;color:#1f2937;background:#f3f4f6;font-size:14px}
+header{display:flex;align-items:center;gap:12px;background:#1f2937;color:#fff;padding:10px 16px;position:sticky;top:0;z-index:10}
+.brand{font-weight:700;font-size:16px;white-space:nowrap}
+.ver{background:#f59e0b;color:#1f2937;font-size:11px;padding:1px 6px;border-radius:8px;margin-left:6px;font-weight:600}
+#projectName{background:#374151;border:1px solid #4b5563;color:#fff;border-radius:6px;padding:6px 10px;width:200px;font-size:13px}
+.actions{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+button{background:#f59e0b;border:none;color:#1f2937;font-weight:600;padding:7px 12px;border-radius:6px;cursor:pointer;font-size:13px;white-space:nowrap}
+button:hover{background:#fbbf24}
+button.ghost{background:#374151;color:#e5e7eb}
+button.ghost:hover{background:#4b5563}
+.main{display:flex;height:calc(100vh - 53px)}
+aside{width:344px;background:#fff;border-right:1px solid #e5e7eb;overflow-y:auto;padding:12px 14px;flex-shrink:0}
+aside h3{font-size:13px;margin:16px 0 8px;color:#374151}
+aside h3:first-child{margin-top:0}
+aside select,aside input[type=date],aside input[type=text]{font-size:13px;padding:6px 8px;border:1px solid #d1d5db;border-radius:6px;width:100%;background:#fff}
+.node-row{display:flex;align-items:center;gap:8px;padding:5px 4px;border-bottom:1px solid #f3f4f6}
+.node-row.warn input{border-color:#ef4444;background:#fef2f2}
+.seq{background:#eef2ff;color:#4f46e5;font-size:11px;min-width:22px;height:22px;border-radius:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.nname{flex:1;font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.node-row input[type=date]{width:126px;flex-shrink:0;font-size:12px;padding:4px 6px}
+.node-row.off{opacity:.45}
+.rec-row{display:flex;align-items:center;gap:8px;padding:6px 4px;border-bottom:1px solid #f3f4f6}
+.rec-row.off{opacity:.45}
+.rec-row .nname{flex:1;min-width:0}
+.rmeta{display:block;font-size:11px;color:#9ca3af}
+.offs{display:flex;align-items:center;gap:3px;font-size:11px;color:#9ca3af;flex-shrink:0}
+.offs input{width:46px;font-size:12px;padding:3px 4px;border:1px solid #d1d5db;border-radius:6px}
+.hint{font-size:12px;color:#9ca3af;margin:6px 0}
+main{flex:1;overflow:auto;padding:12px 16px;min-width:0}
+.legend{font-size:12px;color:#6b7280;margin-bottom:8px;display:flex;gap:16px;flex-wrap:wrap;align-items:center}
+.dot{display:inline-block;width:10px;height:10px;margin-right:4px;vertical-align:baseline}
+.chart-wrap{background:#fff;border:1px solid #e5e7eb;border-radius:8px;overflow-x:auto;min-height:320px;position:relative}
+#emptyHint{padding:60px 20px;text-align:center;color:#9ca3af;font-size:14px;display:none}
+svg text{font-size:11px;fill:#4b5563}
+.axis{fill:#9ca3af;font-size:11px}
+.mlabel{font-size:11px;fill:#1f2937}
+.mdate{font-size:10px;fill:#9ca3af}
+.glabel{font-size:12px;fill:#6b7280;font-weight:600}
+.plabel{font-size:11px;fill:#1e40af}
+.tlabel{font-size:11.5px;fill:#374151}
+.task-row{display:flex;align-items:center;gap:8px;padding:6px 4px;border-bottom:1px solid #f3f4f6;font-size:12.5px}
+.tname{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.trange{color:#9ca3af;font-size:11px;white-space:nowrap}
+.del{background:#fee2e2;color:#b91c1c;padding:4px 8px;font-size:12px}
+.del:hover{background:#fecaca}
+.task-form{margin-top:8px}
+.task-form input{margin-bottom:6px}
+.row2{display:flex;gap:6px}
+.row2 input{flex:1;min-width:0}
+#btnAddTask{width:100%}
+.foot{font-size:11px;color:#9ca3af;margin-top:8px}
+#toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);background:#1f2937;color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;opacity:0;pointer-events:none;transition:all .25s;z-index:50;max-width:80%}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+@media print{
+  header .actions,aside,.foot,.legend{display:none}
+  header{position:static}
+  .main{display:block;height:auto}
+  main{overflow:visible;padding:0}
+  .chart-wrap{overflow:visible;border:none;min-height:0}
+  svg{width:100%!important;height:auto!important}
+}
+.mobile-tabs{display:none;background:#fff;border-bottom:1px solid #e5e7eb;padding:8px 12px;gap:8px}
+.mobile-tabs button{flex:1;background:#eef2f7;color:#374151}
+.mobile-tabs button.active{background:#f59e0b;color:#1f2937}
+@media (max-width:768px){
+  .mobile-tabs{display:flex}
+  header{flex-wrap:wrap;row-gap:8px}
+  .brand{font-size:14px}
+  #projectName{flex:1 1 100%;width:auto}
+  .actions{margin-left:0;flex:1 1 100%}
+  .actions button{flex:1;padding:7px 4px;font-size:12px}
+  .main{flex-direction:column;height:auto}
+  body.tab-form main{display:none}
+  body.tab-chart aside{display:none}
+  aside{width:100%;border-right:none;overflow:visible}
+  main{padding:8px}
+  .legend{gap:8px;font-size:11px}
+  .node-row input[type=date]{width:104px;font-size:11px;padding:4px}
+  .nname{font-size:12px}
+  .offs input{width:38px}
+  .foot{font-size:10px}
+}
+</style>
+</head>
+<body class="tab-form">
+<header>
+  <div class="brand">客户节点甘特图<span class="ver">v1</span></div>
+  <input id="projectName" type="text" placeholder="项目名称（例如：XX车型座椅项目）">
+  <div class="actions">
+    <button id="btnSample">载入示例日期</button>
+    <button id="btnExport" class="ghost">导出 JSON</button>
+    <button id="btnImport" class="ghost">导入 JSON</button>
+    <input type="file" id="fileImport" accept=".json,application/json" hidden>
+  </div>
+</header>
+<div class="mobile-tabs">
+  <button data-tab="form" class="active">填写数据</button>
+  <button data-tab="chart">查看甘特图</button>
+</div>
+<div class="main">
+  <aside>
+    <section>
+      <h3>主机厂</h3>
+      <select id="oemSelect"></select>
+      <p class="hint">切换主机厂后，客户节点清单自动更换；同名节点的日期会保留。</p>
+    </section>
+    <section>
+      <h3>客户节点日期 <span id="nodeCount"></span></h3>
+      <div id="nodeList"></div>
+      <p class="hint">勾选参与本项目的节点，未勾选的不进入甘特图；日期倒置（后一节点早于前一节点）会标红提醒。</p>
+    </section>
+    <section>
+      <h3>推荐任务（模板） <span id="recCount"></span></h3>
+      <div id="recList"></div>
+      <p class="hint">根据PAP节点对照表推荐的内部任务，日期按锚点节点自动推算；偏移周数可改；不勾选的不进入甘特图。</p>
+    </section>
+    <section>
+      <h3>自定义任务</h3>
+      <div id="taskList"></div>
+      <div class="task-form">
+        <input id="taskName" type="text" placeholder="任务名称（例如：模具T1试模）">
+        <div class="row2">
+          <input id="taskStart" type="date" aria-label="开始日期">
+          <input id="taskEnd" type="date" aria-label="结束日期">
+        </div>
+        <button id="btnAddTask">添加任务</button>
+      </div>
+    </section>
+  </aside>
+  <main>
+    <div class="legend">
+      <span><span class="dot" style="background:#f59e0b;transform:rotate(45deg)"></span>客户关键节点</span>
+      <span><span class="dot" style="background:#bfdbfe;border:1px solid #60a5fa"></span>阶段区间</span>
+      <span><span class="dot" style="background:#60a5fa"></span>推荐任务</span>
+      <span><span class="dot" style="background:#14b8a6"></span>自定义任务</span>
+      <span><span class="dot" style="background:#ef4444;width:2px;height:12px"></span>今天</span>
+      <span style="color:#ef4444">红色节点 = 日期倒置</span>
+    </div>
+    <div class="chart-wrap">
+      <div id="chart"></div>
+      <div id="emptyHint">请先选择主机厂，并在左侧填写各客户节点的日期，甘特图将自动生成。<br>也可以点「载入示例日期」先看效果。</div>
+    </div>
+    <p class="foot">节点数据来源：PAP与主机厂项目节点对照表 Rev02 · 已含 13 项推荐内部任务模板（偏移周数可调） · 请用「导出 JSON」保存项目数据</p>
+  </main>
+</div>
+<script>
+const OEM_ORDER = ["Bez(奔驰)", "Ford(福特)", "JAC(江淮)", "DYK(东风悦达起亚)", "Chery(奇瑞)", "SGMW(上汽通用五菱)", "Geely(吉利)", "BMW(宝马)", "SVW(上汽大众)", "SGM(上汽通用)", "Nissan(尼桑)", "CJLR(奇瑞捷豹路虎)", "DRAC(东风雷诺)", "DPCA(东风标致雪铁龙)", "CMA", "Volvo(沃尔沃)", "PSA"];
+const OEM_NODES = {"Bez(奔驰)":[["\"P\" Release","","DV 发放。设计&开发中的产品和过程问题已关闭，支持DV制造所需工装零件的长周期DV图纸已发放。"],["\"_\" Release","","PV发放。设计验证中的产品和过程问题已关闭，且长周期PV图纸已发放。有合适的计划支持PV制造、PV测试和客户需求。"],["Engineering Sample","","工程样件。提交符合客户要求的工程样件。"],["OTS（Off Tooling Samples）","","工装样件认可。供应商在全工装状态下非节拍生产条件下制造出来的样件得到客户认可。主要验证产品的设计能力、以及公司工装生产的产品是否满足产品的使用 要求。"],["Lot（BL","","Baulos）:整车试制。交产品前完成Critical试验。"],["ET","","Engineering Trial 工程试制。供应商在此阶段提交的产品均需要采用正规的工装模具来生产，一般包装也要求为正规包装。"],["PT","","Production Trial 生产线第一轮试生产。供应商此阶段提交的产品应使用正规化的工艺路线和要求进行生产。主要验证能否满足量产要求。客户要求可以上市的市场车，需要完成所有的PV和DBL试验的要求。如果有失效，需要客户进行认可。"],["PPAP Submition （Production Part Approval Process Submit)","","PPAP初版提交，要求供应商产品质量符合客户要求。"],["PPAP-Yellow（Production Part Approval Process Yellow)","","生产件批准程序1。 PPAP为黄色， 需要完成DBL的要求。"],["PPAP-Green（Production Part Approval Process Green)","","生产件批准程序2。PPAP批准为绿色， 所有的试验OK。"],["SOP","","Start of Production 投产，批量生产开始。"]],"Ford(福特)":[["FDJ（Final Data Judgment）","","最终数据判定。OEM签署开发模具申请、工装&检具方案评审。供应商需提供工装、检具、设备的开发计划，完成工装、检具方案，并提交开模申请。"],["VP（Verification Prototype）","","样车验证。供应商需完成样件模具/工装检具开发，完成样件控制计划，并开始生产和交付OTS样件，DV的关键实验要完毕。"],["PEC（Preliminary Engineering Completion）","","初始工程签发。供应商内外部质量问题需解决完毕、DV试验完成、需重新进行DV验证的计划确认完成。"],["FEC（Final Engineering Completion）","","最终工程签发。供应商需完成需要重新进行的DV试验。"],["HB（homologation build）","","法规车装车。需要供应商完成PV全部实验（视情况而定，关键试验完成的情况下也可以通过，但是需要和客户协商）。"],["LR（Launch Readiness）","","投产准备。供应商装配&制造所用的工装与设备（量产的）准备就绪，客户会到供应商处评审。"],["TT（Tooling Trial-Build start）","","工装试运行。要求供应商产能（不包括节拍）、工装、制造过程全部符合要求。"],["PP （Pilot Production）","","小批量生产。供应商需支持PP装车零件交付，达到正规生产的全部要求。"],["PPAP1","","初版PPAP提交，要求供应商产品质量符合主机厂的全部质量要求。"],["PPAP2","","生产验证，要求供应商的生产线设备、工装、防错等符合客户的生产要求。"],["PPAP3","","生产能力验证，要求供应商产能达到客户量产要求。"],["MP/job1（Master Production）","","量产。"]],"JAC(江淮)":[["G1","","产品规划。商品企划依据立项预研阶段需求及可行性分析，完成产品定义，批准立项，下发开发指令；"],["G2","","产品策划。组织开展产品策划工作，明确产品开发具体可操作性的目标；组织开展项目管理策划工作，进行基于目标实现的过程策划，明确开发的流程.结构.过程和方法；"],["G3-G5","","造型开发。基于已定的概念目标以及实现过程，开展各项目的详细目标设计，由基本概念导入具有可度量.可视化的信息，将产品策划转化为项目的方案设计。"],["G6","","设计开发。将产品设计数据经过审核，分析，最终数模确认发布，启动各零部件批量模具指定及样件生产工作。"],["G7-G8","","设计验证。基于最终数据及工艺文件开展零部件快速成型验证，整车验证等，在工装设备进场安装调试前完成设计确认；"],["G9-G12","","量产准备。基于前期设计验证的结果开展工装调试以及整车开发目标的逐步实现过程，完成进入量产评价阶段的准备。"],["G13","","量产评价。基于量产评价阶段市场销售信息以及项目开发目标的市场验证结果，开展项目量产评价验收以及最终的项目总结，项目关闭。"]],"DYK(东风悦达起亚)":[["Model Fix","","座椅造型面锁定；"],["PROTO","","座椅完成DV 关键实验，交付客户进行DV 装车验证"],["M-CAR","","DV设计锁定，DV验证完成。交付客户DV最终状态样件进行装车评审。座椅开始启动PV 模具。"],["P1","","完成PV关键性PV实验，交付客户进行PV装车及验证。"],["T","","座椅完成所有PV实验，交付客户进行在线装车及设备调试"],["P2","","座椅完成皮纹及所有PV实验，交付客户进行在线装车验证"],["M","","爬坡验证可以达到节拍生产"],["SOP","","量产"]],"Chery(奇瑞)":[["P0","","市场策略分析，整车架构布点等。"],["P1","","预研指令；预研预算批准；效果图启动指令；效果图冻结；产品定义报告；关键件供应商决裁完成。"],["P2","","效果图冻结；立项指令；A面冻结；M1数据冻结，M1数据可支持模具涉及启动；100%供应商决裁完成。"],["P3","","A面冻结；固定投资批准；M2数据冻结，硬模工艺设计确认，M2数据支持软模/硬模投注开始。"],["P4","","结构验证完成；外协件检具验收，1st 整车工艺验证完成；"],["OTS","","外观/内饰匹配、PQ验收；整车性能实验验收；模具预验收&回厂；供应商工艺/工序验证；供应商PVS产能验证完；整车工艺验证确认。"],["PVS","","装车阶段，试生产。"],["2TP","","达产审核，要求供应商产品质量符合主机厂的全部质量要求。"],["0S","","生产验证，要求供应商的生产线设备、工装、防错等符合客户的生产要求。"],["PPAP","","生产能力验证，要求供应商产能达到客户量产要求。"],["SOP","","量产。"]],"SGMW(上汽通用五菱)":[["DSI","","Document of Strategic Intent  立项建议书 Project proposal"],["VPI","","Vehicle Program Initiation  整车项目启动Vehicle Project Kick Off"],["LLP T1","","Long Lead Process T1  长周期T1数据(3D)锁定 Long-lead  T1 data (3D) frozen"],["LLP T2","","Long Lead Process T1  长周期T2数据(3DA及图纸）锁定Long-lead  T2 data (3D) frozen"],["OTS","","Off Tooling Sample   工装样件Off Tooling Sample"],["NS","","Non-Salable   在正式生产系统制造出的不可销售样车Non - saleable vehicle manufactured in the production line"],["S","","Salable  在正式生产系统制造出的可销售样车Saleable vehicle manufactured in the production line"],["SOP","","Start Of Pilot  量产Start Of Pilot"]],"Geely(吉利)":[["PSF(Program Strategy)","","签发项目策略，首次明确产品定义；签发策略性问题的解决方案"],["PS(Program Start)","","签发绿，红，蓝皮书中定义的项目商务/工程/市场方面的假设；决定项目先决条件，包括车型项目计划，造型时间计划，造型二选一，采购计划，质量目标，系统共同和沿用化方案；签发项目至<PC>所需的预算，包括在<PC>前所需长周期投资"],["M1DJ(M1 Data Judgment)","","评估M1模具（包括桥接件）的准备情况以发布开模指令；评估项目偏差以及影响；批准M1试制计划"],["M2(Mule2)","","上下车身新架构软模件，进行产品设计和过程工艺验证"],["PA(Program Approval)","","批准项目商务，技术和市场目标（项目经济性，产品内容以及市场模型）；签发项目剩余部分预算投资；确认供应商合同签订的状态及计划；确认市场投放爬升计划；确认市场投放标准中的内容；确认预生产阶段及市场活动所需造车数量以及配置"],["FDJ(Final Data Judgment)","","确保所有工程活动都完成，且设计包含生产意图；建议/批准制造模具和零部件的采购；批准VP造车的时间计划"],["VP(Verification Prototype)","","审阅批准可支持验证生产意图的行动；审阅批准可支持验证生产布置的行动；决定哪些偏差需得到项目团队批准；批准开始VP造车；批准VP验证活动"],["PEC(Preliminary Engineering Comple-tion)","","确保所有VP试验已经完成；确定工程更改方案"],["FEC(Final Engineering Comple-tion)","","确保所有VP试验已经完成；确定工程锁定方案"],["LR(Launch Readiness)","","签发详细的投产计划，确保生产系统为投产准备完毕；批准TT造车开始；批准市场投放活动继续开展；确认市场配置"],["TT(Tooling Trail)","","确保TT造车符合OktB需求；确认TT造车的工艺能力；确认工人培训计划"],["LS(Launch Sign-Off)","","签发进入PP阶段；批准市场投放活动继续开展"],["PP(Poilt Production)","","确保PP造车达到OktB目标；确认PP造车的工艺能力；确认工人培训计划"],["J1(Job 1)","","签发开始批量生产;签发市场投放计划，准备启动销售"],["OKTB(OK-to-Buy)","","确认可销售量产阶段所造车辆；确认政府认证完成且公告已经发布；确认正在执行的生产爬坡计划"],["FSR(Final Status Report)","","项目关闭；确认所有工作已经完成或成功移交；总结经验教训"]],"BMW(宝马)":[["BBG（Pilot phase/Bestätigungsbaugruppe）","","设计验证阶段。样件要求为软模或量产模具件，供应商内部的关键实验需完成。"],["Auflegetage","","PV发放。设计验证中的产品和过程问题已关闭，且长周期PV图纸已发放。有合适的计划支持PV制造、PV测试和客户需求。"],["PVL/VS0（Process pre runners/Prozessvorläufer）","","预生产阶段，一般在VS2之前完成生产发放。样件要求为在模具制造商或供应商量产工厂生产的量产模具件，供应商的内部关键实验需完成。"],["VS1、VS2（Pre series/Vorserie）","","产品认证阶段。VS1样件要求为在供应商量产工厂并使用量产工艺流程生产的量产模具件，VS2样件在此要求上增加皮纹要求，供应商的全部实验需完成。"],["AP（Start up production/Anlaufproduktion）","","可销售生产阶段。"],["SVL（Series pre runner/Serienvorläufer）","","量产前爬坡试生产阶段。"],["PZS（Process Series/Prozess series）","","制造过程审核。"],["DOC（Direct Ordering Confirmation）","","宝马接受外部客户预订的节点。要求获得制造过程审核的认可。"],["ISIR（Initial Sample Inspection Release）","","生产件批准。"],["Pre-PPAP","","初版PPAP提交。要求供应商产品质量符合客户要求。"],["PPAP-Yellow","","PPAP黄色签批。要求供应商生产设备、工装、防错达到客户要求。"],["PPAP-Green","","PPAP绿色签批。要求供应商产能达到客户要求，含生产节拍。"],["SOP（Start of Production）","","批量生产启动。"]],"SVW(上汽大众)":[["DF(D-Freigabe)","","SVW前期开发结束，可以定点供应商并开始报价，报价以此时的BOM为基准。（大众的DF对应了PAP的TBL-DVR）"],["BF(B-Freigabe)","","正式开发结束，图纸冻结可用于批量模具的开发制造。此后的工程更改、报价问题等，需要TPB（大众工程）发放aeko才可。由于之前没有Aeko，所以收到B-Freigabe图纸是需要关注和以往报价图纸的差别。"],["LF(Launch-Freigabe)","","批量许可"],["VFF装车(Vorserien Freigabefahrzeuge)","","正式工装出来的样品。特殊情况下经客户同意，也可以提供简易、样品工装的样品。标志着车辆正式进入试生产阶段。"],["PVS装车(Produktions Versuchs Serie)","","单个零件与车身匹配为目的的装车试验，供大众内部各部门熟悉负责零件与整车的匹配，可以使用非完整状态零件（无皮纹等等）。"],["0S装车(0-Serie)","","以检验自身生产过程能力为目的的装车试验，类似于延锋安道拓的PSO签发，由SVW物流部门统一组织并编制“0S送样计划”。"],["2TP","","2日试生产，代表QPN的结束。目标是获得批产认可；生产过程准备就绪；结束项目规划；在批产能力状态下，对整个过程的可靠性和适宜性做最后的审核。"],["SOP(Start Of Production )","","批量生产"],["ME(Markt Einfuehrung)","","市场投放"]],"SGM(上汽通用)":[["PFI","","整车框架启动"],["DSI","","战略立项"],["RFQ","","要求报价（询价）"],["VPI","","整车项目启动"],["SF","","造型冻结"],["IDR","","首次数据发布"],["IVBR","","整车集成制造发放"],["VDR","","核实验定数据发布"],["CVER","","概念车工程发放"],["SVER","","架构车工程发放"],["LL IVER","","长周期整车集成制造发放"],["IVER","","集成车工程发布"],["IV GA","","集成车总成装配"],["M1","","整车第一次匹配"],["NCT/APPV","","整车级强制试验 / 先期生产零件验证"],["PPV","","产品及过程验证"],["NS","","不可销售阶段"],["VTC","","验证实验完成"],["VDC","","实验报告完成"],["PPAP","","生产件批准程序"],["S","","可销售阶段"],["SOPR","","开始正式量产"]],"Nissan(尼桑)":[["DF-Lot data submission","",""],["Customer Awarding","",""],["DF-C-lot data submission","",""],["Drawing issue and data release","",""],["VC-LOT","",""],["法检LOT","",""],["PT-LOT","",""],["SOP","",""]],"CJLR(奇瑞捷豹路虎)":[["1st VP(DV)","","首次交样（正式模具样件）,如有DV开发,1st DV的节点在DVRR-DVPE之间"],["1st VP(PV)","","首次交样（正式模具样件）,如只有PV开发,1st DV的节点在PVRR-PVPE之间"],["ACVB","Assembly Confirmation Vehicle Build","客户利用VP样件来满足实车装配验证"],["PPAP Phase 0","","按照预计生产节拍实际运行生产线"],["PPAP Phase 1","","分析下线产品(PV实验,尺寸报告,能力分析等),通俗的说,即1小时节拍生产达到客户要求，且所有整椅PV实验完成并获得合格报告"],["TT","Tooling Trial","开始工装验证,确认内外部的工装设备准备就绪,基建改造完成;意味着首次上线生产"],["PPAP Phase 3","","能满足客户计划的节拍产量"],["PP","Pilot Production","开始批量生产验证,评审MP1准备就绪,验证工装和设备的能力,以及生产硬模件的系统和流程"],["MP1/Job1","Mass Production","正式量产,首台可销售车辆下线"]],"DRAC(东风雷诺)":[["TGA","Tooling Go Ahead","开模指令，所有零件3D数据锁定。（TGA 的 PV开模节点是可以和客户协商的，以不影响首次VC交付为准）"],["AB-PT1","Agreement to build plant tiral 1","批准生产第一轮批量生产，可以使用量产资源生产，执行所有功能性验证和需求。座椅PV实验进行中"],["AB-PT2","Agreement to build plant tiral 2","批准生产第二轮批量生产，完成产品和过程验证。"],["PPC","Product&Process Certifiction","产品和过程能完全满足标准，完成客户PPAP,此时的产品为可销售件。"],["MA","Manufacturing Approval","生产过程能够满足需求的节拍生产。"],["SOP","Start Of Production","正式量产"]],"DPCA(东风标致雪铁龙)":[["INIT meeing","","确定产品开发阶段的行动计划，根据ATP会议中识别的 风险，重新、正式的评估各方面的项目风险，包括产品定义、过程 控制（Q3P）、项目计划、成本、项目管理。"],["TOP RO","","是FNR工装启动的唯一性指令,它可以是正式OCM或PPP签发的书面指令;FNR提供的零件图，神龙公司认可(神龙公司认可FNR提供的零件图纸周期约4周，所以需要提前四周提供图纸进行认可)。"],["IOD","","交样需提交：全尺寸报告；DPCA签字认可的检具认可报告；IOD阶段要求的材料、功能试验报告，KD件和国产件对比分析；Q3P文件。完成获取WI签级。"],["WI sign off","","客户线下对IOD样件进行认可,未经过PV实验验证"],["VRS样件","","线下小批量生产，PV 实验进行中，具有装车代表性，有尺寸检测报告。VRS分多个阶段，VRS1.1,VRS1.2,VRS2.1等。"],["WE sign off","","座椅所有PV实验及外观通过认可，客户线上生产放行签发"],["EL 造车","","线上生产，有节拍要求(开始爬坡）"],["MDL SD sign off","","预批量结论通过（满足节拍要求，包括IQF/IQA满足要求，XF零件需要有武汉装车结论）;过程鉴定通过，整改计划已经关闭;"],["AMC","","批量生产"],["LNC","","市场投放"]],"CMA":[["RFQ Release","","客户报价文件发放，要求供应商报价"],["Award","","客户定点供应商"],["FD","Final Drawing release","设计开发完成，数据可以支持模具开发"],["DCV","","装车验证设计是否能够满足目标设定"],["DC","Design Complete","设计冻结"],["TTO","Tooling Trial Off","验证工装/夹具/模具/设备验证"],["PP","Pilot Production","试生产，验证生产线产品质量"],["Job#1","","正式量产"]],"Volvo(沃尔沃)":[["Pre-PS","","先期项目开始"],["CDJ","","概念设计确认"],["M1DJ","","下车体数据确认"],["M1","","M1装车"],["PA","","整车项目批准"],["FAA","","最终外观批准"],["FDJ","","最终数据确认"],["VP","","设计原型验证"],["PEC","","初步设计完成"],["FEC","","最终设计完成"],["LR","","投产准备就绪"],["LS","","投产签收"],["OKTB","","可以销售"],["J1/MP1","","量产"],["FSR","","最终状态报告"],["R@R","","节拍生产"],["PPAP Ph0+","","PPAP阶段0+：尺寸验证"],["PPAP Ph1","","PPAP阶段1：质量验证"],["PPAP Ph2","","PPAP阶段2：生产验证"],["PPAP Ph3","","PPAP阶段3：产能验证"]],"PSA":[["PCM","",""],["SFR","",""],["DRR","",""],["TKOM","",""],["OTAR","",""],["PPMM","",""],["SLR","",""],["SPM","",""],["SOP","",""],["SOS","",""],["DMU1","",""],["DMU2","",""],["DMU3","",""],["SRUB phase 1","",""],["SRUB phase 2","",""],["VRS1","",""],["VRS2","",""],["EL1/EL2","",""]]};
+
+</script>
+<script>
+const PHASE_NAMES = {"DESIGN_FREEZE": "设计冻结", "TOOLING_KICKOFF": "开模", "DV": "DV", "PV": "PV", "OTS": "OTS", "TRIAL": "试生产", "PPAP": "PPAP", "SOP": "SOP"};
+const OEM_PHASES = {"Bez(奔驰)":{"DV":"\"P\" Release","PV":"\"_\" Release","OTS":"OTS（Off Tooling Samples）","TRIAL":"PT","PPAP":"PPAP Submition （Production Part Approval Process Submit)","SOP":"SOP"},"Ford(福特)":{"DESIGN_FREEZE":"FDJ（Final Data Judgment）","DV":"VP（Verification Prototype）","TRIAL":"PP （Pilot Production）","PPAP":"PPAP1","SOP":"MP/job1（Master Production）"},"JAC(江淮)":{"DESIGN_FREEZE":"G6","TOOLING_KICKOFF":"G6","DV":"G7-G8","TRIAL":"G9-G12","SOP":"G13"},"DYK(东风悦达起亚)":{"DV":"PROTO","PV":"P1","TRIAL":"T","SOP":"SOP"},"Chery(奇瑞)":{"PV":"PVS","OTS":"OTS","TRIAL":"2TP","PPAP":"PPAP","SOP":"SOP"},"SGMW(上汽通用五菱)":{"OTS":"OTS","TRIAL":"NS","SOP":"SOP"},"Geely(吉利)":{"DESIGN_FREEZE":"FDJ(Final Data Judgment)","TOOLING_KICKOFF":"M1DJ(M1 Data Judgment)","DV":"VP(Verification Prototype)","TRIAL":"TT(Tooling Trail)","SOP":"J1(Job 1)"},"BMW(宝马)":{"DV":"BBG（Pilot phase/Bestätigungsbaugruppe）","PV":"Auflegetage","TRIAL":"VS1、VS2（Pre series/Vorserie）","PPAP":"ISIR（Initial Sample Inspection Release）","SOP":"SOP（Start of Production）"},"SVW(上汽大众)":{"DESIGN_FREEZE":"BF(B-Freigabe)","PV":"PVS装车(Produktions Versuchs Serie)","OTS":"VFF装车(Vorserien Freigabefahrzeuge)","TRIAL":"0S装车(0-Serie)","SOP":"SOP(Start Of Production )"},"SGM(上汽通用)":{"DESIGN_FREEZE":"VDR","PV":"PPV","TRIAL":"NS","PPAP":"PPAP","SOP":"SOPR"},"Nissan(尼桑)":{"DESIGN_FREEZE":"Drawing issue and data release","TRIAL":"PT-LOT","SOP":"SOP"},"CJLR(奇瑞捷豹路虎)":{"DV":"1st VP(DV)","PV":"1st VP(PV)","TRIAL":"TT","PPAP":"PPAP Phase 1","SOP":"MP1/Job1"},"DRAC(东风雷诺)":{"TOOLING_KICKOFF":"TGA","TRIAL":"AB-PT1","PPAP":"PPC","SOP":"SOP"},"DPCA(东风标致雪铁龙)":{"TRIAL":"EL 造车"},"CMA":{"DESIGN_FREEZE":"FD","DV":"DCV","TRIAL":"TTO","SOP":"Job#1"},"Volvo(沃尔沃)":{"DESIGN_FREEZE":"FDJ","TOOLING_KICKOFF":"M1DJ","DV":"VP","PPAP":"PPAP Ph0+","SOP":"J1/MP1"},"PSA":{"TOOLING_KICKOFF":"TKOM","OTS":"OTAR","TRIAL":"SLR","SOP":"SOP"}};
+const REC_TASKS = [{"id":"r1","name":"长周期DV图纸发放","phase":"DV","so":-10,"eo":-8,"desc":"依据：Bez \"P\" Release——支持DV制造的长周期DV图纸已发放"},{"id":"r2","name":"DV样件制造","phase":"DV","so":-8,"eo":-6,"desc":"依据：DYK PROTO——座椅完成DV关键实验，交付客户DV装车验证"},{"id":"r3","name":"DV试验及报告","phase":"DV","so":-6,"eo":-2,"desc":"依据：DYK PROTO——完成DV关键实验；Bez \"_\" Release——设计验证的产品和过程问题已关闭"},{"id":"r4","name":"长周期PV图纸发放","phase":"PV","so":-10,"eo":-8,"desc":"依据：Bez \"_\" Release——长周期PV图纸已发放"},{"id":"r5","name":"PV样件制造","phase":"PV","so":-8,"eo":-5,"desc":"依据：CJLR 1st VP(PV)——交付客户PV样件"},{"id":"r6","name":"PV试验及报告（含DBL）","phase":"PV","so":-5,"eo":-2,"desc":"依据：Bez PT——完成所有的PV和DBL试验；DYK P1——完成PV关键性实验"},{"id":"r7","name":"模具/工装发包","phase":"TOOLING_KICKOFF","so":-4,"eo":-2,"desc":"依据：Geely M1DJ——发布开模指令；DRAC TGA——Tooling Go Ahead"},{"id":"r8","name":"T1试模及整改","phase":"OTS","so":-14,"eo":-8,"desc":"依据：SGMW LLP T1/T2——长周期T1/T2数据（3D/图纸）锁定"},{"id":"r9","name":"OTS样件提交客户认可","phase":"OTS","so":-6,"eo":-2,"desc":"依据：Bez OTS——全工装状态下制造的样件获客户认可；SVW VFF——正式工装出来的样品"},{"id":"r10","name":"试生产准备","phase":"TRIAL","so":-4,"eo":-1,"desc":"依据：DYK T——在线装车及设备调试；DYK M——爬坡验证达到节拍"},{"id":"r11","name":"PPAP文件包准备与提交","phase":"PPAP","so":-6,"eo":-2,"desc":"依据：Bez PPAP Submition——供应商产品质量符合客户要求；BMW ISIR——生产件批准"},{"id":"r12","name":"产能爬坡验证","phase":"SOP","so":-4,"eo":-1,"desc":"依据：DYK M——爬坡验证可以达到节拍生产；CJLR PPAP Phase 3——满足客户计划节拍产量"},{"id":"r13","name":"产品数据冻结","phase":"DESIGN_FREEZE","so":-3,"eo":0,"desc":"依据：SVW BF——图纸冻结可用于批量模具开发；SGM VDR——核实验定数据发布"}];
+const REC_DEFAULTS = {};
+REC_TASKS.forEach(function(t){ REC_DEFAULTS[t.id] = {so:t.so, eo:t.eo}; });
+
+</script>
+<script>
+(function(){
+"use strict";
+var $ = function(id){ return document.getElementById(id); };
+var DAY = 86400000;
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+function parseD(s){
+  if(!s) return null;
+  var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s);
+  if(!m) return null;
+  var d = new Date(+m[1], +m[2]-1, +m[3]);
+  return isNaN(d.getTime()) ? null : d;
+}
+function fmtD(d){
+  function p(n){ return String(n).padStart(2,'0'); }
+  return d.getFullYear() + '-' + p(d.getMonth()+1) + '-' + p(d.getDate());
+}
+function diffDays(a,b){
+  return Math.round((Date.UTC(b.getFullYear(),b.getMonth(),b.getDate()) - Date.UTC(a.getFullYear(),a.getMonth(),a.getDate()))/DAY);
+}
+function addDays(d,n){ var x = new Date(d.getTime()); x.setDate(x.getDate()+n); return x; }
+function trunc(s,n){ s = String(s); return s.length > n ? s.slice(0,n-1) + '…' : s; }
+
+var state = { oem:'', projectName:'', dates:{}, tasks:[], excluded:{}, recTasks:{} };
+function save(){}
+function load(){}
+function toast(msg){
+  var t = $('toast');
+  if(!t){ t = document.createElement('div'); t.id = 'toast'; document.body.appendChild(t); }
+  t.textContent = msg;
+  t.className = 'show';
+  clearTimeout(t._h);
+  t._h = setTimeout(function(){ t.className = ''; }, 2600);
+}
+function nodes(){ return OEM_NODES[state.oem] || []; }
+
+/* ---------- 左侧：节点列表 ---------- */
+function renderNodes(){
+  var list = $('nodeList'), ns = nodes();
+  var selCount = ns.filter(function(n){ return !state.excluded[n[0]]; }).length;
+  $('nodeCount').textContent = ns.length ? '（共' + ns.length + '个，已选' + selCount + '个）' : '';
+  var html = '', prev = null;
+  ns.forEach(function(n, i){
+    var name = n[0], alias = n[1], desc = n[2];
+    var inc = !state.excluded[name];
+    var v = state.dates[name] || '';
+    var d = parseD(v), warn = false;
+    if(inc){
+      if(d && prev && d < prev) warn = true;
+      if(d) prev = d;
+    }
+    var label = alias ? name + '（' + alias + '）' : name;
+    html += '<div class="node-row' + (warn ? ' warn' : '') + (inc ? '' : ' off') + '" title="' + esc(desc) + '">'
+      + '<input type="checkbox" class="inc" data-node="' + esc(name) + '"' + (inc ? ' checked' : '') + '>'
+      + '<span class="seq">' + (i+1) + '</span>'
+      + '<span class="nname" title="' + esc(label) + '">' + esc(label) + '</span>'
+      + '<input type="date" data-node="' + esc(name) + '" value="' + esc(v) + '">'
+      + '</div>';
+  });
+  list.innerHTML = html || '<p class="hint">请先选择主机厂</p>';
+  var inputs = list.querySelectorAll('input[type=date]');
+  for(var k = 0; k < inputs.length; k++){
+    inputs[k].addEventListener('change', function(){
+      state.dates[this.dataset.node] = this.value;
+      save(); renderAll();
+    });
+  }
+  var checks = list.querySelectorAll('.inc');
+  for(var j = 0; j < checks.length; j++){
+    checks[j].addEventListener('change', function(){
+      if(this.checked) delete state.excluded[this.dataset.node];
+      else state.excluded[this.dataset.node] = true;
+      save(); renderAll();
+    });
+  }
+}
+
+/* ---------- 左侧：自定义任务 ---------- */
+function renderTasks(){
+  var list = $('taskList');
+  var html = state.tasks.map(function(t, i){
+    return '<div class="task-row"><span class="tname" title="' + esc(t.name) + '">' + esc(t.name) + '</span>'
+      + '<span class="trange">' + esc(t.start || '') + ' ~ ' + esc(t.end || '') + '</span>'
+      + '<button class="del" data-i="' + i + '">删除</button></div>';
+  }).join('');
+  list.innerHTML = html || '<p class="hint">暂无自定义任务，可在下方添加</p>';
+  var dels = list.querySelectorAll('.del');
+  for(var k = 0; k < dels.length; k++){
+    dels[k].addEventListener('click', function(){
+      state.tasks.splice(+this.dataset.i, 1);
+      save(); renderAll();
+    });
+  }
+}
+
+/* ---------- 推荐任务（模板） ---------- */
+function recCfg(id){
+  var d = REC_DEFAULTS[id] || {so:0, eo:0};
+  var o = (state.recTasks && state.recTasks[id]) || {};
+  return {
+    on: o.on !== undefined ? !!o.on : true,
+    so: (typeof o.so === 'number' && !isNaN(o.so)) ? o.so : d.so,
+    eo: (typeof o.eo === 'number' && !isNaN(o.eo)) ? o.eo : d.eo
+  };
+}
+function setRec(id, patch){
+  state.recTasks = state.recTasks || {};
+  var cur = state.recTasks[id] || {};
+  for(var k in patch) cur[k] = patch[k];
+  state.recTasks[id] = cur;
+  save(); renderAll();
+}
+function recAnchorDate(t){
+  var phases = OEM_PHASES[state.oem] || {};
+  var anchor = phases[t.phase];
+  if(!anchor || state.excluded[anchor]) return null;
+  return parseD(state.dates[anchor]);
+}
+function recRange(t){
+  var cfg = recCfg(t.id), ad = recAnchorDate(t);
+  if(!ad) return null;
+  var s = addDays(ad, cfg.so*7), e = addDays(ad, cfg.eo*7);
+  return { s:s, e:e, ok: e >= s };
+}
+function renderRecTasks(){
+  var list = $('recList');
+  var phases = OEM_PHASES[state.oem] || {};
+  var html = '', onCount = 0, total = 0;
+  REC_TASKS.forEach(function(t){
+    var anchor = phases[t.phase];
+    if(!anchor) return;
+    total++;
+    var cfg = recCfg(t.id);
+    if(cfg.on) onCount++;
+    var r = recRange(t);
+    var rangeHtml = r ? (r.ok ? fmtD(r.s) + ' ~ ' + fmtD(r.e) : '<span style="color:#ef4444">起止倒置</span>') : '<span style="color:#9ca3af">待锚点日期</span>';
+    var meta = '锚点 ' + PHASE_NAMES[t.phase] + ' · ' + esc(trunc(anchor, 14)) + ' ｜ ' + (cfg.so>=0?'+':'') + cfg.so + ' ~ ' + (cfg.eo>=0?'+':'') + cfg.eo + '周 ｜ ' + rangeHtml;
+    html += '<div class="rec-row' + (cfg.on ? '' : ' off') + '" title="' + esc(t.desc || '') + '">'
+      + '<input type="checkbox" class="recc" data-id="' + t.id + '"' + (cfg.on ? ' checked' : '') + '>'
+      + '<span class="nname">' + esc(t.name) + '<span class="rmeta">' + meta + '</span></span>'
+      + '<span class="offs"><input type="number" data-id="' + t.id + '" data-k="so" value="' + cfg.so + '" title="开始偏移（周），负数为锚点之前">~<input type="number" data-id="' + t.id + '" data-k="eo" value="' + cfg.eo + '" title="结束偏移（周），负数为锚点之前">周</span>'
+      + '</div>';
+  });
+  $('recCount').textContent = total ? '（' + onCount + '/' + total + '）' : '';
+  list.innerHTML = html || '<p class="hint">该主机厂暂无可锚定的阶段</p>';
+  var checks = list.querySelectorAll('.recc');
+  for(var i = 0; i < checks.length; i++){
+    checks[i].addEventListener('change', function(){ setRec(this.dataset.id, { on: this.checked }); });
+  }
+  var nums = list.querySelectorAll('.offs input');
+  for(var j = 0; j < nums.length; j++){
+    nums[j].addEventListener('change', function(){
+      var v = parseInt(this.value, 10);
+      if(isNaN(v)) return;
+      var p = {}; p[this.dataset.k] = v;
+      setRec(this.dataset.id, p);
+    });
+  }
+}
+
+/* ---------- 甘特图 ---------- */
+function renderChart(){
+  var chart = $('chart'), empty = $('emptyHint');
+  var wrap = chart.parentElement;
+  var ms = nodes().map(function(n){
+    return { name:n[0], alias:n[1], desc:n[2], d:parseD(state.dates[n[0]]) };
+  }).filter(function(x){ return x.d && !state.excluded[x.name]; });
+  var tasks = state.tasks.map(function(t){
+    return { name:t.name, s:parseD(t.start), e:parseD(t.end) };
+  }).filter(function(t){ return t.s && t.e && t.e >= t.s; });
+  var recBars = [];
+  REC_TASKS.forEach(function(t){
+    var cfg = recCfg(t.id);
+    if(!cfg.on) return;
+    var r = recRange(t);
+    if(!r || !r.ok) return;
+    recBars.push({ name:t.name, s:r.s, e:r.e, rec:true });
+  });
+
+  if(!ms.length && !tasks.length && !recBars.length){
+    chart.innerHTML = ''; empty.style.display = 'block'; return;
+  }
+  empty.style.display = 'none';
+  var laneTasks = recBars.concat(tasks);
+
+  var all = [];
+  ms.forEach(function(m){ all.push(m.d); });
+  laneTasks.forEach(function(t){ all.push(t.s); all.push(t.e); });
+  var tmin = Math.min.apply(null, all), tmax = Math.max.apply(null, all);
+  var min = new Date(tmin), max = new Date(tmax);
+  if(diffDays(min, max) < 60){ min = addDays(min, -30); max = addDays(max, 30); }
+  else { min = addDays(min, -21); max = addDays(max, 21); }
+  var totalDays = Math.max(diffDays(min, max), 1);
+
+  var wrapW = chart.parentElement.clientWidth || 800;
+  var GUT = wrapW < 560 ? 108 : 150;
+  var pxDay = Math.max((wrapW - GUT - 24) / totalDays, 0.6);
+  var W = Math.ceil(GUT + 24 + totalDays * pxDay);
+  function X(d){ return GUT + diffDays(min, d) * pxDay; }
+
+  var AXIS_H = 30, MS_Y = 30, MS_H = 112, PH_Y = MS_Y + MS_H, PH_H = 48;
+  var TK_Y = PH_Y + PH_H, TK_H = 36;
+  var H = TK_Y + laneTasks.length * TK_H + 10;
+  var msCY = MS_Y + 74;
+
+  var s = '';
+  // 月份刻度 + 网格
+  var cur = new Date(min.getFullYear(), min.getMonth(), 1);
+  var endM = new Date(max.getFullYear(), max.getMonth(), 1);
+  var mi = 0, step = Math.max(1, Math.ceil(90 / (pxDay * 30)));
+  while(cur <= endM){
+    var x = X(cur);
+    s += '<line x1="' + x.toFixed(1) + '" y1="26" x2="' + x.toFixed(1) + '" y2="' + H + '" stroke="#eef2f7"/>';
+    if(mi % step === 0){
+      s += '<text x="' + (x+4).toFixed(1) + '" y="20" class="axis">' + cur.getFullYear() + '年' + (cur.getMonth()+1) + '月</text>';
+    }
+    cur.setMonth(cur.getMonth()+1); mi++;
+  }
+  // 行分隔线 + 左侧标签
+  s += '<line x1="0" y1="' + MS_Y + '" x2="' + W + '" y2="' + MS_Y + '" stroke="#e5e7eb"/>';
+  s += '<text x="12" y="' + (MS_Y + MS_H/2 + 4) + '" class="glabel">客户关键节点</text>';
+  s += '<line x1="0" y1="' + PH_Y + '" x2="' + W + '" y2="' + PH_Y + '" stroke="#e5e7eb"/>';
+  s += '<text x="12" y="' + (PH_Y + PH_H/2 + 4) + '" class="glabel">阶段区间</text>';
+  s += '<line x1="0" y1="' + TK_Y + '" x2="' + W + '" y2="' + TK_Y + '" stroke="#e5e7eb"/>';
+  laneTasks.forEach(function(t, i){
+    var y = TK_Y + i * TK_H;
+    s += '<text x="12" y="' + (y + TK_H/2 + 4) + '" class="tlabel">' + esc(trunc(t.name, 11)) + '</text>';
+    if(i > 0) s += '<line x1="0" y1="' + y + '" x2="' + W + '" y2="' + y + '" stroke="#f3f4f6"/>';
+  });
+  s += '<line x1="' + GUT + '" y1="0" x2="' + GUT + '" y2="' + H + '" stroke="#e5e7eb"/>';
+  s += '<line x1="' + GUT + '" y1="0" x2="' + GUT + '" y2="' + H + '" stroke="#e5e7eb"/>';
+
+  // 里程碑基线
+  if(ms.length > 1){
+    s += '<line x1="' + X(ms[0].d).toFixed(1) + '" y1="' + msCY + '" x2="' + X(ms[ms.length-1].d).toFixed(1) + '" y2="' + msCY + '" stroke="#fcd34d" stroke-width="3"/>';
+  }
+  // 倒置检测
+  var prevD = null;
+  ms.forEach(function(m){
+    var bad = prevD && m.d < prevD;
+    m.bad = !!bad;
+    if(m.d && (!prevD || m.d >= prevD)) prevD = m.d;
+  });
+  // 里程碑菱形 + 标签（双层错开，避免密集时重叠）
+  ms.forEach(function(m, idx){
+    var cx = X(m.d), r = 7;
+    var fill = m.bad ? '#ef4444' : '#f59e0b';
+    var stroke = m.bad ? '#991b1b' : '#92400e';
+    var label = m.alias ? m.name + '（' + m.alias + '）' : m.name;
+    var ly = (idx % 2 === 0) ? (MS_Y + 56) : (MS_Y + 26);
+    s += '<g><title>' + esc(label + (m.desc ? '\n' + m.desc : '') + '\n' + fmtD(m.d)) + '</title>'
+      + '<rect x="' + (cx-r).toFixed(1) + '" y="' + (msCY-r).toFixed(1) + '" width="' + (r*2) + '" height="' + (r*2)
+      + '" transform="rotate(45 ' + cx.toFixed(1) + ' ' + msCY + ')" fill="' + fill + '" stroke="' + stroke + '" stroke-width="1.5"/>'
+      + '<text x="' + (cx-9).toFixed(1) + '" y="' + ly + '" transform="rotate(-30 ' + (cx-9).toFixed(1) + ' ' + ly + ')" text-anchor="end" class="mlabel">' + esc(trunc(label, 14)) + '</text>'
+      + '<text x="' + cx.toFixed(1) + '" y="' + (msCY+24) + '" text-anchor="middle" class="mdate">' + (m.d.getMonth()+1) + '/' + m.d.getDate() + '</text>'
+      + '</g>';
+  });
+  // 阶段区间条
+  var allNodes = nodes();
+  var dated = allNodes.map(function(n){ return { name:n[0], d:parseD(state.dates[n[0]]) }; })
+    .filter(function(x){ return !state.excluded[x.name]; });
+  for(var i = 0; i + 1 < dated.length; i++){
+    var a = dated[i], b = dated[i+1];
+    if(!a.d || !b.d || b.d < a.d) continue;
+    var x1 = X(a.d), x2 = X(b.d), bw = x2 - x1;
+    var by = PH_Y + (PH_H - 20)/2;
+    var plabel = trunc(a.name, 8) + ' → ' + trunc(b.name, 8);
+    s += '<g><title>' + esc(a.name + ' → ' + b.name + '\n' + fmtD(a.d) + ' ~ ' + fmtD(b.d)) + '</title>'
+      + '<rect x="' + x1.toFixed(1) + '" y="' + by.toFixed(1) + '" width="' + Math.max(bw,2).toFixed(1) + '" height="20" rx="4" fill="#bfdbfe" stroke="#60a5fa"/>'
+      + (bw > 60 ? '<text x="' + (x1 + bw/2).toFixed(1) + '" y="' + (by+14).toFixed(1) + '" text-anchor="middle" class="plabel">' + esc(plabel) + '</text>' : '')
+      + '</g>';
+  }
+  // 任务条（推荐任务蓝色，自定义任务青色）
+  laneTasks.forEach(function(t, i){
+    var y = TK_Y + i * TK_H + (TK_H - 18)/2;
+    var x1 = X(t.s), x2 = X(t.e);
+    s += '<g><title>' + esc(t.name + '\n' + fmtD(t.s) + ' ~ ' + fmtD(t.e)) + '</title>'
+      + '<rect x="' + x1.toFixed(1) + '" y="' + y.toFixed(1) + '" width="' + Math.max(x2-x1, 3).toFixed(1) + '" height="18" rx="4" fill="' + (t.rec ? '#60a5fa' : '#14b8a6') + '"/>'
+      + '</g>';
+  });
+  // 今天线
+  var today = new Date(); today.setHours(0,0,0,0);
+  if(today >= min && today <= max){
+    var tx = X(today);
+    s += '<line x1="' + tx.toFixed(1) + '" y1="24" x2="' + tx.toFixed(1) + '" y2="' + H + '" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="5,3"/>'
+      + '<text x="' + (tx+4).toFixed(1) + '" y="20" fill="#ef4444" font-size="11">今天</text>';
+  }
+
+  chart.innerHTML = '<svg width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" xmlns="http://www.w3.org/2000/svg">' + s + '</svg>';
+}
+
+function renderAll(){ renderNodes(); renderRecTasks(); renderTasks(); renderChart(); }
+
+/* ---------- 移动端标签页 ---------- */
+function setTab(which){
+  document.body.classList.toggle('tab-chart', which === 'chart');
+  document.body.classList.toggle('tab-form', which !== 'chart');
+  var btns = document.querySelectorAll('.mobile-tabs button');
+  for(var i = 0; i < btns.length; i++){
+    btns[i].classList.toggle('active', btns[i].dataset.tab === which);
+  }
+  if(which === 'chart') renderChart();
+}
+
+/* ---------- 操作 ---------- */
+function sampleDates(){
+  var ns = nodes();
+  if(!ns.length) return;
+  var today = new Date(); today.setHours(0,0,0,0);
+  var start = addDays(today, -540), end = addDays(today, 180);
+  var span = diffDays(start, end), n = ns.length;
+  ns.forEach(function(nd, i){
+    state.dates[nd[0]] = fmtD(addDays(start, Math.round(span * i / Math.max(n-1, 1))));
+  });
+  save(); renderAll();
+  if(window.innerWidth <= 768) setTab('chart');
+}
+
+function init(){
+  var sel = $('oemSelect');
+  sel.innerHTML = OEM_ORDER.map(function(o){ return '<option value="' + esc(o) + '">' + esc(o) + '</option>'; }).join('');
+  load();
+  if(!OEM_NODES[state.oem]) state.oem = 'SVW(上汽大众)';
+  sel.value = state.oem;
+  $('projectName').value = state.projectName || '';
+
+  sel.addEventListener('change', function(){
+    state.oem = sel.value;
+    var names = {};
+    nodes().forEach(function(n){ names[n[0]] = true; });
+    Object.keys(state.dates).forEach(function(k){ if(!names[k]) delete state.dates[k]; });
+    Object.keys(state.excluded).forEach(function(k){ if(!names[k]) delete state.excluded[k]; });
+    save(); renderAll();
+  });
+  $('projectName').addEventListener('input', function(){
+    state.projectName = this.value; save();
+  });
+  var tabBtns = document.querySelectorAll('.mobile-tabs button');
+  for(var ti = 0; ti < tabBtns.length; ti++){
+    tabBtns[ti].addEventListener('click', function(){ setTab(this.dataset.tab); });
+  }
+  $('btnSample').addEventListener('click', sampleDates);
+  $('btnExport').addEventListener('click', function(){
+    var data = JSON.stringify({ app:'gantt-v1', version:1, savedAt:new Date().toISOString(), state:state }, null, 2);
+    var blob = new Blob([data], { type:'application/json' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'gantt-' + fmtD(new Date()).replace(/-/g,'') + '.json';
+    document.body.appendChild(a); a.click();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 500);
+  });
+  $('btnImport').addEventListener('click', function(){ $('fileImport').click(); });
+  $('fileImport').addEventListener('change', function(){
+    var f = this.files[0];
+    if(!f) return;
+    var rd = new FileReader();
+    rd.onload = function(){
+      try{
+        var obj = JSON.parse(rd.result);
+        var st = obj.state || obj;
+        if(!st || typeof st !== 'object' || !OEM_NODES[st.oem]) throw new Error('bad');
+        state.oem = st.oem;
+        state.projectName = typeof st.projectName === 'string' ? st.projectName : '';
+        state.dates = (st.dates && typeof st.dates === 'object') ? st.dates : {};
+        state.excluded = (st.excluded && typeof st.excluded === 'object') ? st.excluded : {};
+        state.recTasks = (st.recTasks && typeof st.recTasks === 'object') ? st.recTasks : {};
+        state.tasks = Array.isArray(st.tasks) ? st.tasks.filter(function(t){ return t && typeof t.name === 'string'; }) : [];
+        sel.value = state.oem;
+        $('projectName').value = state.projectName;
+        save(); renderAll();
+      }catch(e){ toast('导入失败：文件格式不正确'); }
+    };
+    rd.readAsText(f);
+    this.value = '';
+  });
+  $('btnAddTask').addEventListener('click', function(){
+    var name = $('taskName').value.trim();
+    var s = $('taskStart').value, e = $('taskEnd').value;
+    if(!name){ toast('请填写任务名称'); return; }
+    var ds = parseD(s), de = parseD(e);
+    if(!ds || !de){ toast('请选择开始和结束日期'); return; }
+    if(de < ds){ toast('结束日期不能早于开始日期'); return; }
+    state.tasks.push({ name:name, start:s, end:e });
+    $('taskName').value = ''; $('taskStart').value = ''; $('taskEnd').value = '';
+    save(); renderAll();
+  });
+
+  var rsz;
+  window.addEventListener('resize', function(){
+    clearTimeout(rsz);
+    rsz = setTimeout(renderChart, 150);
+  });
+
+  renderAll();
+}
+
+if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+else init();
+})();
+</script>
+</body>
+</html>
