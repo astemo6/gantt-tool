@@ -171,9 +171,10 @@ const OEM_NODES = {"BENZ(奔驰)":[["\"P\" Release","","DV 发放。设计&开�
 
 </script>
 <script>
-const PHASE_NAMES = {"APQP1":{"zh":"策划","en":"Planning","de":"Planung"},"APQP2":{"zh":"产品设计和开发","en":"Product Design and Development","de":"Produktdesign und -entwicklung"},"APQP3":{"zh":"过程设计和开发","en":"Process Design and Development","de":"Prozessdesign und -entwicklung"},"APQP4":{"zh":"产品和过程确认","en":"Product and Process Validation","de":"Produkt- und Prozessvalidierung"},"APQP5":{"zh":"生产","en":"Production","de":"Produktion"}};
-const OEM_PHASES = {"BENZ(奔驰)":{"APQP2":"\"P\" Release","APQP3":"\"_\" Release","APQP4":"PT","APQP5":"SOP"},"Ford(福特)":{"APQP2":"VP（Verification Prototype）","APQP3":"HB（homologation build）","APQP4":"PP （Pilot Production）","APQP5":"MP/job1（Master Production）"},"JAC(江淮)":{"APQP1":"G2","APQP2":"G7-G8","APQP3":"G9-G12","APQP5":"G13"},"DYK(东风悦达起亚)":{"APQP2":"PROTO","APQP3":"P1","APQP4":"T","APQP5":"SOP"},"Chery(奇瑞)":{"APQP1":"P1","APQP2":"P2","APQP3":"OTS","APQP4":"PVS","APQP5":"SOP"},"SGMW(上汽通用五菱)":{"APQP1":"VPI","APQP2":"LLP T1","APQP3":"OTS","APQP4":"NS","APQP5":"SOP"},"Geely(吉利)":{"APQP1":"PS(Program Start)","APQP2":"VP(Verification Prototype)","APQP3":"TT(Tooling Trail)","APQP4":"PP(Poilt Production)","APQP5":"J1(Job 1)"},"BMW(宝马)":{"APQP2":"BBG（Pilot phase/Bestätigungsbaugruppe）","APQP3":"Auflegetage","APQP4":"ISIR（Initial Sample Inspection Release）","APQP5":"SOP（Start of Production）"},"SVW(上汽大众)":{"APQP1":"DF(D-Freigabe)","APQP2":"BF(B-Freigabe)","APQP3":"VFF装车(Vorserien Freigabefahrzeuge)","APQP4":"0S装车(0-Serie)","APQP5":"SOP(Start Of Production )"},"SGM(上汽通用)":{"APQP1":"PFI","APQP2":"VDR","APQP3":"IVER","APQP4":"PPV","APQP5":"SOPR"},"Nissan(尼桑)":{"APQP1":"Customer Awarding","APQP2":"Drawing issue and data release","APQP3":"VC-LOT","APQP4":"PT-LOT","APQP5":"SOP"},"CJLR(奇瑞捷豹路虎)":{"APQP2":"1st VP(DV)","APQP3":"1st VP(PV)","APQP4":"PP","APQP5":"MP1/Job1"},"DRAC(东风雷诺)":{"APQP3":"TGA","APQP4":"AB-PT1","APQP5":"SOP"},"DPCA(东风标致雪铁龙)":{"APQP1":"INIT meeing","APQP2":"IOD","APQP3":"VRS样件","APQP4":"EL 造车","APQP5":"AMC"},"Volvo(沃尔沃)":{"APQP1":"PA","APQP2":"VP","APQP3":"M1DJ","APQP4":"PPAP Ph0+","APQP5":"J1/MP1"},"PSA":{"APQP1":"PCM","APQP2":"SFR","APQP3":"TKOM","APQP4":"VRS1","APQP5":"SOP"}};
-const REC_TASKS = [{"id":"r1","phase":"APQP2","so":-10,"eo":-8,"name":{"zh":"长周期DV图纸发放","en":"Long-lead DV drawing release","de":"Freigabe der DV-Langläufer-Zeichnungen"},"desc":{"zh":"","en":"","de":""}},{"id":"r2","phase":"APQP2","so":-8,"eo":-6,"name":{"zh":"DV样件制造","en":"DV prototype build","de":"DV-Musterbau"},"desc":{"zh":"","en":"","de":""}},{"id":"r3","phase":"APQP2","so":-6,"eo":-2,"name":{"zh":"DV试验及报告","en":"DV testing & report","de":"DV-Erprobung und Bericht"},"desc":{"zh":"","en":"","de":""}},{"id":"r4","phase":"APQP3","so":-10,"eo":-8,"name":{"zh":"长周期PV图纸发放","en":"Long-lead PV drawing release","de":"Freigabe der PV-Langläufer-Zeichnungen"},"desc":{"zh":"","en":"","de":""}},{"id":"r5","phase":"APQP3","so":-8,"eo":-5,"name":{"zh":"PV样件制造","en":"PV prototype build","de":"PV-Musterbau"},"desc":{"zh":"","en":"","de":""}},{"id":"r6","phase":"APQP3","so":-5,"eo":-2,"name":{"zh":"PV试验及报告（含DBL）","en":"PV testing & report (incl. DBL)","de":"PV-Erprobung und Bericht (inkl. DBL)"},"desc":{"zh":"","en":"","de":""}},{"id":"r7","phase":"APQP3","so":-4,"eo":-2,"name":{"zh":"模具/工装发包","en":"Tooling sourcing & order placement","de":"Werkzeugvergabe"},"desc":{"zh":"","en":"","de":""}},{"id":"r8","phase":"APQP3","so":-14,"eo":-8,"name":{"zh":"T1试模及整改","en":"T1 tooling tryout & rework","de":"T1-Werkzeugerprobung und Nacharbeit"},"desc":{"zh":"","en":"","de":""}},{"id":"r9","phase":"APQP3","so":-6,"eo":-2,"name":{"zh":"OTS样件提交客户认可","en":"OTS sample submission for customer approval","de":"OTS-Mustervorlage zur Kundenfreigabe"},"desc":{"zh":"","en":"","de":""}},{"id":"r10","phase":"APQP4","so":-4,"eo":-1,"name":{"zh":"试生产准备","en":"Trial production preparation","de":"Vorbereitung des Probelaufs"},"desc":{"zh":"","en":"","de":""}},{"id":"r11","phase":"APQP4","so":-6,"eo":-2,"name":{"zh":"PPAP文件包准备与提交","en":"PPAP package preparation & submission","de":"PPAP-Unterlagen vorbereiten und einreichen"},"desc":{"zh":"","en":"","de":""}},{"id":"r12","phase":"APQP5","so":-4,"eo":-1,"name":{"zh":"产能爬坡验证","en":"Capacity ramp-up verification","de":"Verifizierung des Kapazitätshochlaufs"},"desc":{"zh":"","en":"","de":""}},{"id":"r13","phase":"APQP2","so":-3,"eo":0,"name":{"zh":"产品数据冻结","en":"Product data freeze","de":"Produktdaten-Freeze"},"desc":{"zh":"","en":"","de":""}}];
+const PHASE_SYSTEMS = {"apqp":{"tag":"APQP","label":{"zh":"APQP（美系 AIAG）","en":"APQP (AIAG)","de":"APQP (AIAG)"},"phases":{"APQP1":{"zh":"策划","en":"Planning","de":"Planung"},"APQP2":{"zh":"产品设计和开发","en":"Product Design and Development","de":"Produktdesign und -entwicklung"},"APQP3":{"zh":"过程设计和开发","en":"Process Design and Development","de":"Prozessdesign und -entwicklung"},"APQP4":{"zh":"产品和过程确认","en":"Product and Process Validation","de":"Produkt- und Prozessvalidierung"},"APQP5":{"zh":"生产","en":"Production","de":"Produktion"}}},"vda":{"tag":"VDA-MLA","label":{"zh":"VDA 成熟度保障","en":"VDA Maturity Level Assurance","de":"VDA-Reifegradabsicherung"},"phases":{"ML0":{"zh":"创新批准","en":"Innovation release","de":"Innovationsfreigabe"},"ML1":{"zh":"需求管理","en":"Requirements management","de":"Anforderungsmanagement"},"ML2":{"zh":"供应链确定与订单下达","en":"Supply chain definition & order placement","de":"Festlegung der Lieferkette und Vergabe"},"ML3":{"zh":"技术规范批准","en":"Technical specification release","de":"Freigabe der technischen Spezifikation"},"ML4":{"zh":"生产计划完成","en":"Production planning complete","de":"Abschluss der Produktionsplanung"},"ML5":{"zh":"量产工装零件可供","en":"Parts from production tools available","de":"Teile aus Serienwerkzeugen verfügbar"},"ML6":{"zh":"过程与产品批准","en":"Process and product approval","de":"Prozess- und Produktfreigabe"},"ML7":{"zh":"项目结束·移交生产","en":"Project completion, handover to production","de":"Projektabschluss, Übergabe an die Produktion"}}},"anpqp":{"tag":"ANPQP","label":{"zh":"ANPQP（雷诺-日产联盟）","en":"ANPQP (Renault-Nissan Alliance)","de":"ANPQP (Renault-Nissan-Allianz)"},"phases":{"ANPQP1":{"zh":"策划","en":"Plan and Define Program","de":"Planung und Programmdefinition"},"ANPQP2":{"zh":"产品设计和开发","en":"Product Design and Development","de":"Produktdesign und -entwicklung"},"ANPQP3":{"zh":"过程设计和开发","en":"Process Design and Development","de":"Prozessdesign und -entwicklung"},"ANPQP4":{"zh":"产品和过程确认","en":"Product and Process Validation","de":"Produkt- und Prozessvalidierung"},"ANPQP5":{"zh":"生产","en":"Production","de":"Produktion"}}}};
+const OEM_PHASE_SYS = {"BENZ(奔驰)":"vda","BMW(宝马)":"vda","SVW(上汽大众)":"vda","DRAC(东风雷诺)":"anpqp","Nissan(尼桑)":"anpqp","Ford(福特)":"apqp","JAC(江淮)":"apqp","DYK(东风悦达起亚)":"apqp","Chery(奇瑞)":"apqp","SGMW(上汽通用五菱)":"apqp","Geely(吉利)":"apqp","SGM(上汽通用)":"apqp","DPCA(东风标致雪铁龙)":"apqp","Volvo(沃尔沃)":"apqp","PSA":"apqp","CJLR(奇瑞捷豹路虎)":"apqp"};
+const OEM_PHASES = {"BENZ(奔驰)":{"ML3":"\"P\" Release","ML4":"\"_\" Release","ML5":"OTS（Off Tooling Samples）","ML6":"PT","ML7":"SOP"},"Ford(福特)":{"APQP2":"VP（Verification Prototype）","APQP3":"HB（homologation build）","APQP4":"PP （Pilot Production）","APQP5":"MP/job1（Master Production）"},"JAC(江淮)":{"APQP1":"G2","APQP2":"G7-G8","APQP3":"G9-G12","APQP5":"G13"},"DYK(东风悦达起亚)":{"APQP2":"PROTO","APQP3":"P1","APQP4":"T","APQP5":"SOP"},"Chery(奇瑞)":{"APQP1":"P1","APQP2":"P2","APQP3":"OTS","APQP4":"PVS","APQP5":"SOP"},"SGMW(上汽通用五菱)":{"APQP1":"VPI","APQP2":"LLP T1","APQP3":"OTS","APQP4":"NS","APQP5":"SOP"},"Geely(吉利)":{"APQP1":"PS(Program Start)","APQP2":"VP(Verification Prototype)","APQP3":"TT(Tooling Trail)","APQP4":"PP(Poilt Production)","APQP5":"J1(Job 1)"},"BMW(宝马)":{"ML3":"BBG（Pilot phase/Bestätigungsbaugruppe）","ML4":"Auflegetage","ML5":"VS1、VS2（Pre series/Vorserie）","ML6":"ISIR（Initial Sample Inspection Release）","ML7":"SOP（Start of Production）"},"SVW(上汽大众)":{"ML3":"DF(D-Freigabe)","ML4":"LF(Launch-Freigabe)","ML5":"VFF装车(Vorserien Freigabefahrzeuge)","ML6":"0S装车(0-Serie)","ML7":"SOP(Start Of Production )"},"SGM(上汽通用)":{"APQP1":"PFI","APQP2":"VDR","APQP3":"IVER","APQP4":"PPV","APQP5":"SOPR"},"Nissan(尼桑)":{"ANPQP1":"Customer Awarding","ANPQP2":"Drawing issue and data release","ANPQP3":"VC-LOT","ANPQP4":"PT-LOT","ANPQP5":"SOP"},"CJLR(奇瑞捷豹路虎)":{"APQP2":"1st VP(DV)","APQP3":"1st VP(PV)","APQP4":"PP","APQP5":"MP1/Job1"},"DRAC(东风雷诺)":{"ANPQP3":"TGA","ANPQP4":"AB-PT1","ANPQP5":"SOP"},"DPCA(东风标致雪铁龙)":{"APQP1":"INIT meeing","APQP2":"IOD","APQP3":"VRS样件","APQP4":"EL 造车","APQP5":"AMC"},"Volvo(沃尔沃)":{"APQP1":"Pre-PS","APQP2":"VP","APQP3":"LR","APQP4":"OKTB","APQP5":"J1/MP1"},"PSA":{"APQP1":"PCM","APQP2":"SFR","APQP3":"TKOM","APQP4":"PPMM","APQP5":"SOP"}};
+const REC_TASKS = [{"id":"r1","phase":{"apqp":"APQP2","vda":"ML3","anpqp":"ANPQP2"},"so":-10,"eo":-8,"name":{"zh":"长周期DV图纸发放","en":"Long-lead DV drawing release","de":"Freigabe der DV-Langläufer-Zeichnungen"},"desc":{"zh":"","en":"","de":""}},{"id":"r2","phase":{"apqp":"APQP2","vda":"ML3","anpqp":"ANPQP2"},"so":-8,"eo":-6,"name":{"zh":"DV样件制造","en":"DV prototype build","de":"DV-Musterbau"},"desc":{"zh":"","en":"","de":""}},{"id":"r3","phase":{"apqp":"APQP2","vda":"ML3","anpqp":"ANPQP2"},"so":-6,"eo":-2,"name":{"zh":"DV试验及报告","en":"DV testing & report","de":"DV-Erprobung und Bericht"},"desc":{"zh":"","en":"","de":""}},{"id":"r4","phase":{"apqp":"APQP3","vda":"ML5","anpqp":"ANPQP3"},"so":-10,"eo":-8,"name":{"zh":"长周期PV图纸发放","en":"Long-lead PV drawing release","de":"Freigabe der PV-Langläufer-Zeichnungen"},"desc":{"zh":"","en":"","de":""}},{"id":"r5","phase":{"apqp":"APQP3","vda":"ML5","anpqp":"ANPQP3"},"so":-8,"eo":-5,"name":{"zh":"PV样件制造","en":"PV prototype build","de":"PV-Musterbau"},"desc":{"zh":"","en":"","de":""}},{"id":"r6","phase":{"apqp":"APQP3","vda":"ML5","anpqp":"ANPQP3"},"so":-5,"eo":-2,"name":{"zh":"PV试验及报告（含DBL）","en":"PV testing & report (incl. DBL)","de":"PV-Erprobung und Bericht (inkl. DBL)"},"desc":{"zh":"","en":"","de":""}},{"id":"r7","phase":{"apqp":"APQP3","vda":"ML5","anpqp":"ANPQP3"},"so":-4,"eo":-2,"name":{"zh":"模具/工装发包","en":"Tooling sourcing & order placement","de":"Werkzeugvergabe"},"desc":{"zh":"","en":"","de":""}},{"id":"r8","phase":{"apqp":"APQP3","vda":"ML5","anpqp":"ANPQP3"},"so":-14,"eo":-8,"name":{"zh":"T1试模及整改","en":"T1 tooling tryout & rework","de":"T1-Werkzeugerprobung und Nacharbeit"},"desc":{"zh":"","en":"","de":""}},{"id":"r9","phase":{"apqp":"APQP3","vda":"ML5","anpqp":"ANPQP3"},"so":-6,"eo":-2,"name":{"zh":"OTS样件提交客户认可","en":"OTS sample submission for customer approval","de":"OTS-Mustervorlage zur Kundenfreigabe"},"desc":{"zh":"","en":"","de":""}},{"id":"r10","phase":{"apqp":"APQP4","vda":"ML6","anpqp":"ANPQP4"},"so":-4,"eo":-1,"name":{"zh":"试生产准备","en":"Trial production preparation","de":"Vorbereitung des Probelaufs"},"desc":{"zh":"","en":"","de":""}},{"id":"r11","phase":{"apqp":"APQP4","vda":"ML6","anpqp":"ANPQP4"},"so":-6,"eo":-2,"name":{"zh":"PPAP文件包准备与提交","en":"PPAP package preparation & submission","de":"PPAP-Unterlagen vorbereiten und einreichen"},"desc":{"zh":"","en":"","de":""}},{"id":"r12","phase":{"apqp":"APQP5","vda":"ML7","anpqp":"ANPQP5"},"so":-4,"eo":-1,"name":{"zh":"产能爬坡验证","en":"Capacity ramp-up verification","de":"Verifizierung des Kapazitätshochlaufs"},"desc":{"zh":"","en":"","de":""}},{"id":"r13","phase":{"apqp":"APQP2","vda":"ML3","anpqp":"ANPQP2"},"so":-3,"eo":0,"name":{"zh":"产品数据冻结","en":"Product data freeze","de":"Produktdaten-Freeze"},"desc":{"zh":"","en":"","de":""}}];
 const REC_DEFAULTS = {"r1":{"so":-10,"eo":-8},"r2":{"so":-8,"eo":-6},"r3":{"so":-6,"eo":-2},"r4":{"so":-10,"eo":-8},"r5":{"so":-8,"eo":-5},"r6":{"so":-5,"eo":-2},"r7":{"so":-4,"eo":-2},"r8":{"so":-14,"eo":-8},"r9":{"so":-6,"eo":-2},"r10":{"so":-4,"eo":-1},"r11":{"so":-6,"eo":-2},"r12":{"so":-4,"eo":-1},"r13":{"so":-3,"eo":0}};
 
 </script>
@@ -414,7 +415,7 @@ function setRec(id, patch){
 }
 function recAnchorDate(t){
   var phases = OEM_PHASES[state.oem] || {};
-  var anchor = phases[t.phase];
+  var anchor = phases[taskPhaseKey(t)];
   if(!anchor || state.excluded[anchor]) return null;
   return parseD(state.dates[anchor]);
 }
@@ -424,12 +425,15 @@ function recRange(t){
   var s = addDays(ad, cfg.so*7), e = addDays(ad, cfg.eo*7);
   return { s:s, e:e, ok: e >= s };
 }
+function phaseSys(){ return (typeof OEM_PHASE_SYS !== 'undefined' && OEM_PHASE_SYS[state.oem]) || 'apqp'; }
+function taskPhaseKey(t){ var p = t.phase; if(p && typeof p === 'object') return p[phaseSys()] || p.apqp; return p; }
+function phaseName(pid){ var s = (typeof PHASE_SYSTEMS !== 'undefined') && PHASE_SYSTEMS[phaseSys()]; var o = s && s.phases[pid]; return o || {zh:pid, en:pid, de:pid}; }
 function renderRecTasks(){
   var list = $('recList');
   var phases = OEM_PHASES[state.oem] || {};
   var html = '', onCount = 0, total = 0;
   REC_TASKS.forEach(function(t){
-    var anchor = phases[t.phase];
+    var anchor = phases[taskPhaseKey(t)];
     if(!anchor) return;
     total++;
     var cfg = recCfg(t.id);
@@ -437,7 +441,7 @@ function renderRecTasks(){
     var r = recRange(t);
     var r = recRange(t);
     var rangeHtml = r ? (r.ok ? fmtD(r.s) + ' ~ ' + fmtD(r.e) : '<span style="color:#ef4444">' + tr('recInvert') + '</span>') : '<span style="color:#9ca3af">' + tr('recWait') + '</span>';
-    var meta = tr('anchor') + ' ' + pick(PHASE_NAMES[t.phase]) + ' · ' + esc(trunc(abbr(anchor), 14)) + ' ｜ ' + (cfg.so>=0?'+':'') + cfg.so + ' ~ ' + (cfg.eo>=0?'+':'') + cfg.eo + tr('week') + ' ｜ ' + rangeHtml;
+    var meta = tr('anchor') + ' ' + pick(phaseName(taskPhaseKey(t))) + ' · ' + esc(trunc(abbr(anchor), 14)) + ' ｜ ' + (cfg.so>=0?'+':'') + cfg.so + ' ~ ' + (cfg.eo>=0?'+':'') + cfg.eo + tr('week') + ' ｜ ' + rangeHtml;
     html += '<div class="rec-row' + (cfg.on ? '' : ' off') + '" title="' + esc(pick(t.desc) || '') + '">'
       + '<input type="checkbox" class="recc" data-id="' + t.id + '"' + (cfg.on ? ' checked' : '') + '>'
       + '<span class="nname">' + esc(pick(t.name)) + '<span class="rmeta">' + meta + '</span></span>'
@@ -501,10 +505,11 @@ function renderChart(){
   var W = Math.ceil(GUT + 24 + totalDays * pxDay);
   function X(d){ return GUT + diffDays(min, d) * pxDay; }
 
-  var AXIS_H = 30, MS_Y = 30, MS_H = 112, PH_Y = MS_Y + MS_H, PH_H = 48;
-  var TK_Y = PH_Y + PH_H, TK_H = 36;
+  var AXIS_H = 30, PH_Y = 30, PH_H = 48, MS_Y = PH_Y + PH_H, MS_H = 112;
+  var TK_Y = MS_Y + MS_H, TK_H = 36;
   var H = TK_Y + laneTasks.length * TK_H + 10;
   var msCY = MS_Y + 74;
+  var sys = phaseSys();
 
   var s = '';
   // 月份刻度 + 网格
@@ -519,11 +524,11 @@ function renderChart(){
     }
     cur.setMonth(cur.getMonth()+1); mi++;
   }
-  // 行分隔线 + 左侧标签
+  // 行分隔线 + 左侧标签（阶段行在上，里程碑行在下）
+  s += '<line x1="0" y1="' + PH_Y + '" x2="' + W + '" y2="' + PH_Y + '" stroke="#e5e7eb"/>';
+  s += '<text x="12" y="' + (PH_Y + PH_H/2 + 4) + '" class="glabel">' + esc(tr('legendPhase') + ' · ' + PHASE_SYSTEMS[sys].tag) + '</text>';
   s += '<line x1="0" y1="' + MS_Y + '" x2="' + W + '" y2="' + MS_Y + '" stroke="#e5e7eb"/>';
   s += '<text x="12" y="' + (MS_Y + MS_H/2 + 4) + '" class="glabel">' + esc(tr('legendMs')) + '</text>';
-  s += '<line x1="0" y1="' + PH_Y + '" x2="' + W + '" y2="' + PH_Y + '" stroke="#e5e7eb"/>';
-  s += '<text x="12" y="' + (PH_Y + PH_H/2 + 4) + '" class="glabel">' + esc(tr('legendPhase')) + '</text>';
   s += '<line x1="0" y1="' + TK_Y + '" x2="' + W + '" y2="' + TK_Y + '" stroke="#e5e7eb"/>';
   laneTasks.forEach(function(t, i){
     var y = TK_Y + i * TK_H;
@@ -558,10 +563,10 @@ function renderChart(){
       + '<text x="' + cx.toFixed(1) + '" y="' + (msCY+24) + '" text-anchor="middle" class="mdate">' + (m.d.getMonth()+1) + '/' + m.d.getDate() + '</text>'
       + '</g>';
   });
-  // 阶段区间条：按phase锚点划分区间（锚点来自客户节点-phase对照）
+  // 阶段区间条：按phase锚点划分区间（锚点来自客户节点-phase对照）；最后一个阶段延伸到图表结尾
   var phaseMap = OEM_PHASES[state.oem] || {};
   var anchors = [];
-  Object.keys(PHASE_NAMES).forEach(function(pid){
+  Object.keys(PHASE_SYSTEMS[sys].phases).forEach(function(pid){
     var nn = phaseMap[pid];
     if(!nn || state.excluded[nn]) return;
     var d = parseD(state.dates[nn]);
@@ -570,14 +575,15 @@ function renderChart(){
       anchors.push({ pid:pid, name:nn, d:d });
   });
   anchors.sort(function(a,b){ return a.d - b.d; });
-  for(var i = 0; i + 1 < anchors.length; i++){
+  for(var i = 0; i < anchors.length; i++){
     var a = anchors[i], b = anchors[i+1];
-    if(b.d <= a.d) continue;
-    var x1 = X(a.d), x2 = X(b.d), bw = x2 - x1;
+    var x1 = X(a.d), x2 = b ? X(b.d) : X(max), bw = x2 - x1;
+    if(bw <= 0) continue;
     var by = PH_Y + (PH_H - 20)/2;
-    var pname = pick(PHASE_NAMES[a.pid]);
+    var pname = pick(phaseName(a.pid));
     var maxCh = Math.max(6, Math.floor(bw / 7));
-    s += '<g><title>' + esc(pname + ': ' + a.name + ' → ' + b.name + '\n' + fmtD(a.d) + ' ~ ' + fmtD(b.d)) + '</title>'
+    var bName = b ? b.name : '', bD = b ? fmtD(b.d) : fmtD(max);
+    s += '<g><title>' + esc(pname + ': ' + a.name + (b ? ' → ' + bName : '') + '\n' + fmtD(a.d) + ' ~ ' + bD) + '</title>'
       + '<rect x="' + x1.toFixed(1) + '" y="' + by.toFixed(1) + '" width="' + Math.max(bw,2).toFixed(1) + '" height="20" rx="4" fill="#bfdbfe" stroke="#60a5fa"/>'
       + (bw > 60 ? '<text x="' + (x1 + bw/2).toFixed(1) + '" y="' + (by+14).toFixed(1) + '" text-anchor="middle" class="plabel">' + esc(trunc(pname, maxCh)) + '</text>' : '')
       + '</g>';
