@@ -909,16 +909,26 @@ function textW(s){
   for(var i = 0; i < s.length; i++){ w += s.charCodeAt(i) > 255 ? 11 : 6; }
   return w + 8;
 }
-function deoverlap(items){
-  var placed = [], levels = [];
+/* 标签重叠时左右错开（返回每项的水平偏移量，不上下窜行） */
+function deoverlapX(items){
+  var placed = [], dxs = [];
   var order = items.map(function(it, i){ return i; }).sort(function(a, b){ return items[a].x - items[b].x; });
   order.forEach(function(i){
-    var it = items[i], x0 = it.x - it.w/2, x1 = it.x + it.w/2, lv = 0;
-    while(placed.some(function(p){ return p.lv === lv && x0 < p.x1 + 4 && x1 > p.x0 - 4; })) lv++;
-    placed.push({x0:x0, x1:x1, lv:lv});
-    levels[i] = lv;
+    var it = items[i], w = it.w, dx = 0;
+    var step = w/2 + 6;
+    var candidates = [0];
+    for(var k = 1; k <= 4; k++){ candidates.push(-k*step, k*step); }
+    for(var c = 0; c < candidates.length; c++){
+      var cx = it.x + candidates[c];
+      var x0 = cx - w/2, x1 = cx + w/2;
+      var clash = placed.some(function(p){ return x0 < p.x1 + 3 && x1 > p.x0 - 3; });
+      if(!clash){ dx = candidates[c]; break; }
+    }
+    var fx = it.x + dx;
+    placed.push({x0: fx - w/2, x1: fx + w/2});
+    dxs[i] = dx;
   });
-  return levels;
+  return dxs;
 }
 
 /* ---------- 甘特图 ---------- */
@@ -1027,7 +1037,7 @@ function renderChart(){
   cmLanes.forEach(function(l, i){
     var ly0 = CM_Y + i * CM_H;
     s += '<rect x="0" y="' + ly0 + '" width="' + GUT + '" height="' + CM_H + '" fill="transparent" data-laneidx="' + i + '" class="cm-lane-hit" style="cursor:grab"/>';
-    s += '<text x="12" y="' + (ly0 + CM_H/2 + 4) + '" class="tlabel" data-laneidx="' + i + '" style="cursor:grab;user-select:none">⋮⋮ ' + esc(trunc(l.name, 9)) + '</text>';
+    s += '<text x="12" y="' + (ly0 + CM_H/2 + 4) + '" class="tlabel" data-laneidx="' + i + '" style="cursor:grab;user-select:none"><title>' + esc(tr('dragTip')) + '</title>' + esc(trunc(l.name, 11)) + '</text>';
     if(i > 0) s += '<line x1="0" y1="' + ly0 + '" x2="' + W + '" y2="' + ly0 + '" stroke="#f3f4f6"/>';
   });
   s += '<line x1="0" y1="' + TK_Y + '" x2="' + W + '" y2="' + TK_Y + '" stroke="#e5e7eb"/>';
@@ -1056,17 +1066,17 @@ function renderChart(){
     var cx = X(m.d);
     return {x:cx-9-w/2, w:w};
   });
-  var msLabelLv = deoverlap(msLabelItems);
+  var msLabelDx = deoverlapX(msLabelItems);
   ms.forEach(function(m, idx){
     var cx = X(m.d), r = 7;
     var fill = m.bad ? '#7f1d1d' : '#dc2626';
     var stroke = m.bad ? '#450a0a' : '#991b1b';
     var label = m.alias ? m.name + '（' + m.alias + '）' : m.name;
-    var ly = msCY - 16 - (msLabelLv[idx]||0)*15;
+    var lx = (cx - 9) + (msLabelDx[idx]||0), ly = msCY - 16;
     s += '<g data-mnode="' + esc(m.name) + '"><title>' + esc(label + '\n' + fmtD(m.d)) + '</title>'
       + '<rect x="' + (cx-r).toFixed(1) + '" y="' + (msCY-r).toFixed(1) + '" width="' + (r*2) + '" height="' + (r*2)
       + '" transform="rotate(45 ' + cx.toFixed(1) + ' ' + msCY + ')" fill="' + fill + '" stroke="' + stroke + '" stroke-width="1.5"/>'
-      + '<text x="' + (cx-9).toFixed(1) + '" y="' + ly + '" transform="rotate(-25 ' + (cx-9).toFixed(1) + ' ' + ly + ')" text-anchor="end" class="mlabel">' + esc(abbr(m.name)) + '</text>'
+      + '<text x="' + lx.toFixed(1) + '" y="' + ly + '" transform="rotate(-25 ' + lx.toFixed(1) + ' ' + ly + ')" text-anchor="end" class="mlabel">' + esc(abbr(m.name)) + '</text>'
       + '<text x="' + cx.toFixed(1) + '" y="' + (msCY+24) + '" text-anchor="middle" class="mdate">' + (m.d.getMonth()+1) + '/' + m.d.getDate() + '</text>'
       + '</g>';
   });
@@ -1080,16 +1090,16 @@ function renderChart(){
       dItems.push({x:cx, w:textW((d.getMonth()+1) + '/' + d.getDate())});
       if(it.n) nItems.push({x:cx, w:textW(it.n)});
     });
-    var dLv = deoverlap(dItems), nLv = deoverlap(nItems), ni = 0;
+    var dDx = deoverlapX(dItems), nDx = deoverlapX(nItems), ni = 0;
     l.dates.forEach(function(it, j){
       var d = it.d, cx = X(d);
-      var dy = (cy-13) - (dLv[j]||0)*13;
-      var ny = (cy+24) + (it.n ? (nLv[ni++]||0)*15 : 0);
+      var ddx = (dDx[j]||0), dy = cy-13;
+      var ndx = it.n ? (nDx[ni++]||0) : 0, ny = cy+24;
       s += '<g data-clane="' + i + '" data-cj="' + j + '"><title>' + esc((l.name ? l.name + '\n' : '') + (it.n ? it.n + '\n' : '') + fmtD(d)) + '</title>'
         + '<rect x="' + (cx-r).toFixed(1) + '" y="' + (cy-r).toFixed(1) + '" width="' + (r*2) + '" height="' + (r*2)
         + '" transform="rotate(45 ' + cx.toFixed(1) + ' ' + cy + ')" fill="#4ade80" stroke="#16a34a" stroke-width="1.5"/>'
-        + '<text x="' + cx.toFixed(1) + '" y="' + dy + '" text-anchor="middle" class="mdate">' + (d.getMonth()+1) + '/' + d.getDate() + '</text>'
-        + (it.n ? '<text x="' + cx.toFixed(1) + '" y="' + ny + '" text-anchor="middle" class="mlabel">' + esc(it.n) + '</text>' : '')
+        + '<text x="' + (cx+ddx).toFixed(1) + '" y="' + dy + '" text-anchor="middle" class="mdate">' + (d.getMonth()+1) + '/' + d.getDate() + '</text>'
+        + (it.n ? '<text x="' + (cx+ndx).toFixed(1) + '" y="' + ny + '" text-anchor="middle" class="mlabel">' + esc(it.n) + '</text>' : '')
         + '</g>';
     });
   });
