@@ -394,20 +394,39 @@ function toast(msg){
 function nodes(){ return OEM_NODES[state.oem] || []; }
 
 /* ---------- 左侧：节点列表 ---------- */
-function renderNodes(){
-  var list = $('nodeList'), ns = nodes();
-  var selCount = ns.filter(function(n){ return !state.excluded[n[0]]; }).length;
-  $('nodeCount').textContent = ns.length ? tr('nodeCount').replace('{total}', ns.length).replace('{sel}', selCount) : '';
-  var html = '', prev = null;
-  ns.forEach(function(n, i){
-    var name = n[0], alias = n[1], desc = nodeDesc(n);
+/* 计算每行客户节点的日期倒置标红（与 renderNodes 共用一套逻辑） */
+function computeNodeWarns(){
+  var ns = nodes(), prev = null, out = [];
+  ns.forEach(function(n){
+    var name = n[0];
     var inc = !state.excluded[name];
-    var v = state.dates[name] || '';
-    var d = parseD(v), warn = false;
+    var d = parseD(state.dates[name] || ''), warn = false;
     if(inc){
       if(d && prev && d < prev) warn = true;
       if(d) prev = d;
     }
+    out.push(warn);
+  });
+  return out;
+}
+/* 原地刷新标红，不重建输入框（输入日期时不丢焦点） */
+function updateNodeWarns(){
+  var rows = $('nodeList').querySelectorAll('.node-row');
+  var warns = computeNodeWarns();
+  for(var i = 0; i < rows.length && i < warns.length; i++){
+    rows[i].classList.toggle('warn', warns[i]);
+  }
+}
+function renderNodes(){
+  var list = $('nodeList'), ns = nodes();
+  var selCount = ns.filter(function(n){ return !state.excluded[n[0]]; }).length;
+  $('nodeCount').textContent = ns.length ? tr('nodeCount').replace('{total}', ns.length).replace('{sel}', selCount) : '';
+  var html = '', warns = computeNodeWarns();
+  ns.forEach(function(n, i){
+    var name = n[0], alias = n[1], desc = nodeDesc(n);
+    var inc = !state.excluded[name];
+    var v = state.dates[name] || '';
+    var warn = warns[i];
     var label = alias ? name + '（' + alias + '）' : name;
     html += '<div class="node-row' + (warn ? ' warn' : '') + (inc ? '' : ' off') + '" title="' + esc(desc) + '">'
       + '<input type="checkbox" class="inc" data-node="' + esc(name) + '"' + (inc ? ' checked' : '') + '>'
@@ -421,7 +440,9 @@ function renderNodes(){
   for(var k = 0; k < inputs.length; k++){
     inputs[k].addEventListener('change', function(){
       state.dates[this.dataset.node] = this.value;
-      save(); renderAll();
+      save();
+      updateNodeWarns();
+      renderChart();
     });
   }
   var checks = list.querySelectorAll('.inc');
