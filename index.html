@@ -72,6 +72,7 @@ svg text{font-size:11px;fill:#4b5563}
 .cm-dates{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 .cm-date{display:flex;align-items:center;gap:2px}
 .cm-date input{margin-bottom:0;padding:5px 6px;font-size:12.5px}
+.cmnd{width:84px}
 .cmx{border:none;background:#f3f4f6;border-radius:50%;width:20px;height:20px;cursor:pointer;color:#6b7280;font-size:12px;line-height:1;padding:0}
 .cmx:hover{background:#e5e7eb}
 .cmadd{border:1px dashed #9ca3af;background:#fff;border-radius:6px;padding:5px 10px;cursor:pointer;color:#374151;font-size:12.5px}
@@ -177,7 +178,7 @@ h3 .mini{font-size:11px;padding:3px 10px;font-weight:500;margin-left:8px;vertica
   <main>
     <div class="legend">
       <span><span class="dot" style="background:#f59e0b;transform:rotate(45deg)"></span><span data-i18n="legendMs">客户关键节点</span></span>
-      <span><span class="dot" style="background:#bfdbfe;border:1px solid #60a5fa"></span><span data-i18n="legendPhase">阶段区间</span></span>
+      <span><label style="cursor:pointer;display:inline-flex;align-items:center;gap:5px"><input type="checkbox" id="ckPhase" checked style="accent-color:#60a5fa;margin:0"><span class="dot" style="background:#bfdbfe;border:1px solid #60a5fa"></span><span data-i18n="legendPhase">阶段区间</span></label></span>
       <span><span class="dot" style="background:#60a5fa"></span><span data-i18n="legendRec">推荐任务</span></span>
       <span><span class="dot" style="background:#14b8a6"></span><span data-i18n="legendCustom">自定义任务</span></span>
       <span><span class="dot" style="background:#14b8a6;transform:rotate(45deg)"></span><span data-i18n="legendCustomMs">自定义节点</span></span>
@@ -235,6 +236,10 @@ function addMonths(d,n){
   nd.setDate(Math.min(day, last));
   return nd;
 }
+/* 自定义节点日期项：{d:'yyyy-mm-dd', n:'名称'}（兼容旧的字符串形式） */
+function cmDate(x){ return typeof x === 'string' ? x : ((x && x.d) || ''); }
+function cmName(x){ return (x && typeof x === 'object' && x.n) || ''; }
+function cmItem(d, n){ return { d:d || '', n:n || '' }; }
 function trunc(s,n){ s = String(s); return s.length > n ? s.slice(0,n-1) + '…' : s; }
 function abbr(s){ return String(s).replace(/\s*[\(（][^()（）]*[\)）]$/, ''); }
 
@@ -254,7 +259,7 @@ zh: {
   cmNamePh:'节点排名称（例如：模具节点）', btnAddLane:'添加节点排', btnAddDate:'+ 日期', hintNoCm:'暂无自定义节点排，可在下方添加', legendCustomMs:'自定义节点',
   genStart:'开始', genEvery:'间隔', genCount:'数量', unitD:'天', unitW:'周', unitM:'月', btnGen:'生成',
   toastNeedGenStart:'请先选择开始日期',
-  btnSelAll:'全选', btnDeselAll:'取消全选',
+  btnSelAll:'全选', btnDeselAll:'取消全选', cmDateNamePh:'名称（如 T0）',
   startDate:'开始日期', endDate:'结束日期',
   legendMs:'客户关键节点', legendPhase:'阶段区间', legendRec:'推荐任务', legendCustom:'自定义任务',
   today:'今天', warnInvert:'红色节点 = 日期倒置',
@@ -281,7 +286,7 @@ en: {
   cmNamePh:'Lane name (e.g. Tooling milestones)', btnAddLane:'Add lane', btnAddDate:'+ Date', hintNoCm:'No custom milestone lanes yet — add below', legendCustomMs:'Custom milestones',
   genStart:'Start', genEvery:'Every', genCount:'Count', unitD:'Day', unitW:'Week', unitM:'Month', btnGen:'Generate',
   toastNeedGenStart:'Please pick a start date first',
-  btnSelAll:'Select all', btnDeselAll:'Deselect all',
+  btnSelAll:'Select all', btnDeselAll:'Deselect all', cmDateNamePh:'Name (e.g. T0)',
   startDate:'Start date', endDate:'End date',
   legendMs:'Customer milestones', legendPhase:'Phase', legendRec:'Recommended', legendCustom:'Custom',
   today:'Today', warnInvert:'Red milestone = inverted dates',
@@ -308,7 +313,7 @@ de: {
   cmNamePh:'Spurename (z. B. Werkzeug-Meilensteine)', btnAddLane:'Spur hinzufügen', btnAddDate:'+ Datum', hintNoCm:'Noch keine eigenen Meilensteinspuren – unten hinzufügen', legendCustomMs:'Eigene Meilensteine',
   genStart:'Start', genEvery:'Intervall', genCount:'Anzahl', unitD:'Tag', unitW:'Woche', unitM:'Monat', btnGen:'Erzeugen',
   toastNeedGenStart:'Bitte zuerst ein Startdatum wählen',
-  btnSelAll:'Alle wählen', btnDeselAll:'Alle abwählen',
+  btnSelAll:'Alle wählen', btnDeselAll:'Alle abwählen', cmDateNamePh:'Name (z. B. T0)',
   startDate:'Startdatum', endDate:'Enddatum',
   legendMs:'Kundenmeilensteine', legendPhase:'Phase', legendRec:'Empfohlen', legendCustom:'Eigene',
   today:'Heute', warnInvert:'Roter Meilenstein = verdrehte Daten',
@@ -375,7 +380,7 @@ function buildOemOptions(){
   sel.value = state.oem || '';
 }
 
-var state = { oem:'', projectName:'', dates:{}, tasks:[], excluded:{}, recTasks:{}, customMs:[] };
+var state = { oem:'', projectName:'', dates:{}, tasks:[], excluded:{}, recTasks:{}, customMs:[], showPhase:true };
 function save(){}
 function load(){}
 function toast(msg){
@@ -547,8 +552,9 @@ function renderCustomMs(){
   var list = $('cmList');
   var lanes = state.customMs || [];
   var html = lanes.map(function(l, i){
-    var dates = (l.dates || []).map(function(d, j){
-      return '<span class="cm-date"><input type="date" class="cmd" data-i="' + i + '" data-j="' + j + '" value="' + esc(d || '') + '">'
+    var dates = (l.dates || []).map(function(x, j){
+      return '<span class="cm-date"><input type="date" class="cmd" data-i="' + i + '" data-j="' + j + '" value="' + esc(cmDate(x)) + '">'
+        + '<input type="text" class="cmnd" data-i="' + i + '" data-j="' + j + '" value="' + esc(cmName(x)) + '" placeholder="' + esc(tr('cmDateNamePh')) + '">'
         + '<button class="cmx" data-i="' + i + '" data-j="' + j + '">×</button></span>';
     }).join('');
     return '<div class="cm-lane"><div class="cm-head">'
@@ -572,7 +578,20 @@ function renderCustomMs(){
   var dinputs = list.querySelectorAll('.cmd');
   for(var b = 0; b < dinputs.length; b++){
     dinputs[b].addEventListener('change', function(){
-      state.customMs[+this.dataset.i].dates[+this.dataset.j] = this.value;
+      var arr = state.customMs[+this.dataset.i].dates, j = +this.dataset.j;
+      var it = arr[j];
+      if(typeof it !== 'object' || !it){ it = cmItem(); arr[j] = it; }
+      it.d = this.value;
+      save(); renderChart();
+    });
+  }
+  var ninputs = list.querySelectorAll('.cmnd');
+  for(var bn = 0; bn < ninputs.length; bn++){
+    ninputs[bn].addEventListener('change', function(){
+      var arr = state.customMs[+this.dataset.i].dates, j = +this.dataset.j;
+      var it = arr[j];
+      if(typeof it !== 'object' || !it){ it = cmItem(); arr[j] = it; }
+      it.n = this.value;
       save(); renderChart();
     });
   }
@@ -587,7 +606,7 @@ function renderCustomMs(){
   for(var d = 0; d < adds.length; d++){
     adds[d].addEventListener('click', function(){
       var lane = state.customMs[+this.dataset.i];
-      lane.dates.push('');
+      lane.dates.push(cmItem());
       save(); renderAll();
       var inputs = $('cmList').querySelectorAll('.cmd[data-i="' + this.dataset.i + '"]');
       if(inputs.length) inputs[inputs.length-1].focus();
@@ -614,12 +633,13 @@ function renderCustomMs(){
       var cnt = Math.min(200, Math.max(1, parseInt(gn.value, 10) || 1));
       var lane = state.customMs[+i];
       var have = {};
-      (lane.dates || []).forEach(function(d){ if(d) have[d] = true; });
+      (lane.dates || []).forEach(function(x){ var d = cmDate(x); if(d) have[d] = cmName(x); });
       for(var k = 0; k < cnt; k++){
         var dd = gu.value === 'm' ? addMonths(sd, k * step) : addDays(sd, k * step * (gu.value === 'w' ? 7 : 1));
-        have[fmtD(dd)] = true;
+        var key = fmtD(dd);
+        if(!(key in have)) have[key] = '';
       }
-      lane.dates = Object.keys(have);
+      lane.dates = Object.keys(have).map(function(d){ return cmItem(d, have[d]); });
       save(); renderAll();
     });
   }
@@ -644,10 +664,13 @@ function renderChart(){
     recBars.push({ name:pick(t.name), s:r.s, e:r.e, rec:true });
   });
 
-  // 自定义节点排：每排多个日期节点
+  // 自定义节点排：每排多个日期节点（带名称）
   var cmLanes = (state.customMs || []).map(function(l){
-    var ds = (l.dates || []).map(parseD).filter(function(d){ return !!d; });
-    ds.sort(function(a,b){ return a - b; });
+    var ds = (l.dates || []).map(function(x){
+      var d = parseD(cmDate(x));
+      return d ? { d:d, n:cmName(x) } : null;
+    }).filter(function(x){ return !!x; });
+    ds.sort(function(a,b){ return a.d - b.d; });
     return { name:l.name || '', dates:ds };
   }).filter(function(l){ return l.dates.length; });
 
@@ -660,7 +683,7 @@ function renderChart(){
   var all = [];
   ms.forEach(function(m){ all.push(m.d); });
   laneTasks.forEach(function(t){ all.push(t.s); all.push(t.e); });
-  cmLanes.forEach(function(l){ l.dates.forEach(function(d){ all.push(d); }); });
+  cmLanes.forEach(function(l){ l.dates.forEach(function(it){ all.push(it.d); }); });
   var tmin = Math.min.apply(null, all), tmax = Math.max.apply(null, all);
   var min = new Date(tmin), max = new Date(tmax);
   if(diffDays(min, max) < 60){ min = addDays(min, -30); max = addDays(max, 30); }
@@ -673,8 +696,9 @@ function renderChart(){
   var W = Math.ceil(GUT + 24 + totalDays * pxDay);
   function X(d){ return GUT + diffDays(min, d) * pxDay; }
 
-  var AXIS_H = 30, PH_Y = 30, PH_H = 48, MS_Y = PH_Y + PH_H, MS_H = 124;
-  var CM_Y = MS_Y + MS_H, CM_H = 40;
+  var showPH = state.showPhase !== false;
+  var AXIS_H = 30, PH_Y = 30, PH_H = showPH ? 48 : 0, MS_Y = PH_Y + PH_H, MS_H = 104;
+  var CM_Y = MS_Y + MS_H, CM_H = 58;
   var TK_Y = CM_Y + cmLanes.length * CM_H, TK_H = 36;
   var H = TK_Y + laneTasks.length * TK_H + 10;
   var msCY = MS_Y + MS_H/2;
@@ -692,7 +716,7 @@ function renderChart(){
       anchors.push({ pid:pid, name:nn, d:d });
   });
   anchors.sort(function(a,b){ return a.d - b.d; });
-  if(anchors.length){
+  if(showPH && anchors.length){
     var lastD = anchors[anchors.length-1].d;
     for(var _k = 0; _k < 12; _k++){
       if(X(max) - X(lastD) >= 150) break;
@@ -716,9 +740,11 @@ function renderChart(){
     }
     cur.setMonth(cur.getMonth()+1); mi++;
   }
-  // 行分隔线 + 左侧标签（阶段行在上，里程碑行在下）
-  s += '<line x1="0" y1="' + PH_Y + '" x2="' + W + '" y2="' + PH_Y + '" stroke="#e5e7eb"/>';
-  s += '<text x="12" y="' + (PH_Y + PH_H/2 + 4) + '" class="glabel">' + esc(tr('legendPhase') + ' · ' + PHASE_SYSTEMS[sys].tag) + '</text>';
+  // 行分隔线 + 左侧标签（阶段行在上，里程碑行在下；阶段行可隐藏）
+  if(showPH){
+    s += '<line x1="0" y1="' + PH_Y + '" x2="' + W + '" y2="' + PH_Y + '" stroke="#e5e7eb"/>';
+    s += '<text x="12" y="' + (PH_Y + PH_H/2 + 4) + '" class="glabel">' + esc(tr('legendPhase') + ' · ' + PHASE_SYSTEMS[sys].tag) + '</text>';
+  }
   s += '<line x1="0" y1="' + MS_Y + '" x2="' + W + '" y2="' + MS_Y + '" stroke="#e5e7eb"/>';
   s += '<text x="12" y="' + (MS_Y + MS_H/2 + 4) + '" class="glabel">' + esc(tr('legendMs')) + '</text>';
   s += '<line x1="0" y1="' + CM_Y + '" x2="' + W + '" y2="' + CM_Y + '" stroke="#e5e7eb"/>';
@@ -757,25 +783,26 @@ function renderChart(){
     s += '<g><title>' + esc(label + '\n' + fmtD(m.d)) + '</title>'
       + '<rect x="' + (cx-r).toFixed(1) + '" y="' + (msCY-r).toFixed(1) + '" width="' + (r*2) + '" height="' + (r*2)
       + '" transform="rotate(45 ' + cx.toFixed(1) + ' ' + msCY + ')" fill="' + fill + '" stroke="' + stroke + '" stroke-width="1.5"/>'
-      + '<text x="' + (cx-9).toFixed(1) + '" y="' + ly + '" transform="rotate(-30 ' + (cx-9).toFixed(1) + ' ' + ly + ')" text-anchor="end" class="mlabel">' + esc(abbr(m.name)) + '</text>'
+      + '<text x="' + (cx-9).toFixed(1) + '" y="' + ly + '" transform="rotate(-25 ' + (cx-9).toFixed(1) + ' ' + ly + ')" text-anchor="end" class="mlabel">' + esc(abbr(m.name)) + '</text>'
       + '<text x="' + cx.toFixed(1) + '" y="' + (msCY+24) + '" text-anchor="middle" class="mdate">' + (m.d.getMonth()+1) + '/' + m.d.getDate() + '</text>'
       + '</g>';
   });
-  // 自定义节点排：基线 + 菱形 + 日期
+  // 自定义节点排：基线 + 菱形 + 日期（上方）+ 名称（下方）
   cmLanes.forEach(function(l, i){
     var y0 = CM_Y + i * CM_H, cy = y0 + CM_H/2, r = 6;
     s += '<line x1="' + GUT + '" y1="' + cy + '" x2="' + W + '" y2="' + cy + '" stroke="#e5e7eb"/>';
-    l.dates.forEach(function(d){
-      var cx = X(d);
-      s += '<g><title>' + esc((l.name ? l.name + '\n' : '') + fmtD(d)) + '</title>'
+    l.dates.forEach(function(it){
+      var d = it.d, cx = X(d);
+      s += '<g><title>' + esc((l.name ? l.name + '\n' : '') + (it.n ? it.n + '\n' : '') + fmtD(d)) + '</title>'
         + '<rect x="' + (cx-r).toFixed(1) + '" y="' + (cy-r).toFixed(1) + '" width="' + (r*2) + '" height="' + (r*2)
         + '" transform="rotate(45 ' + cx.toFixed(1) + ' ' + cy + ')" fill="#14b8a6" stroke="#0f766e" stroke-width="1.5"/>'
-        + '<text x="' + cx.toFixed(1) + '" y="' + (cy+22) + '" text-anchor="middle" class="mdate">' + (d.getMonth()+1) + '/' + d.getDate() + '</text>'
+        + '<text x="' + cx.toFixed(1) + '" y="' + (cy-13) + '" text-anchor="middle" class="mdate">' + (d.getMonth()+1) + '/' + d.getDate() + '</text>'
+        + (it.n ? '<text x="' + cx.toFixed(1) + '" y="' + (cy+24) + '" text-anchor="middle" class="mlabel">' + esc(it.n) + '</text>' : '')
         + '</g>';
     });
   });
-  // 阶段区间条：按phase锚点划分区间（锚点来自客户节点-phase对照）；最后一个阶段延伸到图表结尾
-  for(var i = 0; i < anchors.length; i++){
+  // 阶段区间条：按phase锚点划分区间（锚点来自客户节点-phase对照）；最后一个阶段延伸到图表结尾；可隐藏
+  if(showPH) for(var i = 0; i < anchors.length; i++){
     var a = anchors[i], b = anchors[i+1];
     var x1 = X(a.d), x2 = b ? X(b.d) : X(max), bw = x2 - x1;
     if(bw <= 0) continue;
@@ -947,6 +974,11 @@ function init(){
   if(!OEM_NODES[state.oem]) state.oem = '';
   buildOemOptions();
   $('projectName').value = state.projectName || '';
+  $('ckPhase').checked = state.showPhase !== false;
+  $('ckPhase').addEventListener('change', function(){
+    state.showPhase = this.checked;
+    save(); renderChart();
+  });
 
   sel.addEventListener('change', function(){
     state.oem = sel.value;
@@ -985,7 +1017,7 @@ function init(){
   $('btnAddLane').addEventListener('click', function(){
     var name = $('cmName').value.trim();
     state.customMs = state.customMs || [];
-    state.customMs.push({ name:name, dates:[''] });
+    state.customMs.push({ name:name, dates:[cmItem()] });
     $('cmName').value = '';
     save(); renderAll();
     var inputs = $('cmList').querySelectorAll('.cmn');
