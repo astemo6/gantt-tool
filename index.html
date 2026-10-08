@@ -806,6 +806,70 @@ function renderCustomMs(){
   }
 }
 
+/* 甘特图内拖拽自定义节点排上下排序 */
+function initChartLaneDrag(){
+  var chart = $('chart');
+  var drag = null;
+  function svgLaneInfo(){
+    var svg = chart.querySelector('svg');
+    if(!svg) return null;
+    return {
+      svg: svg,
+      y: +svg.getAttribute('data-cm-y'),
+      h: +svg.getAttribute('data-cm-h'),
+      n: +svg.getAttribute('data-cm-n')
+    };
+  }
+  function toSvgY(clientY){
+    var info = svgLaneInfo();
+    if(!info) return null;
+    var r = info.svg.getBoundingClientRect();
+    var scaleY = info.svg.viewBox.baseVal.height / r.height;
+    return { y: (clientY - r.top) * scaleY, info: info };
+  }
+  chart.addEventListener('mousedown', function(e){
+    var t = e.target;
+    var idx = t.getAttribute ? t.getAttribute('data-laneidx') : null;
+    if(idx === null || idx === undefined || idx === '') return;
+    drag = { from: +idx, to: +idx, startY: e.clientY, active: false };
+    e.preventDefault();
+  });
+  document.addEventListener('mousemove', function(e){
+    if(!drag) return;
+    if(!drag.active && Math.abs(e.clientY - drag.startY) > 6) drag.active = true;
+    if(!drag.active) return;
+    var p = toSvgY(e.clientY);
+    if(!p) return;
+    var to = Math.floor((p.y - p.info.y) / p.info.h);
+    to = Math.max(0, Math.min(p.info.n - 1, to));
+    drag.to = to;
+    /* 目标位置指示线 */
+    var old = chart.querySelector('.cm-drop-line');
+    if(old) old.remove();
+    var svg = p.info.svg;
+    var lineY = p.info.y + to * p.info.h + (to > drag.from ? p.info.h : 0);
+    var line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('x1', 0); line.setAttribute('x2', svg.getAttribute('width'));
+    line.setAttribute('y1', lineY); line.setAttribute('y2', lineY);
+    line.setAttribute('stroke', '#3b82f6'); line.setAttribute('stroke-width', '3');
+    line.setAttribute('class', 'cm-drop-line');
+    svg.appendChild(line);
+    document.body.style.cursor = 'grabbing';
+  });
+  document.addEventListener('mouseup', function(){
+    document.body.style.cursor = '';
+    var old = chart.querySelector('.cm-drop-line');
+    if(old) old.remove();
+    if(!drag) return;
+    var from = drag.from, to = drag.to, wasActive = drag.active;
+    drag = null;
+    if(wasActive && to !== from && to >= 0 && from >= 0){
+      var item = state.customMs.splice(from, 1)[0];
+      state.customMs.splice(to, 0, item);
+      save(); renderAll();
+    }
+  });
+}
 /* 点击甘特图上的节点/文字，跳到左侧对应输入框进行编辑 */
 function initChartEdit(){
   $('chart').addEventListener('click', function(e){
@@ -962,7 +1026,8 @@ function renderChart(){
   s += '<line x1="0" y1="' + CM_Y + '" x2="' + W + '" y2="' + CM_Y + '" stroke="#e5e7eb"/>';
   cmLanes.forEach(function(l, i){
     var ly0 = CM_Y + i * CM_H;
-    s += '<text x="12" y="' + (ly0 + CM_H/2 + 4) + '" class="tlabel">' + esc(trunc(l.name, 11)) + '</text>';
+    s += '<rect x="0" y="' + ly0 + '" width="' + GUT + '" height="' + CM_H + '" fill="transparent" data-laneidx="' + i + '" class="cm-lane-hit" style="cursor:grab"/>';
+    s += '<text x="12" y="' + (ly0 + CM_H/2 + 4) + '" class="tlabel" data-laneidx="' + i + '" style="cursor:grab;user-select:none">⋮⋮ ' + esc(trunc(l.name, 9)) + '</text>';
     if(i > 0) s += '<line x1="0" y1="' + ly0 + '" x2="' + W + '" y2="' + ly0 + '" stroke="#f3f4f6"/>';
   });
   s += '<line x1="0" y1="' + TK_Y + '" x2="' + W + '" y2="' + TK_Y + '" stroke="#e5e7eb"/>';
@@ -1058,7 +1123,7 @@ function renderChart(){
       + '<text x="' + (tx+4).toFixed(1) + '" y="20" fill="#ef4444" font-size="11">' + esc(tr('today')) + '</text>';
   }
 
-  chart.innerHTML = '<svg width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" xmlns="http://www.w3.org/2000/svg">' + s + '</svg>';
+  chart.innerHTML = '<svg width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" xmlns="http://www.w3.org/2000/svg" data-cm-y="' + CM_Y + '" data-cm-h="' + CM_H + '" data-cm-n="' + cmLanes.length + '">' + s + '</svg>';
 }
 
 /* ---------- 右侧：客户节点说明表（甘特图下方） ---------- */
@@ -1380,6 +1445,7 @@ function init(){
   }
   $('btnSample').addEventListener('click', sampleDates);
   initChartEdit();
+  initChartLaneDrag();
   var secToggles = document.querySelectorAll('.sec-toggle');
   for(var st = 0; st < secToggles.length; st++){
     secToggles[st].addEventListener('click', function(){
