@@ -67,6 +67,11 @@ svg text{font-size:11px;fill:#4b5563}
 #btnAddTask{width:100%}
 #btnAddLane{width:100%}
 .cm-lane{border:1px solid #e5e7eb;border-radius:8px;padding:8px;margin:0 0 8px;background:#fff}
+.cm-lane.dragging{opacity:.45}
+.cm-lane.drop-target{outline:2px dashed #3b82f6;outline-offset:2px}
+.cm-drag{cursor:grab;user-select:none;-webkit-user-select:none;color:#9ca3af;font-size:15px;letter-spacing:-2px;padding:2px 6px 2px 2px;touch-action:none}
+.cm-drag:active{cursor:grabbing}
+.cm-head .mini{padding:3px 8px;margin-left:4px}
 .cm-head{display:flex;gap:6px;margin-bottom:6px}
 .cm-head input[type=text]{flex:1;min-width:0;margin-bottom:0}
 .cm-dates{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
@@ -300,7 +305,8 @@ zh: {
   toastJSONOk:'JSON 数据已导入', toastJSONBad:'JSON 文件无效，导入失败',
   toastCascade:'已按预设间隔自动填充后续节点日期', toastDateBad:'日期格式无效，请使用 YYYY-MM-DD 或 MM/DD/YYYY',
   btnJPG:'导出 JPG', secExport:'导出设置', creatorPh:'制作者姓名', ckShowCreator:'导出时显示制作者', ckShowDate:'导出时显示日期',
-  expHint:'导出的 PDF / JPG 为高分辨率图片，顶部为项目名称；勾选后左下角显示制作者与日期。', expCreator:'制作者', expDate:'日期'
+  expHint:'导出的 PDF / JPG 为高分辨率图片，顶部为项目名称；勾选后左下角显示制作者与日期。', expCreator:'制作者', expDate:'日期',
+  dragTip:'按住拖动可调整顺序', moveUp:'上移', moveDown:'下移'
 },
 en: {
   title:'Customer Milestone Gantt Tool', brand:'Customer Milestones',
@@ -331,7 +337,8 @@ en: {
   toastJSONOk:'JSON data imported', toastJSONBad:'Invalid JSON file',
   toastCascade:'Subsequent milestone dates auto-filled by preset intervals', toastDateBad:'Invalid date format, use YYYY-MM-DD or MM/DD/YYYY',
   btnJPG:'Export JPG', secExport:'Export settings', creatorPh:'Creator name', ckShowCreator:'Show creator in export', ckShowDate:'Show date in export',
-  expHint:'Exported PDF / JPG is a high-resolution image with the project name on top; creator and date appear at the bottom-left when checked.', expCreator:'Creator', expDate:'Date'
+  expHint:'Exported PDF / JPG is a high-resolution image with the project name on top; creator and date appear at the bottom-left when checked.', expCreator:'Creator', expDate:'Date',
+  dragTip:'Drag to reorder', moveUp:'Move up', moveDown:'Move down'
 },
 de: {
   title:'Kundenmeilenstein-Gantt-Tool', brand:'Kundenmeilensteine',
@@ -362,7 +369,8 @@ de: {
   toastJSONOk:'JSON-Daten importiert', toastJSONBad:'Ungültige JSON-Datei',
   toastCascade:'Folgemeilensteine automatisch nach voreingestellten Intervallen eingetragen', toastDateBad:'Ungültiges Datumsformat, YYYY-MM-DD oder MM/DD/YYYY verwenden',
   btnJPG:'JPG exportieren', secExport:'Exporteinstellungen', creatorPh:'Name des Erstellers', ckShowCreator:'Ersteller im Export anzeigen', ckShowDate:'Datum im Export anzeigen',
-  expHint:'Exportiertes PDF / JPG ist ein hochauflösendes Bild mit dem Projektnamen oben; Ersteller und Datum erscheinen unten links, wenn angehakt.', expCreator:'Ersteller', expDate:'Datum'
+  expHint:'Exportiertes PDF / JPG ist ein hochauflösendes Bild mit dem Projektnamen oben; Ersteller und Datum erscheinen unten links, wenn angehakt.', expCreator:'Ersteller', expDate:'Datum',
+  dragTip:'Zum Umsortieren ziehen', moveUp:'Nach oben', moveDown:'Nach unten'
 }};
 function tr(k){ var d = I18N[lang] || I18N.zh; return (d[k] !== undefined) ? d[k] : (I18N.zh[k] !== undefined ? I18N.zh[k] : k); }
 function pick(o){
@@ -630,8 +638,11 @@ function renderCustomMs(){
         + '<input type="text" class="cmnd" data-i="' + i + '" data-j="' + j + '" value="' + esc(cmName(x)) + '" placeholder="' + esc(tr('cmDateNamePh')) + '">'
         + '<button class="cmx" data-i="' + i + '" data-j="' + j + '">×</button></span>';
     }).join('');
-    return '<div class="cm-lane"><div class="cm-head">'
+    return '<div class="cm-lane" data-i="' + i + '"><div class="cm-head">'
+      + '<span class="cm-drag" draggable="true" data-i="' + i + '" title="' + esc(tr('dragTip')) + '">⋮⋮</span>'
       + '<input type="text" class="cmn" data-i="' + i + '" value="' + esc(l.name || '') + '" placeholder="' + esc(tr('cmNamePh')) + '">'
+      + '<button class="mini ghost cm-up" data-i="' + i + '" title="' + esc(tr('moveUp')) + '">↑</button>'
+      + '<button class="mini ghost cm-down" data-i="' + i + '" title="' + esc(tr('moveDown')) + '">↓</button>'
       + '<button class="del" data-i="' + i + '">' + tr('delTask') + '</button></div>'
       + '<div class="cm-dates">' + dates + '<button class="cmadd" data-i="' + i + '">' + esc(tr('btnAddDate')) + '</button></div>'
       + '<div class="cm-gen"><span>' + tr('genStart') + '</span><input type="text" class="cgs date" placeholder="YYYY-MM-DD" inputmode="numeric" data-i="' + i + '">'
@@ -692,6 +703,63 @@ function renderCustomMs(){
     dels[e].addEventListener('click', function(){
       state.customMs.splice(+this.dataset.i, 1);
       save(); renderAll();
+    });
+  }
+  /* 排序：上移 / 下移 */
+  function cmMove(i, dir){
+    var j = i + dir;
+    if(i < 0 || j < 0 || i >= state.customMs.length || j >= state.customMs.length) return;
+    var t = state.customMs[i];
+    state.customMs[i] = state.customMs[j];
+    state.customMs[j] = t;
+    save(); renderAll();
+  }
+  var ups = list.querySelectorAll('.cm-up');
+  for(var u = 0; u < ups.length; u++){
+    ups[u].addEventListener('click', function(){ cmMove(+this.dataset.i, -1); });
+  }
+  var dns = list.querySelectorAll('.cm-down');
+  for(var dn = 0; dn < dns.length; dn++){
+    dns[dn].addEventListener('click', function(){ cmMove(+this.dataset.i, 1); });
+  }
+  /* 排序：拖拽手柄 */
+  var lanes = list.querySelectorAll('.cm-lane');
+  for(var li = 0; li < lanes.length; li++){
+    (function(laneEl){
+      laneEl.addEventListener('dragover', function(e){
+        e.preventDefault();
+        if(e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+        laneEl.classList.add('drop-target');
+      });
+      laneEl.addEventListener('dragleave', function(){ laneEl.classList.remove('drop-target'); });
+      laneEl.addEventListener('drop', function(e){
+        e.preventDefault();
+        laneEl.classList.remove('drop-target');
+        var from = +(e.dataTransfer ? e.dataTransfer.getData('text/plain') : '');
+        var to = +laneEl.getAttribute('data-i');
+        if(!isNaN(from) && from !== to && from >= 0 && to >= 0 && from < state.customMs.length && to < state.customMs.length){
+          var item = state.customMs.splice(from, 1)[0];
+          state.customMs.splice(to, 0, item);
+          save(); renderAll();
+        }
+      });
+    })(lanes[li]);
+  }
+  var drags = list.querySelectorAll('.cm-drag');
+  for(var dg = 0; dg < drags.length; dg++){
+    drags[dg].addEventListener('dragstart', function(e){
+      var lane = this.parentNode.parentNode;
+      if(e.dataTransfer){
+        e.dataTransfer.setData('text/plain', this.getAttribute('data-i'));
+        e.dataTransfer.effectAllowed = 'move';
+      }
+      if(lane) lane.classList.add('dragging');
+    });
+    drags[dg].addEventListener('dragend', function(){
+      var lane = this.parentNode.parentNode;
+      if(lane) lane.classList.remove('dragging');
+      var ts = list.querySelectorAll('.drop-target');
+      for(var ti = 0; ti < ts.length; ti++) ts[ti].classList.remove('drop-target');
     });
   }
   var gos = list.querySelectorAll('.cggo');
