@@ -1036,12 +1036,22 @@ function cascadeDates(fromName){
   for(var i = 0; i < all.length; i++){ if(all[i][0] === fromName){ i0 = i; break; } }
   if(i0 < 0) return;
   var gaps = CASCADE_GAPS[state.oem] || CASCADE_GAPS.DEFAULT;
-  var cum = 0;
+  var cum = 0, byName = {};
   for(var k = i0 + 1; k < all.length; k++){
     cum += (typeof gaps[k-1] === 'number' ? gaps[k-1] : 30);
-    state.dates[all[k][0]] = fmtD(addDays(d0, cum));
+    var ds = fmtD(addDays(d0, cum));
+    state.dates[all[k][0]] = ds;
+    byName[all[k][0]] = ds;
   }
-  save(); renderAll();
+  save();
+  /* 原地更新各输入框的值，不重建列表（输入第一个节点日期时不丢焦点） */
+  var inputs = $('nodeList').querySelectorAll('input[type=date]');
+  for(var j = 0; j < inputs.length; j++){
+    var nm = inputs[j].dataset.node;
+    if(byName[nm] !== undefined) inputs[j].value = byName[nm];
+  }
+  updateNodeWarns();
+  renderChart();
   toast(tr('toastCascade'));
 }
 
