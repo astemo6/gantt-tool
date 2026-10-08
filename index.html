@@ -191,7 +191,7 @@ input.flash{outline:2px solid #f59e0b;outline-offset:1px}
       <p class="hint" data-i18n="expHint">导出的 PDF / JPG 为高分辨率图片，顶部为项目名称；勾选后左下角显示制作者与日期。</p>
     </section>
     <section id="secCustomMs">
-      <h3><span data-i18n="secCustomMs">自定义节点</span> <button class="mini ghost sec-toggle" data-sec="secCustomMs"></button></h3>
+      <h3><span data-i18n="secCustomMs">供应商节点</span> <button class="mini ghost sec-toggle" data-sec="secCustomMs"></button></h3>
       <div id="cmList"></div>
       <p class="hint" data-i18n="cmHint">每排一条节点线，点「+ 日期」可连续添加多个日期节点，在甘特图中显示为菱形。</p>
       <div class="task-form">
@@ -206,7 +206,7 @@ input.flash{outline:2px solid #f59e0b;outline-offset:1px}
       <span><label style="cursor:pointer;display:inline-flex;align-items:center;gap:5px"><input type="checkbox" id="ckPhase" checked style="accent-color:#60a5fa;margin:0"><span class="dot" style="background:#bfdbfe;border:1px solid #60a5fa"></span><span data-i18n="legendPhase">阶段区间</span></label></span>
       <span><span class="dot" style="background:#60a5fa"></span><span data-i18n="legendRec">推荐任务</span></span>
       <span><span class="dot" style="background:#14b8a6"></span><span data-i18n="legendCustom">自定义任务</span></span>
-      <span><span class="dot" style="background:#4ade80;transform:rotate(45deg)"></span><span data-i18n="legendCustomMs">自定义节点</span></span>
+      <span><span class="dot" style="background:#4ade80;transform:rotate(45deg)"></span><span data-i18n="legendCustomMs">供应商节点</span></span>
       <span><span class="dot" style="background:#ef4444;width:2px;height:12px"></span><span data-i18n="today">今天</span></span>
       <span style="color:#7f1d1d" data-i18n="warnInvert">深红色节点 = 日期倒置</span>
     </div>
@@ -286,13 +286,13 @@ zh: {
   secNodes:'客户节点日期', secCollapse:'收起', secExpand:'展开', nodeHint:'勾选参与本项目的节点，未勾选的不进入甘特图；日期倒置（后一节点早于前一节点）会标红提醒。',
   secRec:'推荐任务（模板）', recHint:'推荐的内部任务模板，日期按锚点节点自动推算；偏移周数可改；不勾选的不进入甘特图。',
   secTasks:'自定义任务', taskNamePh:'任务名称（例如：模具T1试模）', btnAddTask:'添加任务', delTask:'删除',
-  secCustomMs:'自定义节点', cmHint:'每排一条节点线，点「+ 日期」可连续添加多个日期节点，在甘特图中显示为菱形。',
-  cmNamePh:'节点排名称（例如：模具节点）', btnAddLane:'添加节点排', btnAddDate:'+ 日期', hintNoCm:'暂无自定义节点排，可在下方添加', legendCustomMs:'自定义节点',
+  secCustomMs:'供应商节点', cmHint:'每排一条节点线，点「+ 日期」可连续添加多个日期节点，在甘特图中显示为菱形。',
+  cmNamePh:'节点排名称（例如：模具节点）', btnAddLane:'添加节点排', btnAddDate:'+ 日期', hintNoCm:'暂无自定义节点排，可在下方添加', legendCustomMs:'供应商节点',
   genStart:'开始', genEvery:'间隔', genCount:'数量', unitD:'天', unitW:'周', unitM:'月', btnGen:'生成',
   toastNeedGenStart:'请先选择开始日期',
   btnSelAll:'全选', btnDeselAll:'取消全选', cmDateNamePh:'名称（如 T0）',
   startDate:'开始日期', endDate:'结束日期',
-  legendMs:'客户关键节点', legendPhase:'阶段区间', legendRec:'推荐任务', legendCustom:'自定义任务',
+  legendMs:'客户关键节点', legendPhase:'阶段区间', legendRec:'推荐任务', legendCustom:'自定义任务', legendTasks:'任务',
   today:'今天', warnInvert:'深红色节点 = 日期倒置',
   emptyHint:'请先选择主机厂，并在左侧填写各客户节点的日期，甘特图将自动生成。<br>也可以点「载入示例日期」先看效果。',
   hintNoPhase:'该主机厂暂无可锚定的阶段', hintNoTasks:'暂无自定义任务，可在下方添加', hintNoNodes:'请先选择主机厂',
@@ -318,13 +318,13 @@ en: {
   secNodes:'Customer milestone dates', secCollapse:'Collapse', secExpand:'Expand', nodeHint:'Tick milestones included in this project; unticked ones are excluded from the chart. Inverted dates (a later milestone earlier than the previous one) are flagged red.',
   secRec:'Recommended tasks (template)', recHint:'Recommended internal task template; dates auto-derived from anchor milestones, week offsets editable; unticked tasks are excluded.',
   secTasks:'Custom tasks', taskNamePh:'Task name (e.g. tooling T1 tryout)', btnAddTask:'Add task', delTask:'Delete',
-  secCustomMs:'Custom milestones', cmHint:'Each lane is a milestone line; click "+ Date" to keep adding date nodes, shown as diamonds in the chart.',
-  cmNamePh:'Lane name (e.g. Tooling milestones)', btnAddLane:'Add lane', btnAddDate:'+ Date', hintNoCm:'No custom milestone lanes yet — add below', legendCustomMs:'Custom milestones',
+  secCustomMs:'Supplier milestones', cmHint:'Each lane is a milestone line; click "+ Date" to keep adding date nodes, shown as diamonds in the chart.',
+  cmNamePh:'Lane name (e.g. Tooling milestones)', btnAddLane:'Add lane', btnAddDate:'+ Date', hintNoCm:'No supplier milestone lanes yet — add below', legendCustomMs:'Supplier milestones',
   genStart:'Start', genEvery:'Every', genCount:'Count', unitD:'Day', unitW:'Week', unitM:'Month', btnGen:'Generate',
   toastNeedGenStart:'Please pick a start date first',
   btnSelAll:'Select all', btnDeselAll:'Deselect all', cmDateNamePh:'Name (e.g. T0)',
   startDate:'Start date', endDate:'End date',
-  legendMs:'Customer milestones', legendPhase:'Phase', legendRec:'Recommended', legendCustom:'Custom',
+  legendMs:'Customer milestones', legendPhase:'Phase', legendRec:'Recommended', legendCustom:'Custom', legendTasks:'Tasks',
   today:'Today', warnInvert:'Dark red milestone = inverted dates',
   emptyHint:'Please select an OEM and fill in the milestone dates on the left; the Gantt chart generates automatically.<br>You can also click "Load sample dates" for a preview.',
   hintNoPhase:'No mappable phases for this OEM', hintNoTasks:'No custom tasks yet — add below', hintNoNodes:'Please select an OEM first',
@@ -351,12 +351,12 @@ de: {
   secRec:'Empfohlene Aufgaben (Vorlage)', recHint:'Empfohlene interne Aufgabenvorlage; Termine werden automatisch von Anker-Meilensteinen abgeleitet, Wochen-Offsets änderbar; nicht angehakte Aufgaben erscheinen nicht.',
   secTasks:'Eigene Aufgaben', taskNamePh:'Aufgabenname (z. B. T1-Werkzeugerprobung)', btnAddTask:'Aufgabe hinzufügen', delTask:'Löschen',
   secCustomMs:'Eigene Meilensteine', cmHint:'Jede Spur ist eine Meilensteinlinie; mit „+ Datum“ fortlaufend Datumsknoten hinzufügen, die im Diagramm als Rauten erscheinen.',
-  cmNamePh:'Spurename (z. B. Werkzeug-Meilensteine)', btnAddLane:'Spur hinzufügen', btnAddDate:'+ Datum', hintNoCm:'Noch keine eigenen Meilensteinspuren – unten hinzufügen', legendCustomMs:'Eigene Meilensteine',
+  cmNamePh:'Spurename (z. B. Werkzeug-Meilensteine)', btnAddLane:'Spur hinzufügen', btnAddDate:'+ Datum', hintNoCm:'Noch keine eigenen Meilensteinspuren – unten hinzufügen', legendCustomMs:'Lieferantenmeilensteine',
   genStart:'Start', genEvery:'Intervall', genCount:'Anzahl', unitD:'Tag', unitW:'Woche', unitM:'Monat', btnGen:'Erzeugen',
   toastNeedGenStart:'Bitte zuerst ein Startdatum wählen',
   btnSelAll:'Alle wählen', btnDeselAll:'Alle abwählen', cmDateNamePh:'Name (z. B. T0)',
   startDate:'Startdatum', endDate:'Enddatum',
-  legendMs:'Kundenmeilensteine', legendPhase:'Phase', legendRec:'Empfohlen', legendCustom:'Eigene',
+  legendMs:'Kundenmeilensteine', legendPhase:'Phase', legendRec:'Empfohlen', legendCustom:'Eigene', legendTasks:'Aufgaben',
   today:'Heute', warnInvert:'Dunkelroter Meilenstein = verdrehte Daten',
   emptyHint:'Bitte einen OEM wählen und links die Meilensteintermine eintragen; das Gantt-Diagramm wird automatisch erzeugt.<br>Auch „Beispieldaten laden" zeigt eine Vorschau.',
   hintNoPhase:'Für diesen OEM keine zuordenbaren Phasen', hintNoTasks:'Noch keine eigenen Aufgaben – unten hinzufügen', hintNoNodes:'Bitte zuerst einen OEM wählen',
@@ -1199,12 +1199,15 @@ function exportScale(cssW, cssH){
 }
 function drawExportLegend(ctx, w, y0){
   var items = [
-    {c:'#dc2626', t:tr('legendMs'), diamond:true},
-    {c:'#bfdbfe', t:tr('legendPhase')},
-    {c:'#60a5fa', t:tr('legendRec')},
-    {c:'#14b8a6', t:tr('legendCustom')},
-    {c:'#4ade80', t:tr('legendCustomMs'), diamond:true}
+    {c:'#dc2626', t:tr('legendMs'), diamond:true}
   ];
+  /* Phase 只在显示时才出现在图例中 */
+  if(state.showPhase !== false){
+    items.push({c:'#bfdbfe', t:tr('legendPhase')});
+  }
+  /* 任务不区分推荐与自定义，合并为一项 */
+  items.push({c:['#60a5fa','#14b8a6'], t:tr('legendTasks')});
+  items.push({c:'#4ade80', t:tr('legendCustomMs'), diamond:true});
   ctx.font = '12px -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif';
   var gap = 26, widths = [], total = 0;
   items.forEach(function(it){
@@ -1218,6 +1221,10 @@ function drawExportLegend(ctx, w, y0){
     if(it.diamond){
       ctx.save(); ctx.translate(x+7, y); ctx.rotate(Math.PI/4);
       ctx.fillStyle = it.c; ctx.fillRect(-6, -6, 12, 12); ctx.restore();
+    } else if(Array.isArray(it.c)){
+      /* 双色条：左半推荐任务蓝，右半自定义任务青 */
+      ctx.fillStyle = it.c[0]; ctx.fillRect(x, y-6, 7, 12);
+      ctx.fillStyle = it.c[1]; ctx.fillRect(x+7, y-6, 7, 12);
     } else {
       ctx.fillStyle = it.c;
       if(it.c === '#bfdbfe'){ ctx.strokeStyle = '#60a5fa'; ctx.lineWidth = 1; }
