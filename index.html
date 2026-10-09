@@ -1330,13 +1330,15 @@ function loadLogoImg(src, done){
   li.src = src;
 }
 function drawTitleLogos(ctx, cssW, titleH, imgL, imgR){
-  var maxH = 46, maxW = 170;
+  var targetH = 30, maxW = 120, dividerY = 66;
   function one(img, right){
     if(!img || !img.naturalWidth) return;
-    var s = Math.min(maxH / img.naturalHeight, maxW / img.naturalWidth);
-    var dw = Math.round(img.naturalWidth * s), dh = Math.round(img.naturalHeight * s);
+    var s = targetH / img.naturalHeight;
+    var dw = img.naturalWidth * s, dh = targetH;
+    if(dw > maxW){ s = maxW / img.naturalWidth; dw = maxW; dh = img.naturalHeight * s; }
     var x = right ? cssW - 24 - dw : 24;
-    ctx.drawImage(img, x, Math.round((titleH - dh) / 2), dw, dh);
+    var y = (dividerY - dh) / 2;
+    ctx.drawImage(img, x, Math.round(y), Math.round(dw), Math.round(dh));
   }
   one(imgL, false); one(imgR, true);
 }
