@@ -994,7 +994,7 @@ function renderChart(){
   function X(d){ return GUT + diffDays(min, d) * pxDay; }
 
   var showPH = state.showPhase !== false;
-  var AXIS_H = 30, PH_Y = 30, PH_H = showPH ? 48 : 0, MS_Y = PH_Y + PH_H, MS_H = 104;
+  var AXIS_H = 44, PH_Y = 44, PH_H = showPH ? 48 : 0, MS_Y = PH_Y + PH_H, MS_H = 104;
   var CM_Y = MS_Y + MS_H, CM_H = 58;
   var TK_Y = CM_Y + cmLanes.length * CM_H, TK_H = 36;
   var H = TK_Y + laneTasks.length * TK_H + 10;
@@ -1025,17 +1025,35 @@ function renderChart(){
   }
 
   var s = '';
-  // 月份刻度 + 网格
+  // 两层表头：年份行（蓝灰底）+ 月份行（浅蓝底），参考 MS Project 风格
+  s += '<rect x="0" y="0" width="' + W + '" height="22" fill="#7BA7BC"/>';
+  s += '<rect x="0" y="22" width="' + W + '" height="22" fill="#BDD5E5"/>';
+  // 年份标签（居中）
+  var yStart = min.getFullYear(), yEnd = max.getFullYear();
+  for(var yy = yStart; yy <= yEnd; yy++){
+    var ysD = new Date(Math.max(new Date(yy,0,1).getTime(), min.getTime()));
+    var yeD = new Date(Math.min(new Date(yy+1,0,1).getTime(), max.getTime()));
+    var yx1 = X(ysD), yx2 = X(yeD);
+    s += '<text x="' + ((yx1+yx2)/2).toFixed(1) + '" y="15" text-anchor="middle" fill="#ffffff" font-size="13" font-weight="700">' + yy + '</text>';
+    if(yy > yStart){
+      s += '<line x1="' + yx1.toFixed(1) + '" y1="0" x2="' + yx1.toFixed(1) + '" y2="22" stroke="#ffffff" stroke-width="1.5"/>';
+    }
+  }
+  // 月份刻度 + 网格（虚线）+ 月份标签居中
   var cur = new Date(min.getFullYear(), min.getMonth(), 1);
   var endM = new Date(max.getFullYear(), max.getMonth(), 1);
-  /* 每月都显示刻度与标签 */
-  var monthW = pxDay * 30;
   while(cur <= endM){
-    var x = X(cur);
-    s += '<line x1="' + x.toFixed(1) + '" y1="26" x2="' + x.toFixed(1) + '" y2="' + H + '" stroke="#eef2f7"/>';
-    var mlbl = monthW < 55 ? monthLabelShort(cur) : monthLabel(cur);
-    s += '<text x="' + (x+4).toFixed(1) + '" y="20" class="axis">' + mlbl + '</text>';
-    cur.setMonth(cur.getMonth()+1);
+    var mx1 = X(cur);
+    var nM = new Date(cur.getFullYear(), cur.getMonth()+1, 1);
+    var mx2 = X(nM > max ? max : nM);
+    // 垂直网格虚线
+    s += '<line x1="' + mx1.toFixed(1) + '" y1="44" x2="' + mx1.toFixed(1) + '" y2="' + H + '" stroke="#d1d5db" stroke-dasharray="4,3"/>';
+    // 月份分隔白线
+    s += '<line x1="' + mx1.toFixed(1) + '" y1="22" x2="' + mx1.toFixed(1) + '" y2="44" stroke="#ffffff" stroke-width="1"/>';
+    // 月份标签居中
+    var mName = lang === 'zh' ? (cur.getMonth()+1) + '月' : MONTHS[lang][cur.getMonth()];
+    s += '<text x="' + ((mx1+mx2)/2).toFixed(1) + '" y="37" text-anchor="middle" fill="#374151" font-size="11">' + mName + '</text>';
+    cur = nM;
   }
   // 行分隔线 + 左侧标签（阶段行在上，里程碑行在下；阶段行可隐藏）
   if(showPH){
@@ -1140,8 +1158,8 @@ function renderChart(){
   var today = new Date(); today.setHours(0,0,0,0);
   if(today >= min && today <= max){
     var tx = X(today);
-    s += '<line x1="' + tx.toFixed(1) + '" y1="24" x2="' + tx.toFixed(1) + '" y2="' + H + '" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="5,3"/>'
-      + '<text x="' + (tx+4).toFixed(1) + '" y="20" fill="#ef4444" font-size="11">' + esc(tr('today')) + '</text>';
+    s += '<line x1="' + tx.toFixed(1) + '" y1="44" x2="' + tx.toFixed(1) + '" y2="' + H + '" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="5,3"/>'
+      + '<text x="' + tx.toFixed(1) + '" y="15" text-anchor="middle" fill="#ffffff" font-size="10" font-weight="600">' + esc(tr('today')) + '</text>';
   }
 
   chart.innerHTML = '<svg width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" xmlns="http://www.w3.org/2000/svg" data-cm-y="' + CM_Y + '" data-cm-h="' + CM_H + '" data-cm-n="' + cmLanes.length + '">' + s + '</svg>';
