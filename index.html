@@ -92,6 +92,12 @@ section.collapsed > :not(h3){display:none}
 .exp-form{display:flex;flex-direction:column;gap:8px}
 .exp-form input[type=text]{font-size:13px;padding:6px 8px;border:1px solid #d1d5db;border-radius:6px;width:100%;background:#fff}
 .exp-form .ck{display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer}
+.logo-row{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:12px;color:#4b5563}
+.logo-lab{min-width:64px}
+.logo-up{cursor:pointer}
+.logo-up .mini{display:inline-block}
+.logo-prev{max-height:28px;max-width:100px;border:1px solid #e5e7eb;border-radius:4px;display:none}
+.logo-prev.show{display:block}
 .exp-form .ck input{accent-color:#2563eb}
 input.flash{outline:2px solid #f59e0b;outline-offset:1px}
 #chart g[data-mnode], #chart g[data-clane]{cursor:pointer}
@@ -192,6 +198,18 @@ input.flash{outline:2px solid #f59e0b;outline-offset:1px}
         <input id="creatorName" type="text" data-i18n-ph="creatorPh" placeholder="制作者姓名">
         <label class="ck"><input type="checkbox" id="ckShowCreator"> <span data-i18n="ckShowCreator">导出时显示制作者</span></label>
         <label class="ck"><input type="checkbox" id="ckShowDate"> <span data-i18n="ckShowDate">导出时显示日期</span></label>
+        <div class="logo-row">
+          <span class="logo-lab" data-i18n="logoLeft">左侧 Logo</span>
+          <label class="logo-up"><input type="file" id="logoLeftFile" accept="image/*" hidden><span class="mini" data-i18n="logoUpload">上传</span></label>
+          <img id="logoLeftPrev" class="logo-prev" alt="">
+          <button class="mini ghost" id="logoLeftClear" style="display:none">×</button>
+        </div>
+        <div class="logo-row">
+          <span class="logo-lab" data-i18n="logoRight">右侧 Logo</span>
+          <label class="logo-up"><input type="file" id="logoRightFile" accept="image/*" hidden><span class="mini" data-i18n="logoUpload">上传</span></label>
+          <img id="logoRightPrev" class="logo-prev" alt="">
+          <button class="mini ghost" id="logoRightClear" style="display:none">×</button>
+        </div>
       </div>
       <p class="hint" data-i18n="expHint">导出的 PDF / JPG 为高分辨率图片，顶部为项目名称；勾选后左下角显示制作者与日期。</p>
     </section>
@@ -310,7 +328,7 @@ zh: {
   toastNoChart:'暂无甘特图可导出，请先填写节点日期',
   toastJSONOk:'JSON 数据已导入', toastJSONBad:'JSON 文件无效，导入失败',
   toastCascade:'已按预设间隔自动填充后续节点日期', toastDateBad:'日期格式无效，请使用 YYYY-MM-DD 或 MM/DD/YYYY',
-  btnJPG:'导出 JPG', secExport:'导出设置', creatorPh:'制作者姓名', ckShowCreator:'导出时显示制作者', ckShowDate:'导出时显示日期',
+  btnJPG:'导出 JPG', secExport:'导出设置', creatorPh:'制作者姓名', ckShowCreator:'导出时显示制作者', ckShowDate:'导出时显示日期', logoLeft:'左侧 Logo', logoRight:'右侧 Logo', logoUpload:'上传',
   expHint:'导出的 PDF / JPG 为高分辨率图片，顶部为项目名称；勾选后左下角显示制作者与日期。', expCreator:'制作者', expDate:'日期',
   dragTip:'按住拖动可调整顺序', moveUp:'上移', moveDown:'下移'
 },
@@ -342,7 +360,7 @@ en: {
   toastNoChart:'No chart to export yet — please fill in milestone dates first',
   toastJSONOk:'JSON data imported', toastJSONBad:'Invalid JSON file',
   toastCascade:'Subsequent milestone dates auto-filled by preset intervals', toastDateBad:'Invalid date format, use YYYY-MM-DD or MM/DD/YYYY',
-  btnJPG:'Export JPG', secExport:'Export settings', creatorPh:'Creator name', ckShowCreator:'Show creator in export', ckShowDate:'Show date in export',
+  btnJPG:'Export JPG', secExport:'Export settings', creatorPh:'Creator name', ckShowCreator:'Show creator in export', ckShowDate:'Show date in export', logoLeft:'Left logo', logoRight:'Right logo', logoUpload:'Upload',
   expHint:'Exported PDF / JPG is a high-resolution image with the project name on top; creator and date appear at the bottom-left when checked.', expCreator:'Creator', expDate:'Date',
   dragTip:'Drag to reorder', moveUp:'Move up', moveDown:'Move down'
 },
@@ -374,7 +392,7 @@ de: {
   toastNoChart:'Kein Diagramm zum Exportieren – bitte zuerst Meilensteintermine eintragen',
   toastJSONOk:'JSON-Daten importiert', toastJSONBad:'Ungültige JSON-Datei',
   toastCascade:'Folgemeilensteine automatisch nach voreingestellten Intervallen eingetragen', toastDateBad:'Ungültiges Datumsformat, YYYY-MM-DD oder MM/DD/YYYY verwenden',
-  btnJPG:'JPG exportieren', secExport:'Exporteinstellungen', creatorPh:'Name des Erstellers', ckShowCreator:'Ersteller im Export anzeigen', ckShowDate:'Datum im Export anzeigen',
+  btnJPG:'JPG exportieren', secExport:'Exporteinstellungen', creatorPh:'Name des Erstellers', ckShowCreator:'Ersteller im Export anzeigen', ckShowDate:'Datum im Export anzeigen', logoLeft:'Logo links', logoRight:'Logo rechts', logoUpload:'Hochladen',
   expHint:'Exportiertes PDF / JPG ist ein hochauflösendes Bild mit dem Projektnamen oben; Ersteller und Datum erscheinen unten links, wenn angehakt.', expCreator:'Ersteller', expDate:'Datum',
   dragTip:'Zum Umsortieren ziehen', moveUp:'Nach oben', moveDown:'Nach unten'
 }};
@@ -445,7 +463,7 @@ function buildOemOptions(){
   sel.value = state.oem || '';
 }
 
-var state = { oem:'', projectName:'', dates:{}, tasks:[], excluded:{}, recTasks:{}, customMs:[], showPhase:true };
+var state = { oem:'', projectName:'', dates:{}, tasks:[], excluded:{}, recTasks:{}, customMs:[], showPhase:true, logoLeft:'', logoRight:'' };
 function save(){}
 function load(){}
 function toast(msg){
@@ -1265,9 +1283,29 @@ function drawExportLegend(ctx, w, y0){
   });
   ctx.textBaseline = 'alphabetic';
 }
+function loadLogoImg(src, done){
+  if(!src){ done(null); return; }
+  var li = new Image();
+  li.onload = function(){ done(li); };
+  li.onerror = function(){ done(null); };
+  li.src = src;
+}
+function drawTitleLogos(ctx, cssW, titleH, imgL, imgR){
+  var maxH = 46, maxW = 170;
+  function one(img, right){
+    if(!img || !img.naturalWidth) return;
+    var s = Math.min(maxH / img.naturalHeight, maxW / img.naturalWidth);
+    var dw = Math.round(img.naturalWidth * s), dh = Math.round(img.naturalHeight * s);
+    var x = right ? cssW - 24 - dw : 24;
+    ctx.drawImage(img, x, Math.round((titleH - dh) / 2), dw, dh);
+  }
+  one(imgL, false); one(imgR, true);
+}
 function renderExportCanvas(cb){
   var info = chartSVGString();
   if(!info || !info.w){ toast(tr('toastNoChart')); return; }
+  loadLogoImg(state.logoLeft, function(imgL){
+  loadLogoImg(state.logoRight, function(imgR){
   var img = new Image();
   var url = URL.createObjectURL(new Blob([info.str], {type:'image/svg+xml;charset=utf-8'}));
   img.onload = function(){
@@ -1291,6 +1329,7 @@ function renderExportCanvas(cb){
     ctx.textAlign = 'center';
     ctx.font = '700 24px -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif';
     ctx.fillText(title, cssW/2, 48);
+    drawTitleLogos(ctx, cssW, titleH, imgL, imgR);
     ctx.strokeStyle = '#e5e7eb'; ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(24, 66); ctx.lineTo(cssW-24, 66); ctx.stroke();
     /* 图表 */
@@ -1309,6 +1348,8 @@ function renderExportCanvas(cb){
   };
   img.onerror = function(){ URL.revokeObjectURL(url); toast(tr('toastNoChart')); };
   img.src = url;
+  });
+  });
 }
 /* 极简 PDF：单页 + 单张 JPEG 图；页面按 CSS 尺寸（96dpi），图片按导出 DPI = 高分辨率 */
 function buildPdf(jpeg, w, h, dispW, dispH){
@@ -1367,7 +1408,8 @@ function exportJPG(){
 function exportJSON(){
   var data = { app:'gantt-tool', v:1, oem:state.oem, projectName:state.projectName,
     dates:state.dates, excluded:state.excluded, recTasks:state.recTasks,
-    tasks:state.tasks, customMs:state.customMs, showPhase:state.showPhase !== false };
+    tasks:state.tasks, customMs:state.customMs, showPhase:state.showPhase !== false,
+    logoLeft:state.logoLeft || '', logoRight:state.logoRight || '' };
   downloadURL(URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type:'application/json' })), fileBase() + '.json');
 }
 function importJSON(file){
@@ -1385,6 +1427,9 @@ function importJSON(file){
       state.tasks = Array.isArray(d.tasks) ? d.tasks : [];
       state.customMs = Array.isArray(d.customMs) ? d.customMs : [];
       state.showPhase = d.showPhase !== false;
+      state.logoLeft = (typeof d.logoLeft === 'string') ? d.logoLeft : '';
+      state.logoRight = (typeof d.logoRight === 'string') ? d.logoRight : '';
+      updateLogoPrev();
       var names = {};
       nodes().forEach(function(n){ names[n[0]] = true; });
       Object.keys(state.dates).forEach(function(k){ if(!names[k]) delete state.dates[k]; });
@@ -1495,6 +1540,27 @@ function init(){
     tabBtns[ti].addEventListener('click', function(){ setTab(this.dataset.tab); });
   }
   $('btnSample').addEventListener('click', sampleDates);
+  /* Logo 上传（导出标题左右两侧，可选） */
+  function bindLogo(fileId, prevId, clearId, key){
+    $(fileId).addEventListener('change', function(){
+      var f = this.files && this.files[0];
+      if(!f) return;
+      var rd = new FileReader();
+      rd.onload = function(){ state[key] = rd.result; updateLogoPrev(); save(); };
+      rd.readAsDataURL(f);
+      this.value = '';
+    });
+    $(clearId).addEventListener('click', function(){ state[key] = ''; updateLogoPrev(); save(); });
+  }
+  bindLogo('logoLeftFile', 'logoLeftPrev', 'logoLeftClear', 'logoLeft');
+  bindLogo('logoRightFile', 'logoRightPrev', 'logoRightClear', 'logoRight');
+  window.updateLogoPrev = function(){
+    [['logoLeft','logoLeftPrev','logoLeftClear'],['logoRight','logoRightPrev','logoRightClear']].forEach(function(x){
+      var img = $(x[1]), btn = $(x[2]), src = state[x[0]];
+      if(src){ img.src = src; img.classList.add('show'); btn.style.display = ''; }
+      else{ img.removeAttribute('src'); img.classList.remove('show'); btn.style.display = 'none'; }
+    });
+  };
   $('btnSidebar').addEventListener('click', function(){
     var as = document.querySelector('aside');
     var hidden = as.classList.toggle('hidden');
