@@ -917,10 +917,10 @@ function textW(s){
 }
 /* 标签重叠时向右微调（返回每项的水平偏移量，不上下窜行）
    从左往右依次处理，只往右挪（保证标签顺序与菱形一致、不交叉）；
-   按实际重叠量做最小平移，偏移封顶 80px；偏移超过 20px 时绘制引导线连回菱形 */
+   按实际重叠量做最小平移，偏移封顶 200px；偏移超过 40px 时绘制引导线连回菱形 */
 function deoverlapX(items){
   var placed = [], dxs = [];
-  var MAXDX = 80;
+  var MAXDX = 200;
   var order = items.map(function(it, i){ return i; }).sort(function(a, b){ return items[a].x - items[b].x; });
   order.forEach(function(i){
     var it = items[i], w = it.w, dx = 0;
@@ -1109,8 +1109,8 @@ function renderChart(){
       s += '<g data-clane="' + i + '" data-cj="' + j + '"><title>' + esc((l.name ? l.name + '\n' : '') + (it.n ? it.n + '\n' : '') + fmtD(d)) + '</title>'
         + '<rect x="' + (cx-r).toFixed(1) + '" y="' + (cy-r).toFixed(1) + '" width="' + (r*2) + '" height="' + (r*2)
         + '" transform="rotate(45 ' + cx.toFixed(1) + ' ' + cy + ')" fill="#4ade80" stroke="#16a34a" stroke-width="1.5"/>'
-        + ((Math.abs(ddx) > 20 ? '<line x1="' + (cx+ddx).toFixed(1) + '" y1="' + (dy+4) + '" x2="' + cx.toFixed(1) + '" y2="' + (cy-7) + '" stroke="#9ca3af" stroke-width="1"/>' : '') + '<text x="' + (cx+ddx).toFixed(1) + '" y="' + dy + '" text-anchor="middle" class="mdate">' + (d.getMonth()+1) + '/' + d.getDate() + '</text>')
-        + (it.n ? ((Math.abs(ndx) > 20 ? '<line x1="' + (cx+ndx).toFixed(1) + '" y1="' + (ny-9) + '" x2="' + cx.toFixed(1) + '" y2="' + (cy+7) + '" stroke="#9ca3af" stroke-width="1"/>' : '') + '<text x="' + (cx+ndx).toFixed(1) + '" y="' + ny + '" text-anchor="middle" class="mlabel">' + esc(it.n) + '</text>') : '')
+        + ((Math.abs(ddx) > 40 ? '<line x1="' + (cx+ddx).toFixed(1) + '" y1="' + (dy+4) + '" x2="' + cx.toFixed(1) + '" y2="' + (cy-7) + '" stroke="#9ca3af" stroke-width="1"/>' : '') + '<text x="' + (cx+ddx).toFixed(1) + '" y="' + dy + '" text-anchor="middle" class="mdate">' + (d.getMonth()+1) + '/' + d.getDate() + '</text>')
+        + (it.n ? ((Math.abs(ndx) > 40 ? '<line x1="' + (cx+ndx).toFixed(1) + '" y1="' + (ny-9) + '" x2="' + cx.toFixed(1) + '" y2="' + (cy+7) + '" stroke="#9ca3af" stroke-width="1"/>' : '') + '<text x="' + (cx+ndx).toFixed(1) + '" y="' + ny + '" text-anchor="middle" class="mlabel">' + esc(it.n) + '</text>') : '')
         + '</g>';
     });
   });
