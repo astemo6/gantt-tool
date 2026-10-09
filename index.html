@@ -1046,8 +1046,10 @@ function renderChart(){
     var mx1 = X(cur);
     var nM = new Date(cur.getFullYear(), cur.getMonth()+1, 1);
     var mx2 = X(nM > max ? max : nM);
-    // 垂直网格虚线
-    s += '<line x1="' + mx1.toFixed(1) + '" y1="44" x2="' + mx1.toFixed(1) + '" y2="' + H + '" stroke="#d1d5db" stroke-dasharray="4,3"/>';
+    // 垂直网格虚线（跳过 gutter 左侧的部分，避免左侧多出一条线）
+    if(mx1 >= GUT - 1){
+      s += '<line x1="' + mx1.toFixed(1) + '" y1="44" x2="' + mx1.toFixed(1) + '" y2="' + H + '" stroke="#d1d5db" stroke-dasharray="4,3"/>';
+    }
     // 月份分隔白线
     s += '<line x1="' + mx1.toFixed(1) + '" y1="22" x2="' + mx1.toFixed(1) + '" y2="44" stroke="#ffffff" stroke-width="1"/>';
     // 月份标签居中
@@ -1060,8 +1062,8 @@ function renderChart(){
     s += '<line x1="0" y1="' + PH_Y + '" x2="' + W + '" y2="' + PH_Y + '" stroke="#e5e7eb"/>';
     s += '<text x="12" y="' + (PH_Y + PH_H/2 + 4) + '" class="glabel">' + esc(tr('legendPhase') + ' · ' + PHASE_SYSTEMS[sys].tag) + '</text>';
   }
-  s += '<rect x="0" y="' + MS_Y + '" width="' + W + '" height="' + MS_H + '" fill="#808080"/>';
-  s += '<text x="12" y="' + (MS_Y + MS_H/2 + 4) + '" fill="#ffffff" font-size="13" font-weight="700">' + esc(tr('legendMs')) + '</text>';
+  s += '<rect x="0" y="' + MS_Y + '" width="' + W + '" height="' + MS_H + '" fill="#a0a0a0"/>';
+  s += '<text x="' + (GUT/2).toFixed(1) + '" y="' + (MS_Y + MS_H/2 + 4) + '" text-anchor="middle" fill="#ffffff" font-size="13" font-weight="700">' + esc(tr('legendMs')) + '</text>';
   s += '<line x1="0" y1="' + CM_Y + '" x2="' + W + '" y2="' + CM_Y + '" stroke="#e5e7eb"/>';
   cmLanes.forEach(function(l, i){
     var ly0 = CM_Y + i * CM_H;
@@ -1106,7 +1108,7 @@ function renderChart(){
       + '<rect x="' + (cx-r).toFixed(1) + '" y="' + (msCY-r).toFixed(1) + '" width="' + (r*2) + '" height="' + (r*2)
       + '" transform="rotate(45 ' + cx.toFixed(1) + ' ' + msCY + ')" fill="' + fill + '" stroke="' + stroke + '" stroke-width="1.5"/>'
       + '<text x="' + lx.toFixed(1) + '" y="' + ly + '" transform="rotate(-25 ' + lx.toFixed(1) + ' ' + ly + ')" text-anchor="end" class="mlabel">' + esc(abbr(m.name)) + '</text>'
-      + '<text x="' + cx.toFixed(1) + '" y="' + (msCY+24) + '" text-anchor="middle" class="mdate">' + (m.d.getMonth()+1) + '/' + m.d.getDate() + '</text>'
+      + '<text x="' + cx.toFixed(1) + '" y="' + (msCY+24) + '" text-anchor="middle" fill="#1f2937" font-size="10">' + (m.d.getMonth()+1) + '/' + m.d.getDate() + '</text>'
       + '</g>';
   });
   // 自定义节点排：基线 + 菱形 + 日期（上方）+ 名称（下方）；标签重叠时自动错开
