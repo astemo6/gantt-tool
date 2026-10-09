@@ -915,11 +915,12 @@ function textW(s){
   for(var i = 0; i < s.length; i++){ w += s.charCodeAt(i) > 255 ? 11 : 6; }
   return w + 8;
 }
-/* 标签重叠时左右微调（返回每项的水平偏移量，不上下窜行）
-   只按实际重叠量做最小平移，偏移封顶 60px；偏移超过 12px 时绘制引导线连回菱形 */
+/* 标签重叠时向右微调（返回每项的水平偏移量，不上下窜行）
+   从左往右依次处理，只往右挪（保证标签顺序与菱形一致、不交叉）；
+   按实际重叠量做最小平移，偏移封顶 80px；偏移超过 20px 时绘制引导线连回菱形 */
 function deoverlapX(items){
   var placed = [], dxs = [];
-  var MAXDX = 60;
+  var MAXDX = 80;
   var order = items.map(function(it, i){ return i; }).sort(function(a, b){ return items[a].x - items[b].x; });
   order.forEach(function(i){
     var it = items[i], w = it.w, dx = 0;
@@ -927,13 +928,11 @@ function deoverlapX(items){
     for(var p = 0; p < placed.length; p++){
       var pl = placed[p];
       if(x0 < pl.x1 + 2 && x1 > pl.x0 - 2){
-        /* 与已放置的标签重叠：计算左右两个方向的最小脱离量，取小的 */
-        var shiftR = (pl.x1 + 2 + w/2) - it.x;
-        var shiftL = (pl.x0 - 2 - w/2) - it.x;
-        var s = Math.abs(shiftR) <= Math.abs(shiftL) ? shiftR : shiftL;
+        /* 与已放置的标签重叠：只往右挪最小脱离量 */
+        var s = (pl.x1 + 2 + w/2) - it.x;
+        if(s < 0) s = 0;
         if(s > MAXDX) s = MAXDX;
-        if(s < -MAXDX) s = -MAXDX;
-        dx = s;
+        dx = Math.max(dx, s);
         cx = it.x + dx; x0 = cx - w/2; x1 = cx + w/2;
       }
     }
@@ -1110,8 +1109,8 @@ function renderChart(){
       s += '<g data-clane="' + i + '" data-cj="' + j + '"><title>' + esc((l.name ? l.name + '\n' : '') + (it.n ? it.n + '\n' : '') + fmtD(d)) + '</title>'
         + '<rect x="' + (cx-r).toFixed(1) + '" y="' + (cy-r).toFixed(1) + '" width="' + (r*2) + '" height="' + (r*2)
         + '" transform="rotate(45 ' + cx.toFixed(1) + ' ' + cy + ')" fill="#4ade80" stroke="#16a34a" stroke-width="1.5"/>'
-        + ((Math.abs(ddx) > 12 ? '<line x1="' + (cx+ddx).toFixed(1) + '" y1="' + (dy+4) + '" x2="' + cx.toFixed(1) + '" y2="' + (cy-7) + '" stroke="#9ca3af" stroke-width="1"/>' : '') + '<text x="' + (cx+ddx).toFixed(1) + '" y="' + dy + '" text-anchor="middle" class="mdate">' + (d.getMonth()+1) + '/' + d.getDate() + '</text>')
-        + (it.n ? ((Math.abs(ndx) > 12 ? '<line x1="' + (cx+ndx).toFixed(1) + '" y1="' + (ny-9) + '" x2="' + cx.toFixed(1) + '" y2="' + (cy+7) + '" stroke="#9ca3af" stroke-width="1"/>' : '') + '<text x="' + (cx+ndx).toFixed(1) + '" y="' + ny + '" text-anchor="middle" class="mlabel">' + esc(it.n) + '</text>') : '')
+        + ((Math.abs(ddx) > 20 ? '<line x1="' + (cx+ddx).toFixed(1) + '" y1="' + (dy+4) + '" x2="' + cx.toFixed(1) + '" y2="' + (cy-7) + '" stroke="#9ca3af" stroke-width="1"/>' : '') + '<text x="' + (cx+ddx).toFixed(1) + '" y="' + dy + '" text-anchor="middle" class="mdate">' + (d.getMonth()+1) + '/' + d.getDate() + '</text>')
+        + (it.n ? ((Math.abs(ndx) > 20 ? '<line x1="' + (cx+ndx).toFixed(1) + '" y1="' + (ny-9) + '" x2="' + cx.toFixed(1) + '" y2="' + (cy+7) + '" stroke="#9ca3af" stroke-width="1"/>' : '') + '<text x="' + (cx+ndx).toFixed(1) + '" y="' + ny + '" text-anchor="middle" class="mlabel">' + esc(it.n) + '</text>') : '')
         + '</g>';
     });
   });
