@@ -156,6 +156,7 @@ input.flash{outline:2px solid #f59e0b;outline-offset:1px}
     <button id="btnJPG" data-i18n="btnJPG">导出 JPG</button>
     <button id="btnJSON" class="ghost" data-i18n="btnJSON">导出 JSON</button>
     <button id="btnImport" class="ghost" data-i18n="btnImport">导入 JSON</button>
+    <button id="btnClearCache" class="ghost" data-i18n="btnClearCache">清空缓存</button>
     <input type="file" id="fileJSON" accept=".json,application/json" style="display:none">
   </div>
 </header>
@@ -303,7 +304,7 @@ var I18N = {
 zh: {
   title:'客户节点甘特图工具', brand:'客户节点甘特图',
   projectNamePh:'项目名称（例如：XX车型项目）',
-  btnSample:'载入示例日期', btnPDF:'导出 PDF', btnJSON:'导出 JSON', btnImport:'导入 JSON',
+  btnSample:'载入示例日期', btnPDF:'导出 PDF', btnJSON:'导出 JSON', btnImport:'导入 JSON', btnClearCache:'清空缓存', confirmClearCache:'确定要清空所有缓存数据吗？页面将恢复到初始空白状态。',
   tabForm:'填写数据', tabChart:'查看甘特图',
   secOem:'主机厂', oemPlaceholder:'请选择主机厂', oemHint:'切换主机厂后，客户节点清单自动更换；同名节点的日期会保留。',
   secNodes:'客户节点日期', secCollapse:'收起', secExpand:'展开', nodeHint:'勾选参与本项目的节点，未勾选的不进入甘特图；日期倒置（后一节点早于前一节点）会标红提醒。',
@@ -335,7 +336,7 @@ zh: {
 en: {
   title:'Customer Milestone Gantt Tool', brand:'Customer Milestones',
   projectNamePh:'Project name (e.g. XX model project)',
-  btnSample:'Load sample dates', btnPDF:'Export PDF', btnJSON:'Export JSON', btnImport:'Import JSON',
+  btnSample:'Load sample dates', btnPDF:'Export PDF', btnJSON:'Export JSON', btnImport:'Import JSON', btnClearCache:'Clear cache', confirmClearCache:'Clear all cached data? The page will reset to its initial blank state.',
   tabForm:'Input data', tabChart:'View Gantt',
   secOem:'OEM', oemPlaceholder:'Select OEM', oemHint:'Switching OEM reloads the milestone list; dates of same-named milestones are kept.',
   secNodes:'Customer milestone dates', secCollapse:'Collapse', secExpand:'Expand', nodeHint:'Tick milestones included in this project; unticked ones are excluded from the chart. Inverted dates (a later milestone earlier than the previous one) are flagged red.',
@@ -367,7 +368,7 @@ en: {
 de: {
   title:'Kundenmeilenstein-Gantt-Tool', brand:'Kundenmeilensteine',
   projectNamePh:'Projektname (z. B. Projekt Modell XX)',
-  btnSample:'Beispieldaten laden', btnPDF:'PDF exportieren', btnJSON:'JSON exportieren', btnImport:'JSON importieren',
+  btnSample:'Beispieldaten laden', btnPDF:'PDF exportieren', btnJSON:'JSON exportieren', btnImport:'JSON importieren', btnClearCache:'Cache leeren', confirmClearCache:'Alle zwischengespeicherten Daten löschen? Die Seite wird auf den Ausgangszustand zurückgesetzt.',
   tabForm:'Daten eingeben', tabChart:'Gantt ansehen',
   secOem:'OEM', oemPlaceholder:'OEM wählen', oemHint:'Beim OEM-Wechsel wird die Meilensteinliste neu geladen; Daten gleichnamiger Meilensteine bleiben erhalten.',
   secNodes:'Termine der Kundenmeilensteine', secCollapse:'Einklappen', secExpand:'Ausklappen', nodeHint:'Meilensteine dieses Projekts anhaken; nicht angehakte erscheinen nicht im Diagramm. Verdrehte Daten (späterer Meilenstein vor früherem) werden rot markiert.',
@@ -1588,6 +1589,12 @@ function init(){
     tabBtns[ti].addEventListener('click', function(){ setTab(this.dataset.tab); });
   }
   $('btnSample').addEventListener('click', sampleDates);
+  $('btnClearCache').addEventListener('click', function(){
+    if(confirm(tr('confirmClearCache'))){
+      try{ localStorage.removeItem(LS_KEY); }catch(e){}
+      location.reload();
+    }
+  });
   /* Logo 上传（导出标题左右两侧，可选） */
   function bindLogo(fileId, prevId, clearId, key){
     $(fileId).addEventListener('change', function(){
