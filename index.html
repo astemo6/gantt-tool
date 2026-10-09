@@ -674,6 +674,21 @@ function recRange(t){
   return { s:s, e:e, ok: e >= s };
 }
 function phaseSys(){ return (typeof OEM_PHASE_SYS !== 'undefined' && OEM_PHASE_SYS[state.oem]) || 'apqp'; }
+/* OEM ↔ URL slug：BMW(宝马) ↔ bmw */
+function oemSlug(oem){ var m = String(oem || '').match(/^([A-Za-z0-9]+)/); return m ? m[1].toLowerCase() : ''; }
+function oemFromSlug(slug){
+  slug = String(slug || '').toLowerCase();
+  for(var k in OEM_NODES){ if(oemSlug(k) === slug) return k; }
+  return '';
+}
+function syncOemUrl(){
+  try{
+    var u = new URL(location.href);
+    if(state.oem) u.searchParams.set('oem', oemSlug(state.oem));
+    else u.searchParams.delete('oem');
+    history.replaceState(null, '', u.toString());
+  }catch(e){}
+}
 function taskPhaseKey(t){ var p = t.phase; if(p && typeof p === 'object') return p[phaseSys()] || p.apqp; return p; }
 function phaseName(pid){ var s = (typeof PHASE_SYSTEMS !== 'undefined') && PHASE_SYSTEMS[phaseSys()]; var o = s && s.phases[pid]; return o || {zh:pid, en:pid, de:pid}; }
 function renderRecTasks(){
@@ -1628,6 +1643,11 @@ function sampleDates(){
 function init(){
   var sel = $('oemSelect');
   load();
+  try{
+    var _u = new URL(location.href);
+    var _oem = oemFromSlug(_u.searchParams.get('oem'));
+    if(_oem) state.oem = _oem;
+  }catch(e){}
   if(!OEM_NODES[state.oem]) state.oem = '';
   buildOemOptions();
   $('projectName').value = state.projectName || '';
@@ -1649,7 +1669,7 @@ function init(){
     /* 切换 OEM 时清空节点日期（含 Project Nomination 等通用节点），避免旧 OEM 的示例日期残留 */
     state.dates = {};
     state.excluded = {};
-    save(); renderAll();
+    save(); syncOemUrl(); renderAll();
   });
   $('projectName').addEventListener('input', function(){
     state.projectName = this.value; save();
