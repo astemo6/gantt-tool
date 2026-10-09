@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>客户节点甘特图工具 v1</title>
+<title>汽车零部件开发计划</title>
 <style>
 *{box-sizing:border-box}
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif;color:#1f2937;background:#f3f4f6;font-size:14px}
@@ -152,7 +152,7 @@ input.flash{outline:2px solid #f59e0b;outline-offset:1px}
 <body class="tab-form">
 <header>
   <button id="btnSidebar" class="iconbtn" title="收起/展开左侧">◀</button>
-  <div class="brand" data-i18n="brand">客户节点甘特图</div>
+  <div class="brand" data-i18n="brand">汽车零部件开发计划</div>
   <input id="projectName" type="text" data-i18n-ph="projectNamePh" placeholder="项目名称（例如：XX车型项目）">
   <div class="actions">
     <div class="langbtns">
@@ -319,7 +319,7 @@ function abbr(s){ return String(s).replace(/\s*[\(（][^()（）]*[\)）]$/, '')
 var lang = 'en';
 var I18N = {
 zh: {
-  title:'客户节点甘特图工具', brand:'客户节点甘特图',
+  title:'客户节点甘特图工具', brand:'汽车零部件开发计划',
   projectNamePh:'项目名称（例如：XX车型项目）',
   btnSample:'载入示例日期', btnPDF:'导出 PDF', btnJSON:'导出 JSON', btnImport:'导入 JSON', btnClearCache:'清空缓存', confirmClearCache:'确定要清空所有缓存数据吗？页面将恢复到初始空白状态。', toastLogoTooBig:'Logo 图片太大无法缓存，刷新后需重新上传',
   tabForm:'填写数据', tabChart:'查看甘特图',
@@ -351,7 +351,7 @@ zh: {
   dragTip:'按住拖动可调整顺序', moveUp:'上移', moveDown:'下移'
 },
 en: {
-  title:'Customer Milestone Gantt Tool', brand:'Customer Milestones',
+  title:'Customer Milestone Gantt Tool', brand:'Auto Parts Development Plan',
   projectNamePh:'Project name (e.g. XX model project)',
   btnSample:'Load Sample Dates', btnPDF:'Export PDF', btnJSON:'Export JSON', btnImport:'Import JSON', btnClearCache:'Clear Cache', confirmClearCache:'Clear all cached data? The page will reset to its initial blank state.', toastLogoTooBig:'Logo too large to cache; re-upload needed after refresh',
   tabForm:'Input Data', tabChart:'View Gantt',
@@ -383,7 +383,7 @@ en: {
   dragTip:'Drag to Reorder', moveUp:'Move Up', moveDown:'Move Down'
 },
 de: {
-  title:'Kundenmeilenstein-Gantt-Tool', brand:'Kundenmeilensteine',
+  title:'Kundenmeilenstein-Gantt-Tool', brand:'Entwicklungsplan für Autoteile',
   projectNamePh:'Projektname (z. B. Projekt Modell XX)',
   btnSample:'Beispieldaten laden', btnPDF:'PDF exportieren', btnJSON:'JSON exportieren', btnImport:'JSON importieren', btnClearCache:'Cache leeren', confirmClearCache:'Alle zwischengespeicherten Daten löschen? Die Seite wird auf den Ausgangszustand zurückgesetzt.', toastLogoTooBig:'Logo zu groß für Cache; nach Aktualisierung erneut hochladen',
   tabForm:'Daten eingeben', tabChart:'Gantt ansehen',
