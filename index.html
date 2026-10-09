@@ -464,8 +464,46 @@ function buildOemOptions(){
 }
 
 var state = { oem:'', projectName:'', dates:{}, tasks:[], excluded:{}, recTasks:{}, customMs:[], showPhase:true, logoLeft:'', logoRight:'' };
-function save(){}
-function load(){}
+var LS_KEY = 'gantt-tool-v1';
+function save(){
+  try{
+    var data = { oem:state.oem, projectName:state.projectName, dates:state.dates,
+      excluded:state.excluded, recTasks:state.recTasks, tasks:state.tasks,
+      customMs:state.customMs, showPhase:state.showPhase !== false,
+      logoLeft:state.logoLeft || '', logoRight:state.logoRight || '',
+      creatorName:$('creatorName') ? $('creatorName').value : '',
+      ckShowCreator:$('ckShowCreator') ? $('ckShowCreator').checked : false,
+      ckShowDate:$('ckShowDate') ? $('ckShowDate').checked : false,
+      lang:lang };
+    try{
+      localStorage.setItem(LS_KEY, JSON.stringify(data));
+    }catch(qe){
+      /* 空间不足（多为 logo 太大）时，去掉 logo 重试 */
+      data.logoLeft = ''; data.logoRight = '';
+      try{ localStorage.setItem(LS_KEY, JSON.stringify(data)); }catch(e2){}
+    }
+  }catch(e){}
+}
+function load(){
+  try{
+    var raw = localStorage.getItem(LS_KEY);
+    if(!raw) return;
+    var d = JSON.parse(raw);
+    if(!d || typeof d !== 'object') return;
+    if(typeof d.oem === 'string') state.oem = d.oem;
+    if(typeof d.projectName === 'string') state.projectName = d.projectName;
+    if(d.dates && typeof d.dates === 'object') state.dates = d.dates;
+    if(d.excluded && typeof d.excluded === 'object') state.excluded = d.excluded;
+    if(d.recTasks && typeof d.recTasks === 'object') state.recTasks = d.recTasks;
+    if(Array.isArray(d.tasks)) state.tasks = d.tasks;
+    if(Array.isArray(d.customMs)) state.customMs = d.customMs;
+    if(typeof d.showPhase === 'boolean') state.showPhase = d.showPhase;
+    if(typeof d.logoLeft === 'string') state.logoLeft = d.logoLeft;
+    if(typeof d.logoRight === 'string') state.logoRight = d.logoRight;
+    state._ui = { creatorName:d.creatorName || '', ckShowCreator:!!d.ckShowCreator,
+      ckShowDate:!!d.ckShowDate, lang:d.lang };
+  }catch(e){}
+}
 function toast(msg){
   var t = $('toast');
   if(!t){ t = document.createElement('div'); t.id = 'toast'; document.body.appendChild(t); }
@@ -1515,6 +1553,13 @@ function init(){
   buildOemOptions();
   $('projectName').value = state.projectName || '';
   $('ckPhase').checked = state.showPhase !== false;
+  if(state._ui){
+    if(typeof state._ui.creatorName === 'string') $('creatorName').value = state._ui.creatorName;
+    $('ckShowCreator').checked = !!state._ui.ckShowCreator;
+    $('ckShowDate').checked = !!state._ui.ckShowDate;
+    if(state._ui.lang === 'zh' || state._ui.lang === 'en' || state._ui.lang === 'de') lang = state._ui.lang;
+    delete state._ui;
+  }
   $('ckPhase').addEventListener('change', function(){
     state.showPhase = this.checked;
     save(); renderChart();
@@ -1531,9 +1576,12 @@ function init(){
   $('projectName').addEventListener('input', function(){
     state.projectName = this.value; save();
   });
+  $('creatorName').addEventListener('input', function(){ save(); });
+  $('ckShowCreator').addEventListener('change', function(){ save(); });
+  $('ckShowDate').addEventListener('change', function(){ save(); });
   var langBtns = document.querySelectorAll('.langbtns button');
   for(var li = 0; li < langBtns.length; li++){
-    langBtns[li].addEventListener('click', function(){ lang = this.getAttribute('data-lang'); applyLang(); });
+    langBtns[li].addEventListener('click', function(){ lang = this.getAttribute('data-lang'); applyLang(); save(); });
   }
   var tabBtns = document.querySelectorAll('.mobile-tabs button');
   for(var ti = 0; ti < tabBtns.length; ti++){
@@ -1616,6 +1664,7 @@ function init(){
     rsz = setTimeout(renderChart, 150);
   });
 
+  if(window.updateLogoPrev) updateLogoPrev();
   applyLang();
 }
 
