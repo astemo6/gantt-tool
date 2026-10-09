@@ -1378,23 +1378,22 @@ function renderExportCanvas(cb){
     URL.revokeObjectURL(url);
     /* 图例 */
     drawExportLegend(ctx, cssW, titleH + info.h);
-    /* 制作者/日期：与图例同一行，左侧 */
+    /* 制作者/日期：两行，整体与图例垂直居中，左侧 */
     ctx.textAlign = 'left';
     ctx.fillStyle = '#6b7280';
     ctx.font = '13px -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif';
     ctx.textBaseline = 'middle';
     var legendY = titleH + info.h + 22;
-    var fx = 20;
-    if(showCreator && creator){
-      var lab1 = tr('expCreator') + ': ';
-      ctx.fillText(lab1, fx, legendY); fx += ctx.measureText(lab1).width;
-      ctx.fillText(creator, fx, legendY); fx += ctx.measureText(creator).width + 28;
-    }
-    if(showDate){
-      var lab2 = tr('expDate') + ': ';
-      ctx.fillText(lab2, fx, legendY); fx += ctx.measureText(lab2).width;
-      ctx.fillText(fmtD(new Date()), fx, legendY);
-    }
+    var fx = 20, lineH = 20;
+    var hasC = showCreator && creator, hasD = showDate;
+    var labW = 0;
+    if(hasC) labW = Math.max(labW, ctx.measureText(tr('expCreator') + ':').width);
+    if(hasD) labW = Math.max(labW, ctx.measureText(tr('expDate') + ':').width);
+    var valX = fx + labW + 6;
+    var yC = hasC && hasD ? legendY - lineH/2 : legendY;
+    var yD = hasC && hasD ? legendY + lineH/2 : legendY;
+    if(hasC){ ctx.fillText(tr('expCreator') + ':', fx, yC); ctx.fillText(creator, valX, yC); }
+    if(hasD){ ctx.fillText(tr('expDate') + ':', fx, yD); ctx.fillText(fmtD(new Date()), valX, yD); }
     ctx.textBaseline = 'alphabetic';
     cb(c, cssW, cssH);
   };
