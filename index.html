@@ -1276,7 +1276,7 @@ var CHART_CSS = '.axis{fill:#9ca3af;font-size:11px}.mlabel{font-size:11px;fill:#
 function fileBase(){
   var nm = (state.projectName || '').trim().replace(/[\\/:*?"<>|]/g, '').slice(0, 40);
   if(!nm) nm = tr('brand').replace(/[\\/:*?"<>|]/g, '').slice(0, 40);
-  return nm + '_' + fmtD(new Date());
+  return nm + '_' + fmtD(new Date()).replace(/-/g, '');
 }
 /* JSON 导出沿用旧文件名格式：{project}-gantt-YYYYMMDD */
 function fileBaseJSON(){
