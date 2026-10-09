@@ -582,7 +582,7 @@ function renderNodes(){
       var iso = normDateInput(this, state.dates[node] || '');
       if(iso === null) return;
       state.dates[node] = iso;
-      save();
+      _sampleFlag = false; save(); syncUrl();
       if(iso && isFirstCheckedNode(node)){
         cascadeDates(node);
       } else {
@@ -681,11 +681,16 @@ function oemFromSlug(slug){
   for(var k in OEM_NODES){ if(oemSlug(k) === slug) return k; }
   return '';
 }
-function syncOemUrl(){
+var _sampleFlag = false; /* 是否为示例数据（URL sample=1） */
+function syncUrl(){
   try{
     var u = new URL(location.href);
     if(state.oem) u.searchParams.set('oem', oemSlug(state.oem));
     else u.searchParams.delete('oem');
+    if(lang) u.searchParams.set('lang', lang);
+    else u.searchParams.delete('lang');
+    if(_sampleFlag) u.searchParams.set('sample', '1');
+    else u.searchParams.delete('sample');
     history.replaceState(null, '', u.toString());
   }catch(e){}
 }
@@ -1643,10 +1648,13 @@ function sampleDates(){
 function init(){
   var sel = $('oemSelect');
   load();
+  var _urlSample = false;
   try{
     var _u = new URL(location.href);
     var _oem = oemFromSlug(_u.searchParams.get('oem'));
     if(_oem) state.oem = _oem;
+    _urlSample = _u.searchParams.get('sample') === '1';
+    try{ var _ulg = _u.searchParams.get('lang'); if(_ulg) window._urlLang = _ulg; }catch(e2){}
   }catch(e){}
   if(!OEM_NODES[state.oem]) state.oem = '';
   buildOemOptions();
@@ -1659,6 +1667,8 @@ function init(){
     if(state._ui.lang === 'zh' || state._ui.lang === 'en' || state._ui.lang === 'de') lang = state._ui.lang;
     delete state._ui;
   }
+  if(window._urlLang === 'zh' || window._urlLang === 'en' || window._urlLang === 'de'){ lang = window._urlLang; }
+  window._urlLang = null;
   $('ckPhase').addEventListener('change', function(){
     state.showPhase = this.checked;
     save(); renderChart();
@@ -1669,7 +1679,7 @@ function init(){
     /* 切换 OEM 时清空节点日期（含 Project Nomination 等通用节点），避免旧 OEM 的示例日期残留 */
     state.dates = {};
     state.excluded = {};
-    save(); syncOemUrl(); renderAll();
+    _sampleFlag = false; save(); syncUrl(); renderAll();
   });
   $('projectName').addEventListener('input', function(){
     state.projectName = this.value; save();
@@ -1679,13 +1689,13 @@ function init(){
   $('ckShowDate').addEventListener('change', function(){ save(); });
   var langBtns = document.querySelectorAll('.langbtns button');
   for(var li = 0; li < langBtns.length; li++){
-    langBtns[li].addEventListener('click', function(){ lang = this.getAttribute('data-lang'); applyLang(); save(); });
+    langBtns[li].addEventListener('click', function(){ lang = this.getAttribute('data-lang'); applyLang(); save(); syncUrl(); });
   }
   var tabBtns = document.querySelectorAll('.mobile-tabs button');
   for(var ti = 0; ti < tabBtns.length; ti++){
     tabBtns[ti].addEventListener('click', function(){ setTab(this.dataset.tab); });
   }
-  $('btnSample').addEventListener('click', sampleDates);
+  $('btnSample').addEventListener('click', function(){ _sampleFlag = true; sampleDates(); syncUrl(); });
   $('btnClearCache').addEventListener('click', function(){
     if(confirm(tr('confirmClearCache'))){
       try{ localStorage.removeItem(LS_KEY); }catch(e){}
@@ -1774,6 +1784,11 @@ function init(){
 
   if(window.updateLogoPrev) updateLogoPrev();
   applyLang();
+  if(_urlSample && state.oem && OEM_NODES[state.oem]){
+    _sampleFlag = true;
+    sampleDates();
+    syncUrl();
+  }
 }
 
 if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
