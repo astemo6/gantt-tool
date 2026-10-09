@@ -648,9 +648,22 @@ function setRec(id, patch){
   state.recTasks[id] = cur;
   save(); renderAll();
 }
+/* 相位锚点名称归一：OEM_PHASES 中的锚点名与节点表名称可能存在大小写/空白差异，
+   先精确匹配，再按忽略大小写并压缩空白匹配到真实节点名；匹配不到返回 null */
+function resolveAnchorName(name){
+  if(!name) return null;
+  var ns = nodes(), i;
+  for(i = 0; i < ns.length; i++){ if(ns[i][0] === name) return ns[i][0]; }
+  var norm = function(s){ return String(s).toLowerCase().replace(/\s+/g, ''); };
+  var target = norm(name);
+  for(i = 0; i < ns.length; i++){
+    if(norm(ns[i][0]) === target) return ns[i][0];
+  }
+  return null;
+}
 function recAnchorDate(t){
   var phases = OEM_PHASES[state.oem] || {};
-  var anchor = phases[taskPhaseKey(t)];
+  var anchor = resolveAnchorName(phases[taskPhaseKey(t)]);
   if(!anchor || state.excluded[anchor]) return null;
   return parseD(state.dates[anchor]);
 }
@@ -668,12 +681,11 @@ function renderRecTasks(){
   var phases = OEM_PHASES[state.oem] || {};
   var html = '', onCount = 0, total = 0;
   REC_TASKS.forEach(function(t){
-    var anchor = phases[taskPhaseKey(t)];
+    var anchor = resolveAnchorName(phases[taskPhaseKey(t)]);
     if(!anchor) return;
     total++;
     var cfg = recCfg(t.id);
     if(cfg.on) onCount++;
-    var r = recRange(t);
     var r = recRange(t);
     var rangeHtml = r ? (r.ok ? fmtD(r.s) + ' ~ ' + fmtD(r.e) : '<span style="color:#ef4444">' + tr('recInvert') + '</span>') : '<span style="color:#9ca3af">' + tr('recWait') + '</span>';
     var meta = tr('anchor') + ' ' + pick(phaseName(taskPhaseKey(t))) + ' · ' + esc(trunc(abbr(anchor), 14)) + ' ｜ ' + (cfg.so>=0?'+':'') + cfg.so + ' ~ ' + (cfg.eo>=0?'+':'') + cfg.eo + tr('week') + ' ｜ ' + rangeHtml;
@@ -1084,7 +1096,7 @@ function renderChart(){
   var phaseMap = OEM_PHASES[state.oem] || {};
   var anchors = [];
   Object.keys(PHASE_SYSTEMS[sys].phases).forEach(function(pid){
-    var nn = phaseMap[pid];
+    var nn = resolveAnchorName(phaseMap[pid]);
     if(!nn || state.excluded[nn]) return;
     var d = parseD(state.dates[nn]);
     if(!d) return;
@@ -1623,10 +1635,9 @@ function init(){
 
   sel.addEventListener('change', function(){
     state.oem = sel.value;
-    var names = {};
-    nodes().forEach(function(n){ names[n[0]] = true; });
-    Object.keys(state.dates).forEach(function(k){ if(!names[k]) delete state.dates[k]; });
-    Object.keys(state.excluded).forEach(function(k){ if(!names[k]) delete state.excluded[k]; });
+    /* 切换 OEM 时清空节点日期（含 Project Nomination 等通用节点），避免旧 OEM 的示例日期残留 */
+    state.dates = {};
+    state.excluded = {};
     save(); renderAll();
   });
   $('projectName').addEventListener('input', function(){
