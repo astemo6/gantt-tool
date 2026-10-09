@@ -1381,10 +1381,10 @@ function renderExportCanvas(cb){
     /* 制作者/日期：两行，整体与图例垂直居中，左侧 */
     ctx.textAlign = 'left';
     ctx.fillStyle = '#6b7280';
-    ctx.font = '13px -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif';
+    ctx.font = '11px -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif';
     ctx.textBaseline = 'middle';
     var legendY = titleH + info.h + 22;
-    var fx = 20, lineH = 20;
+    var fx = 20, lineH = 18;
     var hasC = showCreator && creator, hasD = showDate;
     var labW = 0;
     if(hasC) labW = Math.max(labW, ctx.measureText(tr('expCreator') + ':').width);
