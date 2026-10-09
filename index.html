@@ -202,7 +202,7 @@ input.flash{outline:2px solid #f59e0b;outline-offset:1px}
   </aside>
   <main>
     <div class="legend">
-      <span><span class="dot" style="background:#dc2626;transform:rotate(45deg)"></span><span data-i18n="legendMs">客户关键节点</span></span>
+      <span><span class="dot" style="background:#dc2626;transform:rotate(45deg)"></span><span data-i18n="legendMs">里程碑</span></span>
       <span><label style="cursor:pointer;display:inline-flex;align-items:center;gap:5px"><input type="checkbox" id="ckPhase" checked style="accent-color:#60a5fa;margin:0"><span class="dot" style="background:#bfdbfe;border:1px solid #60a5fa"></span><span data-i18n="legendPhase">阶段区间</span></label></span>
       <span><span class="dot" style="background:#60a5fa"></span><span data-i18n="legendRec">推荐任务</span></span>
       <span><span class="dot" style="background:#14b8a6"></span><span data-i18n="legendCustom">自定义任务</span></span>
@@ -287,12 +287,12 @@ zh: {
   secRec:'推荐任务（模板）', recHint:'推荐的内部任务模板，日期按锚点节点自动推算；偏移周数可改；不勾选的不进入甘特图。',
   secTasks:'自定义任务', taskNamePh:'任务名称（例如：模具T1试模）', btnAddTask:'添加任务', delTask:'删除',
   secCustomMs:'供应商节点', cmHint:'每排一条节点线，点「+ 日期」可连续添加多个日期节点，在甘特图中显示为菱形。',
-  cmNamePh:'节点排名称（例如：模具节点）', btnAddLane:'添加节点排', btnAddDate:'+ 日期', hintNoCm:'暂无自定义节点排，可在下方添加', legendCustomMs:'供应商节点',
+  cmNamePh:'节点排名称（例如：模具节点）', btnAddLane:'添加节点排', btnAddDate:'+ 日期', hintNoCm:'暂无供应商节点排，可在下方添加', legendCustomMs:'供应商节点',
   genStart:'开始', genEvery:'间隔', genCount:'数量', unitD:'天', unitW:'周', unitM:'月', btnGen:'生成',
   toastNeedGenStart:'请先选择开始日期',
   btnSelAll:'全选', btnDeselAll:'取消全选', cmDateNamePh:'名称（如 T0）',
   startDate:'开始日期', endDate:'结束日期',
-  legendMs:'客户关键节点', legendPhase:'阶段区间', legendRec:'推荐任务', legendCustom:'自定义任务', legendTasks:'任务',
+  legendMs:'里程碑', legendPhase:'阶段区间', legendRec:'推荐任务', legendCustom:'自定义任务', legendTasks:'任务',
   today:'今天', warnInvert:'深红色节点 = 日期倒置',
   emptyHint:'请先选择主机厂，并在左侧填写各客户节点的日期，甘特图将自动生成。<br>也可以点「载入示例日期」先看效果。',
   hintNoPhase:'该主机厂暂无可锚定的阶段', hintNoTasks:'暂无自定义任务，可在下方添加', hintNoNodes:'请先选择主机厂',
@@ -324,7 +324,7 @@ en: {
   toastNeedGenStart:'Please pick a start date first',
   btnSelAll:'Select all', btnDeselAll:'Deselect all', cmDateNamePh:'Name (e.g. T0)',
   startDate:'Start date', endDate:'End date',
-  legendMs:'Customer milestones', legendPhase:'Phase', legendRec:'Recommended', legendCustom:'Custom', legendTasks:'Tasks',
+  legendMs:'Milestone', legendPhase:'Phase', legendRec:'Recommended', legendCustom:'Custom', legendTasks:'Tasks',
   today:'Today', warnInvert:'Dark red milestone = inverted dates',
   emptyHint:'Please select an OEM and fill in the milestone dates on the left; the Gantt chart generates automatically.<br>You can also click "Load sample dates" for a preview.',
   hintNoPhase:'No mappable phases for this OEM', hintNoTasks:'No custom tasks yet — add below', hintNoNodes:'Please select an OEM first',
@@ -351,12 +351,12 @@ de: {
   secRec:'Empfohlene Aufgaben (Vorlage)', recHint:'Empfohlene interne Aufgabenvorlage; Termine werden automatisch von Anker-Meilensteinen abgeleitet, Wochen-Offsets änderbar; nicht angehakte Aufgaben erscheinen nicht.',
   secTasks:'Eigene Aufgaben', taskNamePh:'Aufgabenname (z. B. T1-Werkzeugerprobung)', btnAddTask:'Aufgabe hinzufügen', delTask:'Löschen',
   secCustomMs:'Eigene Meilensteine', cmHint:'Jede Spur ist eine Meilensteinlinie; mit „+ Datum“ fortlaufend Datumsknoten hinzufügen, die im Diagramm als Rauten erscheinen.',
-  cmNamePh:'Spurename (z. B. Werkzeug-Meilensteine)', btnAddLane:'Spur hinzufügen', btnAddDate:'+ Datum', hintNoCm:'Noch keine eigenen Meilensteinspuren – unten hinzufügen', legendCustomMs:'Lieferantenmeilensteine',
+  cmNamePh:'Spurename (z. B. Werkzeug-Meilensteine)', btnAddLane:'Spur hinzufügen', btnAddDate:'+ Datum', hintNoCm:'Noch keine Lieferanten-Meilensteinspuren – unten hinzufügen', legendCustomMs:'Lieferantenmeilensteine',
   genStart:'Start', genEvery:'Intervall', genCount:'Anzahl', unitD:'Tag', unitW:'Woche', unitM:'Monat', btnGen:'Erzeugen',
   toastNeedGenStart:'Bitte zuerst ein Startdatum wählen',
   btnSelAll:'Alle wählen', btnDeselAll:'Alle abwählen', cmDateNamePh:'Name (z. B. T0)',
   startDate:'Startdatum', endDate:'Enddatum',
-  legendMs:'Kundenmeilensteine', legendPhase:'Phase', legendRec:'Empfohlen', legendCustom:'Eigene', legendTasks:'Aufgaben',
+  legendMs:'Meilenstein', legendPhase:'Phase', legendRec:'Empfohlen', legendCustom:'Eigene', legendTasks:'Aufgaben',
   today:'Heute', warnInvert:'Dunkelroter Meilenstein = verdrehte Daten',
   emptyHint:'Bitte einen OEM wählen und links die Meilensteintermine eintragen; das Gantt-Diagramm wird automatisch erzeugt.<br>Auch „Beispieldaten laden" zeigt eine Vorschau.',
   hintNoPhase:'Für diesen OEM keine zuordenbaren Phasen', hintNoTasks:'Noch keine eigenen Aufgaben – unten hinzufügen', hintNoNodes:'Bitte zuerst einen OEM wählen',
@@ -994,7 +994,7 @@ function renderChart(){
   function X(d){ return GUT + diffDays(min, d) * pxDay; }
 
   var showPH = state.showPhase !== false;
-  var AXIS_H = 44, PH_Y = 44, PH_H = showPH ? 48 : 0, MS_Y = PH_Y + PH_H, MS_H = 104;
+  var AXIS_H = 44, PH_Y = 44, PH_H = showPH ? 48 : 0, MS_Y = PH_Y + PH_H, MS_H = 64;
   var CM_Y = MS_Y + MS_H, CM_H = 58;
   var TK_Y = CM_Y + cmLanes.length * CM_H, TK_H = 36;
   var H = TK_Y + laneTasks.length * TK_H + 10;
@@ -1060,19 +1060,19 @@ function renderChart(){
     s += '<line x1="0" y1="' + PH_Y + '" x2="' + W + '" y2="' + PH_Y + '" stroke="#e5e7eb"/>';
     s += '<text x="12" y="' + (PH_Y + PH_H/2 + 4) + '" class="glabel">' + esc(tr('legendPhase') + ' · ' + PHASE_SYSTEMS[sys].tag) + '</text>';
   }
-  s += '<line x1="0" y1="' + MS_Y + '" x2="' + W + '" y2="' + MS_Y + '" stroke="#e5e7eb"/>';
-  s += '<text x="12" y="' + (MS_Y + MS_H/2 + 4) + '" class="glabel">' + esc(tr('legendMs')) + '</text>';
+  s += '<rect x="0" y="' + MS_Y + '" width="' + W + '" height="' + MS_H + '" fill="#808080"/>';
+  s += '<text x="12" y="' + (MS_Y + MS_H/2 + 4) + '" fill="#ffffff" font-size="13" font-weight="700">' + esc(tr('legendMs')) + '</text>';
   s += '<line x1="0" y1="' + CM_Y + '" x2="' + W + '" y2="' + CM_Y + '" stroke="#e5e7eb"/>';
   cmLanes.forEach(function(l, i){
     var ly0 = CM_Y + i * CM_H;
     s += '<rect x="0" y="' + ly0 + '" width="' + GUT + '" height="' + CM_H + '" fill="transparent" data-laneidx="' + i + '" class="cm-lane-hit" style="cursor:grab"/>';
-    s += '<text x="12" y="' + (ly0 + CM_H/2 + 4) + '" class="tlabel" data-laneidx="' + i + '" style="cursor:grab;user-select:none"><title>' + esc(tr('dragTip')) + '</title>' + esc(trunc(l.name, 11)) + '</text>';
+    s += '<text x="' + (GUT/2).toFixed(1) + '" y="' + (ly0 + CM_H/2 + 4) + '" class="tlabel" text-anchor="middle" data-laneidx="' + i + '" style="cursor:grab;user-select:none"><title>' + esc(tr('dragTip')) + '</title>' + esc(trunc(l.name, 11)) + '</text>';
     if(i > 0) s += '<line x1="0" y1="' + ly0 + '" x2="' + W + '" y2="' + ly0 + '" stroke="#f3f4f6"/>';
   });
   s += '<line x1="0" y1="' + TK_Y + '" x2="' + W + '" y2="' + TK_Y + '" stroke="#e5e7eb"/>';
   laneTasks.forEach(function(t, i){
     var y = TK_Y + i * TK_H;
-    s += '<text x="12" y="' + (y + TK_H/2 + 4) + '" class="tlabel">' + esc(trunc(t.name, 11)) + '</text>';
+    s += '<text x="' + (GUT/2).toFixed(1) + '" y="' + (y + TK_H/2 + 4) + '" class="tlabel" text-anchor="middle">' + esc(trunc(t.name, 11)) + '</text>';
     if(i > 0) s += '<line x1="0" y1="' + y + '" x2="' + W + '" y2="' + y + '" stroke="#f3f4f6"/>';
   });
   s += '<line x1="' + GUT + '" y1="0" x2="' + GUT + '" y2="' + H + '" stroke="#e5e7eb"/>';
