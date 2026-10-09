@@ -1502,6 +1502,8 @@ function init(){
     var hidden = as.classList.toggle('hidden');
     this.textContent = hidden ? '▶' : '◀';
     this.title = hidden ? tr('expandSidebar') : tr('collapseSidebar');
+    /* 侧边栏收起/展开后，重绘甘特图以铺满新宽度 */
+    setTimeout(function(){ renderChart(); }, 250);
   });
   initChartEdit();
   initChartLaneDrag();
