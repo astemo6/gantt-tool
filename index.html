@@ -1079,7 +1079,18 @@ function renderChart(){
   var totalDays = Math.max(diffDays(min, max), 1);
 
   var wrapW = chart.parentElement.clientWidth || 800;
-  var GUT = wrapW < 560 ? 108 : 150;
+  // 左侧 gutter 宽度跟随标签文本宽度动态调整
+  var _mc = document.createElement('canvas').getContext('2d');
+  function _tw(s, font){ _mc.font = font; return _mc.measureText(String(s)).width; }
+  var _gutMax = 0;
+  try {
+    var _psys = phaseSys();
+    _gutMax = Math.max(_gutMax, _tw(tr('legendPhase') + ' · ' + PHASE_SYSTEMS[_psys].tag, '600 12px sans-serif'));
+  } catch(e){}
+  _gutMax = Math.max(_gutMax, _tw(tr('legendMs'), '700 13px sans-serif'));
+  cmLanes.forEach(function(l){ _gutMax = Math.max(_gutMax, _tw(l.name, '11.5px sans-serif')); });
+  laneTasks.forEach(function(t){ _gutMax = Math.max(_gutMax, _tw(t.name, '11.5px sans-serif')); });
+  var GUT = Math.min(340, Math.max(wrapW < 560 ? 108 : 150, Math.ceil(_gutMax) + 28));
   var pxDay = Math.max((wrapW - GUT - 24) / totalDays, 0.6);
   var W = Math.ceil(GUT + 24 + totalDays * pxDay);
   function X(d){ return GUT + diffDays(min, d) * pxDay; }
@@ -1159,13 +1170,13 @@ function renderChart(){
   cmLanes.forEach(function(l, i){
     var ly0 = CM_Y + i * CM_H;
     s += '<rect x="0" y="' + ly0 + '" width="' + GUT + '" height="' + CM_H + '" fill="transparent" data-laneidx="' + i + '" class="cm-lane-hit" style="cursor:grab"/>';
-    s += '<text x="' + (GUT/2).toFixed(1) + '" y="' + (ly0 + CM_H/2 + 4) + '" class="tlabel" text-anchor="middle" data-laneidx="' + i + '" style="cursor:grab;user-select:none"><title>' + esc(tr('dragTip')) + '</title>' + esc(trunc(l.name, 11)) + '</text>';
+    s += '<text x="' + (GUT/2).toFixed(1) + '" y="' + (ly0 + CM_H/2 + 4) + '" class="tlabel" text-anchor="middle" data-laneidx="' + i + '" style="cursor:grab;user-select:none"><title>' + esc(tr('dragTip')) + '</title>' + esc(l.name) + '</text>';
     if(i > 0) s += '<line x1="0" y1="' + ly0 + '" x2="' + W + '" y2="' + ly0 + '" stroke="#f3f4f6"/>';
   });
   s += '<line x1="0" y1="' + TK_Y + '" x2="' + W + '" y2="' + TK_Y + '" stroke="#e5e7eb"/>';
   laneTasks.forEach(function(t, i){
     var y = TK_Y + i * TK_H;
-    s += '<text x="' + (GUT/2).toFixed(1) + '" y="' + (y + TK_H/2 + 4) + '" class="tlabel" text-anchor="middle">' + esc(trunc(t.name, 11)) + '</text>';
+    s += '<text x="' + (GUT/2).toFixed(1) + '" y="' + (y + TK_H/2 + 4) + '" class="tlabel" text-anchor="middle">' + esc(t.name) + '</text>';
     if(i > 0) s += '<line x1="0" y1="' + y + '" x2="' + W + '" y2="' + y + '" stroke="#f3f4f6"/>';
   });
   s += '<line x1="' + GUT + '" y1="0" x2="' + GUT + '" y2="' + H + '" stroke="#e5e7eb"/>';
