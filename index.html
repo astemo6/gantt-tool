@@ -1570,8 +1570,21 @@ function importJSON(file){
       updateLogoPrev();
       var names = {};
       nodes().forEach(function(n){ names[n[0]] = true; });
-      Object.keys(state.dates).forEach(function(k){ if(!names[k]) delete state.dates[k]; });
-      Object.keys(state.excluded).forEach(function(k){ if(!names[k]) delete state.excluded[k]; });
+      /* 兼容旧版导出的节点名大小写/空白差异：归一化匹配到当前节点名 */
+      var normNm = function(x){ return String(x).toLowerCase().replace(/\s+/g, ''); };
+      var canonName = function(k){
+        if(names[k]) return k;
+        var t = normNm(k), found = null;
+        nodes().forEach(function(n){ if(normNm(n[0]) === t) found = n[0]; });
+        return found;
+      };
+      var remapKeys = function(obj){
+        var out = {};
+        Object.keys(obj || {}).forEach(function(k){ var c = canonName(k); if(c) out[c] = obj[k]; });
+        return out;
+      };
+      state.dates = remapKeys(state.dates);
+      state.excluded = remapKeys(state.excluded);
       $('oemSelect').value = state.oem;
       $('projectName').value = state.projectName;
       $('ckPhase').checked = state.showPhase;
