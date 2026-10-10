@@ -1580,7 +1580,7 @@ function importJSON(file){
       var names = {};
       nodes().forEach(function(n){ names[n[0]] = true; });
       /* 兼容旧版导出的节点名大小写/空白差异：归一化匹配到当前节点名 */
-      var normNm = function(x){ return String(x).toLowerCase().replace(/\s+/g, ''); };
+      var normNm = function(x){ return String(x).toLowerCase().replace(/[\s\-–—]+/g, ''); };
       var canonName = function(k){
         if(names[k]) return k;
         var t = normNm(k), found = null;
