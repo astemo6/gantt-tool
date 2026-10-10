@@ -655,7 +655,7 @@ function resolveAnchorName(name){
   if(!name) return null;
   var ns = nodes(), i;
   for(i = 0; i < ns.length; i++){ if(ns[i][0] === name) return ns[i][0]; }
-  var norm = function(s){ return String(s).toLowerCase().replace(/\s+/g, ''); };
+  var norm = function(s){ return String(s).toLowerCase().replace(/[\s\-–—]+/g, ''); };
   var target = norm(name);
   for(i = 0; i < ns.length; i++){
     if(norm(ns[i][0]) === target) return ns[i][0];
