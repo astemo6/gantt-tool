@@ -126,7 +126,7 @@ header button:hover{background:var(--steel3)}
   <button id="btnImportSub" data-i18n="importSub">导入细项</button>
   <span class="sep"></span>
   <div class="viewbtns">
-    <button data-view="day" class="on" data-i18n="vDay">日</button><button data-view="week" data-i18n="vWeek">周</button>
+    <button data-view="day" class="on" data-i18n="vDay">日</button><button data-view="week" data-i18n="vWeek">周</button><button data-view="month" data-i18n="vMonth">月</button>
   </div>
   <span class="sep"></span>
   <button id="btnCal" data-i18n="workCal">工作日历</button>
@@ -196,9 +196,9 @@ header button:hover{background:var(--steel3)}
 "use strict";
 /* ============ I18N ============ */
 var I18N = {
-zh:{weekdayNames:["一","二","三","四","五","六","日"],appTitle:"执行层计划",backToPlan:"← 里程碑计划",addTask:"+ 新增任务",addGroup:"+ 新增分组",addMs:"+ 里程碑",fromPlan:"从计划导入",importSub:"导入细项",vDay:"日",vWeek:"周",workCal:"工作日历",exportJSON:"导出JSON",importJSON:"导入JSON",exportCSV:"导出CSV",cName:"任务名称",cOwner:"负责人",cDur:"工期",cProg:"进度",cStart:"开始",cEnd:"结束",calTitle:"工作日历 · 自然语言导入",calPh:"例如：2026年春节2月15日到2月23日放假，2月14日、2月28日调休上班",calParse:"解析并导入",calReset:"恢复默认",calHint:"支持：X月X日、X月X日至X月X日、放假/调休/补班/上班等关键词，年份缺省为当年。",calModeNL:"自然语言",calModeText:"文本格式",calHintText:"一行一条：2026-10-01~2026-10-07,国庆 表示放假区间；补班 2026-10-10 表示调休上班。",calPhText:"2026-10-01~2026-10-07,国庆\n补班 2026-10-10",del:"删除",cancel:"取消",ok:"确定",importSubT:"导入细项",subTarget:"目标任务",subContent:"细项内容（一行一条，可含负责人、工期，用逗号分隔）",subFile:"或从 CSV 文件导入",editTask:"编辑任务",newTask:"新增任务",newGroup:"新增分组",newMs:"新增里程碑",fName:"名称",fType:"类型",tTask:"任务",tMs:"里程碑",tGroup:"分组",fGroup:"所属分组",fStart:"开始日期",fDur:"工期（工作日）",fDeps:"前置任务（ID逗号分隔）",fOwner:"负责人",fOutput:"输出成果",fProg:"进度%",fRemarks:"备注",fColor:"颜色",needName:"请填写名称",fromPlanOk:"已从计划导入",noPlan:"未找到计划数据",calApplied:"日历已更新",cycleWarn:"检测到循环依赖，已忽略",importOk:"导入成功",subOk:"细项导入成功",topGroup:"顶级",planGroupMs:"客户里程碑",planGroupRec:"推荐任务",planGroupSup:"供应商节点",planGroupCustom:"自定义任务"},
-en:{weekdayNames:["Mon","Tue","Wed","Thu","Fri","Sat","Sun"],appTitle:"Execution Plan",backToPlan:"← Milestone Plan",addTask:"+ Add Task",addGroup:"+ Add Group",addMs:"+ Milestone",fromPlan:"Import from Plan",importSub:"Import Sub-items",vDay:"Day",vWeek:"Week",workCal:"Work Calendar",exportJSON:"Export JSON",importJSON:"Import JSON",exportCSV:"Export CSV",cName:"Task",cOwner:"Owner",cDur:"Dur.",cProg:"Prog.",cStart:"Start",cEnd:"End",calTitle:"Work Calendar · Natural Language Import",calPh:"e.g. Spring Festival 2026-02-15 to 2026-02-23 off, 02-14 and 02-28 work",calParse:"Parse & Import",calReset:"Reset",calHint:"Supports date ranges and keywords like off/work. Year defaults to current.",calModeNL:"Natural language",calModeText:"Text format",calHintText:"One per line: 2026-10-01~2026-10-07,National Day = holiday range; Make-up 2026-10-10 = workday.",calPhText:"2026-10-01~2026-10-07,National Day\nMake-up 2026-10-10",del:"Delete",cancel:"Cancel",ok:"OK",importSubT:"Import Sub-items",subTarget:"Target Task",subContent:"One per line, optional owner,duration comma-separated",subFile:"Or import from CSV file",editTask:"Edit Task",newTask:"New Task",newGroup:"New Group",newMs:"New Milestone",fName:"Name",fType:"Type",tTask:"Task",tMs:"Milestone",tGroup:"Group",fGroup:"Group",fStart:"Start Date",fDur:"Duration (workdays)",fDeps:"Predecessors (IDs comma-separated)",fOwner:"Owner",fOutput:"Deliverable",fProg:"Progress %",fRemarks:"Remarks",fColor:"Color",needName:"Name required",fromPlanOk:"Imported from plan",noPlan:"No plan data found",calApplied:"Calendar updated",cycleWarn:"Circular dependency detected and ignored",importOk:"Import OK",subOk:"Sub-items imported",topGroup:"Top",planGroupMs:"Customer Milestones",planGroupRec:"Recommended Tasks",planGroupSup:"Supplier Nodes",planGroupCustom:"Custom Tasks"},
-de:{weekdayNames:["Mo","Di","Mi","Do","Fr","Sa","So"],appTitle:"Ausführungsplan",backToPlan:"← Meilensteinplan",addTask:"+ Aufgabe",addGroup:"+ Gruppe",addMs:"+ Meilenstein",fromPlan:"Aus Plan importieren",importSub:"Unterpunkte importieren",vDay:"Tag",vWeek:"Woche",workCal:"Arbeitskalender",exportJSON:"JSON exportieren",importJSON:"JSON importieren",exportCSV:"CSV exportieren",cName:"Aufgabe",cOwner:"Eigner",cDur:"Dauer",cProg:"Fort.",cStart:"Start",cEnd:"End",calTitle:"Arbeitskalender · Import in natürlicher Sprache",calPh:"z.B. Frühlingsfest 2026-02-15 bis 2026-02-23 frei",calParse:"Parsen & importieren",calReset:"Zurücksetzen",calHint:"Datumsbereiche und Schlüsselwörter werden unterstützt.",calModeNL:"Natürliche Sprache",calModeText:"Textformat",calHintText:"Eine Zeile pro Eintrag: 2026-10-01~2026-10-07,Feiertag = Ferienbereich; Ausgleich 2026-10-10 = Arbeitstag.",calPhText:"2026-10-01~2026-10-07,Feiertag\nAusgleich 2026-10-10",del:"Löschen",cancel:"Abbrechen",ok:"OK",importSubT:"Unterpunkte importieren",subTarget:"Zielaufgabe",subContent:"Eins pro Zeile, optional Eigner,Dauer",subFile:"Oder aus CSV-Datei importieren",editTask:"Aufgabe bearbeiten",newTask:"Neue Aufgabe",newGroup:"Neue Gruppe",newMs:"Neuer Meilenstein",fName:"Name",fType:"Typ",tTask:"Aufgabe",tMs:"Meilenstein",tGroup:"Gruppe",fGroup:"Gruppe",fStart:"Startdatum",fDur:"Dauer (Arbeitstage)",fDeps:"Vorgänger (IDs)",fOwner:"Eigner",fOutput:"Ergebnis",fProg:"Fortschritt %",fRemarks:"Bemerkungen",fColor:"Farbe",needName:"Name erforderlich",fromPlanOk:"Aus Plan importiert",noPlan:"Keine Plandaten",calApplied:"Kalender aktualisiert",cycleWarn:"Zirkuläre Abhängigkeit ignoriert",importOk:"Import OK",subOk:"Unterpunkte importiert",topGroup:"Oberste",planGroupMs:"Kundenmeilensteine",planGroupRec:"Empfohlene Aufgaben",planGroupSup:"Lieferantenknoten",planGroupCustom:"Eigene Aufgaben"}};
+zh:{weekdayNames:["一","二","三","四","五","六","日"],appTitle:"执行层计划",backToPlan:"← 里程碑计划",addTask:"+ 新增任务",addGroup:"+ 新增分组",addMs:"+ 里程碑",fromPlan:"从计划导入",importSub:"导入细项",vDay:"日",vWeek:"周",vMonth:"月",workCal:"工作日历",exportJSON:"导出JSON",importJSON:"导入JSON",exportCSV:"导出CSV",cName:"任务名称",cOwner:"负责人",cDur:"工期",cProg:"进度",cStart:"开始",cEnd:"结束",calTitle:"工作日历 · 自然语言导入",calPh:"例如：2026年春节2月15日到2月23日放假，2月14日、2月28日调休上班",calParse:"解析并导入",calReset:"恢复默认",calHint:"支持：X月X日、X月X日至X月X日、放假/调休/补班/上班等关键词，年份缺省为当年。",calModeNL:"自然语言",calModeText:"文本格式",calHintText:"一行一条：2026-10-01~2026-10-07,国庆 表示放假区间；补班 2026-10-10 表示调休上班。",calPhText:"2026-10-01~2026-10-07,国庆\n补班 2026-10-10",del:"删除",cancel:"取消",ok:"确定",importSubT:"导入细项",subTarget:"目标任务",subContent:"细项内容（一行一条，可含负责人、工期，用逗号分隔）",subFile:"或从 CSV 文件导入",editTask:"编辑任务",newTask:"新增任务",newGroup:"新增分组",newMs:"新增里程碑",fName:"名称",fType:"类型",tTask:"任务",tMs:"里程碑",tGroup:"分组",fGroup:"所属分组",fStart:"开始日期",fDur:"工期（工作日）",fDeps:"前置任务（ID逗号分隔）",fOwner:"负责人",fOutput:"输出成果",fProg:"进度%",fRemarks:"备注",fColor:"颜色",needName:"请填写名称",fromPlanOk:"已从计划导入",noPlan:"未找到计划数据",calApplied:"日历已更新",cycleWarn:"检测到循环依赖，已忽略",importOk:"导入成功",subOk:"细项导入成功",topGroup:"顶级",planGroupMs:"客户里程碑",planGroupRec:"推荐任务",planGroupSup:"供应商节点",planGroupCustom:"自定义任务"},
+en:{weekdayNames:["Mon","Tue","Wed","Thu","Fri","Sat","Sun"],appTitle:"Execution Plan",backToPlan:"← Milestone Plan",addTask:"+ Add Task",addGroup:"+ Add Group",addMs:"+ Milestone",fromPlan:"Import from Plan",importSub:"Import Sub-items",vDay:"Day",vWeek:"Week",vMonth:"Month",workCal:"Work Calendar",exportJSON:"Export JSON",importJSON:"Import JSON",exportCSV:"Export CSV",cName:"Task",cOwner:"Owner",cDur:"Dur.",cProg:"Prog.",cStart:"Start",cEnd:"End",calTitle:"Work Calendar · Natural Language Import",calPh:"e.g. Spring Festival 2026-02-15 to 2026-02-23 off, 02-14 and 02-28 work",calParse:"Parse & Import",calReset:"Reset",calHint:"Supports date ranges and keywords like off/work. Year defaults to current.",calModeNL:"Natural language",calModeText:"Text format",calHintText:"One per line: 2026-10-01~2026-10-07,National Day = holiday range; Make-up 2026-10-10 = workday.",calPhText:"2026-10-01~2026-10-07,National Day\nMake-up 2026-10-10",del:"Delete",cancel:"Cancel",ok:"OK",importSubT:"Import Sub-items",subTarget:"Target Task",subContent:"One per line, optional owner,duration comma-separated",subFile:"Or import from CSV file",editTask:"Edit Task",newTask:"New Task",newGroup:"New Group",newMs:"New Milestone",fName:"Name",fType:"Type",tTask:"Task",tMs:"Milestone",tGroup:"Group",fGroup:"Group",fStart:"Start Date",fDur:"Duration (workdays)",fDeps:"Predecessors (IDs comma-separated)",fOwner:"Owner",fOutput:"Deliverable",fProg:"Progress %",fRemarks:"Remarks",fColor:"Color",needName:"Name required",fromPlanOk:"Imported from plan",noPlan:"No plan data found",calApplied:"Calendar updated",cycleWarn:"Circular dependency detected and ignored",importOk:"Import OK",subOk:"Sub-items imported",topGroup:"Top",planGroupMs:"Customer Milestones",planGroupRec:"Recommended Tasks",planGroupSup:"Supplier Nodes",planGroupCustom:"Custom Tasks"},
+de:{weekdayNames:["Mo","Di","Mi","Do","Fr","Sa","So"],appTitle:"Ausführungsplan",backToPlan:"← Meilensteinplan",addTask:"+ Aufgabe",addGroup:"+ Gruppe",addMs:"+ Meilenstein",fromPlan:"Aus Plan importieren",importSub:"Unterpunkte importieren",vDay:"Tag",vWeek:"Woche",vMonth:"Monat",workCal:"Arbeitskalender",exportJSON:"JSON exportieren",importJSON:"JSON importieren",exportCSV:"CSV exportieren",cName:"Aufgabe",cOwner:"Eigner",cDur:"Dauer",cProg:"Fort.",cStart:"Start",cEnd:"End",calTitle:"Arbeitskalender · Import in natürlicher Sprache",calPh:"z.B. Frühlingsfest 2026-02-15 bis 2026-02-23 frei",calParse:"Parsen & importieren",calReset:"Zurücksetzen",calHint:"Datumsbereiche und Schlüsselwörter werden unterstützt.",calModeNL:"Natürliche Sprache",calModeText:"Textformat",calHintText:"Eine Zeile pro Eintrag: 2026-10-01~2026-10-07,Feiertag = Ferienbereich; Ausgleich 2026-10-10 = Arbeitstag.",calPhText:"2026-10-01~2026-10-07,Feiertag\nAusgleich 2026-10-10",del:"Löschen",cancel:"Abbrechen",ok:"OK",importSubT:"Unterpunkte importieren",subTarget:"Zielaufgabe",subContent:"Eins pro Zeile, optional Eigner,Dauer",subFile:"Oder aus CSV-Datei importieren",editTask:"Aufgabe bearbeiten",newTask:"Neue Aufgabe",newGroup:"Neue Gruppe",newMs:"Neuer Meilenstein",fName:"Name",fType:"Typ",tTask:"Aufgabe",tMs:"Meilenstein",tGroup:"Gruppe",fGroup:"Gruppe",fStart:"Startdatum",fDur:"Dauer (Arbeitstage)",fDeps:"Vorgänger (IDs)",fOwner:"Eigner",fOutput:"Ergebnis",fProg:"Fortschritt %",fRemarks:"Bemerkungen",fColor:"Farbe",needName:"Name erforderlich",fromPlanOk:"Aus Plan importiert",noPlan:"Keine Plandaten",calApplied:"Kalender aktualisiert",cycleWarn:"Zirkuläre Abhängigkeit ignoriert",importOk:"Import OK",subOk:"Unterpunkte importiert",topGroup:"Oberste",planGroupMs:"Kundenmeilensteine",planGroupRec:"Empfohlene Aufgaben",planGroupSup:"Lieferantenknoten",planGroupCustom:"Eigene Aufgaben"}};
 var lang = "zh";
 function tr(k){ return (I18N[lang] && I18N[lang][k]) || I18N.zh[k] || k; }
 function applyLang(){
@@ -444,7 +444,17 @@ function parseCalNL(text){
   return { holidays:holidays, makeup:makeup };
 }
 /* ============ 渲染 ============ */
-var PX_DAY = 28, ROW_H = 34;
+var PX_DAY = 28, PX_MONTH = 64, ROW_H = 34;
+// 月视图表头月份简写（三语常量数组，索引=月份）
+var MON_ABBR = {
+  zh:["","1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"],
+  en:["","Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],
+  de:["","Jan","Feb","Mär","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez"]
+};
+function monthLabel(d){ // 月视图列表头：zh '2026年10月' / en 'Oct 2026' / de 'Okt 2026'
+  var ab = MON_ABBR[lang] || MON_ABBR.zh, m = d.getMonth() + 1;
+  return lang === "zh" ? d.getFullYear() + "年" + ab[m] : ab[m] + " " + d.getFullYear();
+}
 function dateRange(){
   var ts = flatTasks(), min = null, max = null;
   ts.forEach(function(t){
@@ -521,34 +531,48 @@ function bandShade(i, n){ // 钢蓝系渐变 #dbe7f3 → #9fc0dd
 function renderGantt(){
   var R = dateRange(), min = R.min, max = R.max;
   var days = diffDays(min, max) + 1;
-  PX_DAY = state.view === "week" ? 10 : 28;
+  PX_DAY = state.view === "week" ? 10 : (state.view === "month" ? PX_MONTH / 30 : 28);
   var W = days * PX_DAY;
   var vis = visibleTasks();
-  // 表头：日视图每列两行（M/D + 星期）；周视图在每周第一列画跨周宽度的 M/D~M/D 标签
+  // 表头：日视图每列两行（M/D + 星期）；周视图在每周第一列画跨周宽度的 M/D~M/D 标签；
+  // 月视图每列一个月，列宽按当月实际天数（30天月=PX_MONTH），与 X() 按天映射对齐
   var hh = "";
-  for(var i = 0; i < days; i++){
-    var d = addDays(min, i), x = i * PX_DAY;
-    var isWk = d.getDay() === 0 || d.getDay() === 6, s = fmtD(d);
-    var isHol = cal.holidays[s];
-    hh += '<div class="day-cell" style="left:' + x + 'px;width:' + PX_DAY + 'px;background:' + (isHol ? "#fef2f2" : isWk ? "#f9fafb" : "transparent") + '"></div>';
-  }
-  var wdNames = tr("weekdayNames");
-  if(state.view === "week"){
-    for(var wi = 0; wi < days; wi++){
-      var dw = addDays(min, wi);
-      if(wi > 0 && dw.getDay() !== 1) continue; // 每周第一列（周一起）
-      var we = wi;
-      while(we + 1 < days && addDays(min, we + 1).getDay() !== 1) we++;
-      var dEnd = addDays(min, we);
-      hh += '<div class="gh-wk" style="left:' + (wi * PX_DAY) + 'px;width:' + ((we - wi + 1) * PX_DAY) + 'px">'
-        + (dw.getMonth()+1) + "/" + dw.getDate() + "~" + (dEnd.getMonth()+1) + "/" + dEnd.getDate() + "</div>";
+  if(state.view === "month"){
+    var moCur = new Date(min.getFullYear(), min.getMonth(), 1), moI = 0;
+    while(moCur <= max){
+      var moFirst = moCur < min ? min : moCur;
+      var moLast = new Date(moCur.getFullYear(), moCur.getMonth() + 1, 0); // 当月最后一天
+      if(moLast > max) moLast = max;
+      var moX = X(moFirst, min), moW = (diffDays(moFirst, moLast) + 1) * PX_DAY;
+      hh += '<div class="gh-wk" style="left:' + moX + 'px;width:' + moW + 'px;background:' + (moI % 2 ? "#f9fafb" : "transparent") + ';border-right:1px solid var(--line)">' + monthLabel(moCur) + "</div>";
+      moCur = new Date(moCur.getFullYear(), moCur.getMonth() + 1, 1);
+      moI++;
     }
   } else {
-    for(var di = 0; di < days; di++){
-      var dd = addDays(min, di);
-      hh += '<div class="gh-day" style="left:' + (di * PX_DAY) + 'px;width:' + PX_DAY + 'px">'
-        + '<div class="gh-date">' + (dd.getMonth()+1) + "/" + dd.getDate() + '</div>'
-        + '<div class="gh-wd">' + wdNames[(dd.getDay() + 6) % 7] + "</div></div>";
+    for(var i = 0; i < days; i++){
+      var d = addDays(min, i), x = i * PX_DAY;
+      var isWk = d.getDay() === 0 || d.getDay() === 6, s = fmtD(d);
+      var isHol = cal.holidays[s];
+      hh += '<div class="day-cell" style="left:' + x + 'px;width:' + PX_DAY + 'px;background:' + (isHol ? "#fef2f2" : isWk ? "#f9fafb" : "transparent") + '"></div>';
+    }
+    var wdNames = tr("weekdayNames");
+    if(state.view === "week"){
+      for(var wi = 0; wi < days; wi++){
+        var dw = addDays(min, wi);
+        if(wi > 0 && dw.getDay() !== 1) continue; // 每周第一列（周一起）
+        var we = wi;
+        while(we + 1 < days && addDays(min, we + 1).getDay() !== 1) we++;
+        var dEnd = addDays(min, we);
+        hh += '<div class="gh-wk" style="left:' + (wi * PX_DAY) + 'px;width:' + ((we - wi + 1) * PX_DAY) + 'px">'
+          + (dw.getMonth()+1) + "/" + dw.getDate() + "~" + (dEnd.getMonth()+1) + "/" + dEnd.getDate() + "</div>";
+      }
+    } else {
+      for(var di = 0; di < days; di++){
+        var dd = addDays(min, di);
+        hh += '<div class="gh-day" style="left:' + (di * PX_DAY) + 'px;width:' + PX_DAY + 'px">'
+          + '<div class="gh-date">' + (dd.getMonth()+1) + "/" + dd.getDate() + '</div>'
+          + '<div class="gh-wd">' + wdNames[(dd.getDay() + 6) % 7] + "</div></div>";
+      }
     }
   }
   document.getElementById("ganttHead").innerHTML = '<div style="position:relative;width:' + W + 'px;height:44px">' + hh + "</div>";
