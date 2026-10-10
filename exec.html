@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>执行层计划 · Execution Plan</title>
+<style>
+:root{
+  --steel:#1e3a52; --steel2:#2b4d6a; --steel3:#3a6283; --accent:#2563eb;
+  --tx1:#1f2937; --tx2:#4b5563; --tx3:#6b7280;
+  --bg:#eef1f5; --side:#f8fafc; --card:#fff; --line:#d9dee5; --line2:#e5e7eb;
+  --danger:#dc2626;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--tx1);font-size:13px;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+header{background:var(--steel);color:#fff;height:48px;display:flex;align-items:center;padding:0 16px;gap:12px;flex-shrink:0}
+header h1{font-size:15px;font-weight:600}
+header .sub{font-size:11px;opacity:.7}
+header .sp{flex:1}
+header button{background:var(--steel2);border:1px solid #4b6a85;color:#fff;border-radius:6px;padding:6px 12px;font-size:12px;cursor:pointer}
+header button:hover{background:var(--steel3)}
+.langbtns{display:flex;gap:4px}
+.langbtns button{padding:4px 8px;font-size:11px}
+.langbtns button.on{background:var(--accent);border-color:var(--accent)}
+.toolbar{background:var(--card);border-bottom:1px solid var(--line);padding:8px 16px;display:flex;gap:8px;align-items:center;flex-shrink:0;flex-wrap:wrap}
+.toolbar button{background:#fff;border:1px solid var(--line);border-radius:6px;padding:6px 12px;font-size:12px;cursor:pointer;color:var(--tx1)}
+.toolbar button:hover{border-color:var(--accent);color:var(--accent)}
+.toolbar button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.toolbar button.primary:hover{background:#1d4ed8}
+.toolbar .sep{width:1px;height:20px;background:var(--line)}
+.viewbtns{display:flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.viewbtns button{border:none;border-radius:0;padding:6px 14px}
+.viewbtns button.on{background:var(--steel2);color:#fff}
+.main{flex:1;display:flex;min-height:0}
+.table-pane{width:460px;min-width:340px;max-width:640px;background:var(--side);border-right:1px solid var(--line);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0}
+.table-head{display:flex;background:var(--steel);color:#fff;font-size:11px;font-weight:600;flex-shrink:0}
+.table-head>div{padding:8px 6px;border-right:1px solid #4b6a85;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.table-body{flex:1;overflow:auto}
+.trow{display:flex;border-bottom:1px solid var(--line2);cursor:pointer;align-items:stretch}
+.trow:hover{background:#eef4ff}
+.trow.sel{background:#dbeafe}
+.trow>div{padding:7px 6px;border-right:1px solid var(--line2);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-size:12px;display:flex;align-items:center}
+.trow.group{background:#e8eef5;font-weight:600}
+.trow.group>div{font-size:12px}
+.trow .c-id{width:36px;justify-content:center;color:var(--tx3);flex-shrink:0}
+.trow .c-name{flex:1;min-width:0}
+.trow .c-owner{width:64px;flex-shrink:0}
+.trow .c-dur{width:52px;justify-content:center;flex-shrink:0}
+.trow .c-prog{width:56px;justify-content:center;flex-shrink:0}
+.trow .c-start{width:86px;justify-content:center;flex-shrink:0;color:var(--tx2)}
+.table-head .c-id{width:36px;text-align:center;flex-shrink:0}
+.table-head .c-name{flex:1}
+.table-head .c-owner{width:64px;flex-shrink:0}
+.table-head .c-dur{width:52px;text-align:center;flex-shrink:0}
+.table-head .c-prog{width:56px;text-align:center;flex-shrink:0}
+.table-head .c-start{width:86px;text-align:center;flex-shrink:0}
+.progbar{width:44px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden}
+.progbar>i{display:block;height:100%;background:var(--accent);border-radius:4px}
+.ms-diamond{color:var(--danger);font-size:14px}
+.gantt-pane{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden}
+.gantt-head{height:34px;background:var(--card);border-bottom:1px solid var(--line);position:relative;overflow:hidden;flex-shrink:0}
+.gantt-body{flex:1;overflow:auto;position:relative}
+.gantt-inner{position:relative;min-height:100%}
+.g-row{position:relative;border-bottom:1px solid var(--line2)}
+.g-row.group{background:#e8eef555}
+.g-bar{position:absolute;height:20px;top:7px;border-radius:4px;cursor:grab;display:flex;align-items:center;overflow:hidden;font-size:11px;color:#fff;white-space:nowrap}
+.g-bar .fill{position:absolute;left:0;top:0;bottom:0;background:rgba(255,255,255,.35);border-radius:4px 0 0 4px}
+.g-bar .lbl{position:relative;padding:0 8px;z-index:1}
+.g-ms{position:absolute;top:9px;width:16px;height:16px;transform:rotate(45deg);cursor:grab;border-radius:2px}
+.g-today{position:absolute;top:0;bottom:0;width:2px;background:#ef4444;z-index:5}
+.g-weekend{position:absolute;top:0;bottom:0;background:#f3f4f6;z-index:0}
+.g-holiday{position:absolute;top:0;bottom:0;background:#fef2f2;z-index:0}
+.g-dep{position:absolute;z-index:4;pointer-events:none}
+.day-cell{position:absolute;top:0;bottom:0;border-right:1px dashed #e5e7eb}
+.day-lbl{position:absolute;top:4px;font-size:10px;color:var(--tx3);transform:translateX(3px);white-space:nowrap}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:100}
+.modal-bg.show{display:flex}
+.modal{background:#fff;border-radius:10px;width:520px;max-width:94vw;max-height:90vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.modal-h{background:var(--steel);color:#fff;padding:12px 16px;font-size:14px;font-weight:600;border-radius:10px 10px 0 0;display:flex;justify-content:space-between;align-items:center}
+.modal-h button{background:none;border:none;color:#fff;font-size:18px;cursor:pointer}
+.modal-b{padding:16px}
+.frow{margin-bottom:12px}
+.frow label{display:block;font-size:12px;color:var(--tx2);margin-bottom:4px}
+.frow input,.frow select,.frow textarea{width:100%;border:1px solid #cbd5e1;border-radius:6px;padding:8px 10px;font-size:13px}
+.frow input:focus,.frow select:focus,.frow textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px #93c5fd55}
+.frow2{display:flex;gap:12px}
+.frow2>div{flex:1}
+.modal-f{padding:12px 16px;border-top:1px solid var(--line2);display:flex;justify-content:flex-end;gap:8px}
+.modal-f button{padding:8px 18px;border-radius:6px;font-size:13px;cursor:pointer;border:1px solid var(--line)}
+.modal-f .ok{background:var(--accent);border-color:var(--accent);color:#fff}
+.cal-panel{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px;margin:8px 16px}
+.cal-panel h3{font-size:13px;margin-bottom:8px}
+.cal-panel textarea{width:100%;height:64px;border:1px solid #cbd5e1;border-radius:6px;padding:8px;font-size:12px;resize:vertical}
+.cal-panel .row{display:flex;gap:8px;margin-top:8px;align-items:center;flex-wrap:wrap}
+.cal-panel button{background:var(--steel2);color:#fff;border:none;border-radius:6px;padding:6px 14px;font-size:12px;cursor:pointer}
+.cal-panel .hint{font-size:11px;color:var(--tx3);margin-top:6px}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1f2937;color:#fff;padding:10px 20px;border-radius:8px;font-size:13px;z-index:200;display:none}
+.dep-line{stroke:#94a3b8;stroke-width:1.5;fill:none}
+@media(max-width:768px){.table-pane{width:300px;min-width:260px}}
+</style>
+</head>
+<body>
+<header>
+  <h1 data-i18n="appTitle">执行层计划</h1><span class="sub">Execution Plan</span>
+  <span class="sp"></span>
+  <div class="langbtns">
+    <button data-lang="zh">中文</button><button data-lang="en">EN</button><button data-lang="de">DE</button>
+  </div>
+  <button id="btnBack" data-i18n="backToPlan">← 里程碑计划</button>
+</header>
+<div class="toolbar">
+  <button id="btnAdd" class="primary" data-i18n="addTask">+ 新增任务</button>
+  <button id="btnAddGroup" data-i18n="addGroup">+ 新增分组</button>
+  <button id="btnAddMs" data-i18n="addMs">+ 里程碑</button>
+  <span class="sep"></span>
+  <button id="btnFromPlan" data-i18n="fromPlan">从计划导入</button>
+  <button id="btnImportSub" data-i18n="importSub">导入细项</button>
+  <span class="sep"></span>
+  <div class="viewbtns">
+    <button data-view="day" class="on" data-i18n="vDay">日</button><button data-view="week" data-i18n="vWeek">周</button>
+  </div>
+  <span class="sep"></span>
+  <button id="btnCal" data-i18n="workCal">工作日历</button>
+  <span class="sep"></span>
+  <button id="btnExport" data-i18n="exportJSON">导出JSON</button>
+  <button id="btnImport" data-i18n="importJSON">导入JSON</button>
+  <input type="file" id="fileJSON" accept=".json" style="display:none">
+  <button id="btnCSV" data-i18n="exportCSV">导出CSV</button>
+</div>
+<div class="cal-panel" id="calPanel" style="display:none">
+  <h3 data-i18n="calTitle">工作日历 · 自然语言导入</h3>
+  <textarea id="calInput" data-i18n-ph="calPh" placeholder="例如：2026年春节2月15日到2月23日放假，2月14日、2月28日调休上班"></textarea>
+  <div class="row">
+    <button id="btnCalParse" data-i18n="calParse">解析并导入</button>
+    <button id="btnCalReset" data-i18n="calReset">恢复默认</button>
+    <span class="hint" id="calSummary"></span>
+  </div>
+  <div class="hint" data-i18n="calHint">支持：X月X日、X月X日至X月X日、放假/调休/补班/上班等关键词，年份缺省为当年。解析结果会列出，请确认后再应用。</div>
+  <div id="calPreview" style="margin-top:8px;font-size:12px"></div>
+</div>
+<div class="main">
+  <div class="table-pane">
+    <div class="table-head">
+      <div class="c-id">ID</div><div class="c-name" data-i18n="cName">任务名称</div><div class="c-owner" data-i18n="cOwner">负责人</div><div class="c-dur" data-i18n="cDur">工期</div><div class="c-prog" data-i18n="cProg">进度</div><div class="c-start" data-i18n="cStart">开始</div>
+    </div>
+    <div class="table-body" id="taskList"></div>
+  </div>
+  <div class="gantt-pane">
+    <div class="gantt-head" id="ganttHead"></div>
+    <div class="gantt-body" id="ganttBody"><div class="gantt-inner" id="ganttInner"></div></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <div class="modal-h"><span id="modalTitle">编辑任务</span><button id="modalX">×</button></div>
+    <div class="modal-b" id="modalBody"></div>
+    <div class="modal-f">
+      <button id="modalDel" style="margin-right:auto;color:var(--danger);display:none" data-i18n="del">删除</button>
+      <button id="modalCancel" data-i18n="cancel">取消</button>
+      <button id="modalOk" class="ok" data-i18n="ok">确定</button>
+    </div>
+  </div>
+</div>
+<div class="modal-bg" id="subModalBg">
+  <div class="modal">
+    <div class="modal-h"><span data-i18n="importSubT">导入细项</span><button id="subX">×</button></div>
+    <div class="modal-b">
+      <div class="frow"><label data-i18n="subTarget">目标任务</label><select id="subTask"></select></div>
+      <div class="frow"><label data-i18n="subContent">细项内容（一行一条，可含负责人、工期，用逗号分隔，如：高温测试,张三,5）</label>
+      <textarea id="subText" rows="8" placeholder="高温测试,张三,5&#10;振动测试,李四,3&#10;盐雾测试"></textarea></div>
+      <div class="frow"><label data-i18n="subFile">或从 CSV 文件导入</label><input type="file" id="subFile" accept=".csv,.txt"></div>
+    </div>
+    <div class="modal-f">
+      <button id="subCancel" data-i18n="cancel">取消</button>
+      <button id="subOk" class="ok" data-i18n="ok">确定</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+(function(){
+"use strict";
+/* ============ I18N ============ */
+var I18N = {
+zh:{appTitle:"执行层计划",backToPlan:"← 里程碑计划",addTask:"+ 新增任务",addGroup:"+ 新增分组",addMs:"+ 里程碑",fromPlan:"从计划导入",importSub:"导入细项",vDay:"日",vWeek:"周",workCal:"工作日历",exportJSON:"导出JSON",importJSON:"导入JSON",exportCSV:"导出CSV",cName:"任务名称",cOwner:"负责人",cDur:"工期",cProg:"进度",cStart:"开始",calTitle:"工作日历 · 自然语言导入",calPh:"例如：2026年春节2月15日到2月23日放假，2月14日、2月28日调休上班",calParse:"解析并导入",calReset:"恢复默认",calHint:"支持：X月X日、X月X日至X月X日、放假/调休/补班/上班等关键词，年份缺省为当年。",del:"删除",cancel:"取消",ok:"确定",importSubT:"导入细项",subTarget:"目标任务",subContent:"细项内容（一行一条，可含负责人、工期，用逗号分隔）",subFile:"或从 CSV 文件导入",editTask:"编辑任务",newTask:"新增任务",newGroup:"新增分组",newMs:"新增里程碑",fName:"名称",fType:"类型",tTask:"任务",tMs:"里程碑",tGroup:"分组",fGroup:"所属分组",fStart:"开始日期",fDur:"工期（工作日）",fDeps:"前置任务（ID逗号分隔）",fOwner:"负责人",fOutput:"输出成果",fProg:"进度%",fRemarks:"备注",fColor:"颜色",needName:"请填写名称",fromPlanOk:"已从计划导入",noPlan:"未找到计划数据",calApplied:"日历已更新",cycleWarn:"检测到循环依赖，已忽略",importOk:"导入成功",subOk:"细项导入成功",topGroup:"顶级"},
+en:{appTitle:"Execution Plan",backToPlan:"← Milestone Plan",addTask:"+ Add Task",addGroup:"+ Add Group",addMs:"+ Milestone",fromPlan:"Import from Plan",importSub:"Import Sub-items",vDay:"Day",vWeek:"Week",workCal:"Work Calendar",exportJSON:"Export JSON",importJSON:"Import JSON",exportCSV:"Export CSV",cName:"Task",cOwner:"Owner",cDur:"Dur.",cProg:"Prog.",cStart:"Start",calTitle:"Work Calendar · Natural Language Import",calPh:"e.g. Spring Festival 2026-02-15 to 2026-02-23 off, 02-14 and 02-28 work",calParse:"Parse & Import",calReset:"Reset",calHint:"Supports date ranges and keywords like off/work. Year defaults to current.",del:"Delete",cancel:"Cancel",ok:"OK",importSubT:"Import Sub-items",subTarget:"Target Task",subContent:"One per line, optional owner,duration comma-separated",subFile:"Or import from CSV file",editTask:"Edit Task",newTask:"New Task",newGroup:"New Group",newMs:"New Milestone",fName:"Name",fType:"Type",tTask:"Task",tMs:"Milestone",tGroup:"Group",fGroup:"Group",fStart:"Start Date",fDur:"Duration (workdays)",fDeps:"Predecessors (IDs comma-separated)",fOwner:"Owner",fOutput:"Deliverable",fProg:"Progress %",fRemarks:"Remarks",fColor:"Color",needName:"Name required",fromPlanOk:"Imported from plan",noPlan:"No plan data found",calApplied:"Calendar updated",cycleWarn:"Circular dependency detected and ignored",importOk:"Import OK",subOk:"Sub-items imported",topGroup:"Top"},
+de:{appTitle:"Ausführungsplan",backToPlan:"← Meilensteinplan",addTask:"+ Aufgabe",addGroup:"+ Gruppe",addMs:"+ Meilenstein",fromPlan:"Aus Plan importieren",importSub:"Unterpunkte importieren",vDay:"Tag",vWeek:"Woche",workCal:"Arbeitskalender",exportJSON:"JSON exportieren",importJSON:"JSON importieren",exportCSV:"CSV exportieren",cName:"Aufgabe",cOwner:"Eigner",cDur:"Dauer",cProg:"Fort.",cStart:"Start",calTitle:"Arbeitskalender · Import in natürlicher Sprache",calPh:"z.B. Frühlingsfest 2026-02-15 bis 2026-02-23 frei",calParse:"Parsen & importieren",calReset:"Zurücksetzen",calHint:"Datumsbereiche und Schlüsselwörter werden unterstützt.",del:"Löschen",cancel:"Abbrechen",ok:"OK",importSubT:"Unterpunkte importieren",subTarget:"Zielaufgabe",subContent:"Eins pro Zeile, optional Eigner,Dauer",subFile:"Oder aus CSV-Datei importieren",editTask:"Aufgabe bearbeiten",newTask:"Neue Aufgabe",newGroup:"Neue Gruppe",newMs:"Neuer Meilenstein",fName:"Name",fType:"Typ",tTask:"Aufgabe",tMs:"Meilenstein",tGroup:"Gruppe",fGroup:"Gruppe",fStart:"Startdatum",fDur:"Dauer (Arbeitstage)",fDeps:"Vorgänger (IDs)",fOwner:"Eigner",fOutput:"Ergebnis",fProg:"Fortschritt %",fRemarks:"Bemerkungen",fColor:"Farbe",needName:"Name erforderlich",fromPlanOk:"Aus Plan importiert",noPlan:"Keine Plandaten",calApplied:"Kalender aktualisiert",cycleWarn:"Zirkuläre Abhängigkeit ignoriert",importOk:"Import OK",subOk:"Unterpunkte importiert",topGroup:"Oberste"}};
+var lang = "zh";
+function tr(k){ return (I18N[lang] && I18N[lang][k]) || I18N.zh[k] || k; }
+function applyLang(){
+  document.querySelectorAll("[data-i18n]").forEach(function(el){ el.textContent = tr(el.dataset.i18n); });
+  document.querySelectorAll("[data-i18n-ph]").forEach(function(el){ el.placeholder = tr(el.dataset.i18nPh); });
+  document.querySelectorAll(".langbtns button").forEach(function(b){ b.classList.toggle("on", b.dataset.lang === lang); });
+  document.title = tr("appTitle");
+}
+function toast(m){ var t = document.getElementById("toast"); t.textContent = m; t.style.display = "block"; clearTimeout(t._h); t._h = setTimeout(function(){ t.style.display = "none"; }, 2200); }
+/* ============ 日期工具 ============ */
+function fmtD(d){ var m = d.getMonth()+1, dd = d.getDate(); return d.getFullYear() + "-" + (m<10?"0":"")+m + "-" + (dd<10?"0":"")+dd; }
+function parseD(s){ if(!s) return null; var p = String(s).split("-"); if(p.length < 3) return null; var d = new Date(+p[0], +p[1]-1, +p[2]); return isNaN(d) ? null : d; }
+function addDays(d, n){ var r = new Date(d); r.setDate(r.getDate() + n); return r; }
+function diffDays(a, b){ return Math.round((b - a) / 86400000); }
+/* ============ 工作日历 ============ */
+var HOLIDAYS_2026 = { // 默认2026法定节假日
+  "2026-01-01":"元旦","2026-01-02":"元旦","2026-01-03":"元旦",
+  "2026-02-15":"春节","2026-02-16":"春节","2026-02-17":"春节","2026-02-18":"春节","2026-02-19":"春节","2026-02-20":"春节","2026-02-21":"春节","2026-02-22":"春节","2026-02-23":"春节",
+  "2026-04-04":"清明","2026-04-05":"清明","2026-04-06":"清明",
+  "2026-05-01":"劳动节","2026-05-02":"劳动节","2026-05-03":"劳动节","2026-05-04":"劳动节","2026-05-05":"劳动节",
+  "2026-06-19":"端午","2026-06-20":"端午","2026-06-21":"端午",
+  "2026-09-25":"中秋","2026-09-26":"中秋","2026-09-27":"中秋",
+  "2026-10-01":"国庆","2026-10-02":"国庆","2026-10-03":"国庆","2026-10-04":"国庆","2026-10-05":"国庆","2026-10-06":"国庆","2026-10-07":"国庆"
+};
+var MAKEUP_2026 = ["2026-01-04","2026-02-14","2026-02-28","2026-05-09","2026-09-20","2026-10-10"];
+var cal = { holidays:{}, makeup:{} };
+function resetCal(){ cal.holidays = Object.assign({}, HOLIDAYS_2026); cal.makeup = {}; MAKEUP_2026.forEach(function(d){ cal.makeup[d] = 1; }); }
+resetCal();
+function isWorkday(d){
+  var s = fmtD(d);
+  if(cal.makeup[s]) return true;
+  if(cal.holidays[s]) return false;
+  var w = d.getDay(); return w !== 0 && w !== 6;
+}
+function nextWorkday(d){ var r = new Date(d); do{ r = addDays(r, 1); }while(!isWorkday(r)); return r; }
+function addWorkdays(d, n){ var r = new Date(d); var c = 0; while(c < n){ r = addDays(r, 1); if(isWorkday(r)) c++; } return r; }
+function workdaysBetween(a, b){ // a→b 工作日数（含b不含a）
+  var c = 0, r = new Date(a);
+  while(r < b){ r = addDays(r, 1); if(isWorkday(r)) c++; }
+  return c;
+}
+/* ============ 数据模型与状态 ============ */
+var LS_KEY = "gantt-exec-v1";
+var COLORS = ["#2563eb","#16a34a","#9333ea","#ea580c","#0891b2","#dc2626","#4f46e5","#0d9488"];
+var state = { tasks:[], seq:1, view:"day", collapsed:{} };
+function newId(){ return "t" + (state.seq++); }
+function mkTask(o){
+  o = o || {};
+  return { id:o.id||newId(), name:o.name||"", type:o.type||"task",
+    group:o.group||"", start:o.start||fmtD(new Date()), dur:o.dur!=null?o.dur:5,
+    end:o.end||"", deps:o.deps||[], owner:o.owner||"", output:o.output||"",
+    progress:o.progress||0, remarks:o.remarks||"", color:o.color||COLORS[0],
+    source:o.source||"manual", subs:o.subs||[] };
+}
+function save(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){} }
+function load(){
+  try{ var d = JSON.parse(localStorage.getItem(LS_KEY)); if(d && d.tasks){ state = d; return; } }catch(e){}
+  seedSample();
+}
+function seedSample(){
+  state.tasks = [
+    {id:"g1",name:"项目启动",type:"group",group:"",start:"",dur:0,end:"",deps:[],owner:"",output:"",progress:0,remarks:"",color:"",source:"sample",subs:[]},
+    mkTask({name:"需求分析",group:"g1",start:"2026-10-12",dur:5,owner:"张三",progress:100,source:"sample"}),
+    mkTask({name:"原型设计",group:"g1",start:"2026-10-19",dur:4,owner:"李四",progress:60,source:"sample"}),
+    mkTask({name:"UI设计",group:"g1",start:"2026-10-23",dur:6,progress:20,source:"sample"}),
+    mkTask({name:"后端开发",group:"g1",start:"2026-10-23",dur:15,owner:"王五",progress:10,source:"sample"}),
+    mkTask({name:"上线发布",type:"milestone",group:"g1",start:"2026-11-30",dur:0,source:"sample"})
+  ];
+  state.tasks[2].deps = [state.tasks[1].id];
+  state.tasks[3].deps = [state.tasks[2].id];
+  state.tasks[4].deps = [state.tasks[2].id];
+  state.tasks[5].deps = [state.tasks[3].id, state.tasks[4].id];
+  state.seq = 100;
+}
+/* ============ 排期引擎 ============ */
+function taskEnd(t){ // 按工期算结束日（含开始日）
+  if(t.type === "milestone") return t.start;
+  if(t.dur <= 0) return t.start;
+  var d = parseD(t.start); if(!d) return t.start;
+  return fmtD(addWorkdays(d, t.dur - 1));
+}
+function topoSort(tasks){ // 前置拓扑排序，返回 {order, cyclic}
+  var byId = {}, indeg = {}, adj = {};
+  tasks.forEach(function(t){ byId[t.id] = t; indeg[t.id] = 0; adj[t.id] = []; });
+  tasks.forEach(function(t){
+    (t.deps||[]).forEach(function(pid){
+      if(byId[pid] && pid !== t.id){ adj[pid].push(t.id); indeg[t.id]++; }
+    });
+  });
+  var q = tasks.filter(function(t){ return indeg[t.id] === 0; }).map(function(t){ return t.id; });
+  var order = [], cyclic = [];
+  while(q.length){ var id = q.shift(); order.push(id); adj[id].forEach(function(n){ if(--indeg[n] === 0) q.push(n); }); }
+  tasks.forEach(function(t){ if(indeg[t.id] > 0) cyclic.push(t.id); });
+  return { order:order, cyclic:cyclic };
+}
+function scheduleAll(){
+  var ts = state.tasks.filter(function(t){ return t.type !== "group"; });
+  var r = topoSort(ts);
+  if(r.cyclic.length){ toast(tr("cycleWarn")); }
+  var byId = {}; ts.forEach(function(t){ byId[t.id] = t; });
+  r.order.forEach(function(id){
+    var t = byId[id]; if(!t || t.type === "milestone") return;
+    var latest = null;
+    (t.deps||[]).forEach(function(pid){
+      var p = byId[pid]; if(!p) return;
+      var pe = parseD(taskEnd(p)); if(!pe) return;
+      var cand = nextWorkday(pe);
+      if(!latest || cand > latest) latest = cand;
+    });
+    if(latest){
+      var cur = parseD(t.start);
+      if(!cur || cur < latest){ t.start = fmtD(latest); }
+    }
+    t.end = taskEnd(t);
+  });
+}
+function visibleTasks(){
+  var out = [], skipGroup = null;
+  state.tasks.forEach(function(t){
+    if(t.type === "group"){
+      out.push(t);
+      skipGroup = state.collapsed[t.id] ? t.id : null;
+      return;
+    }
+    if(skipGroup && t.group === skipGroup) return;
+    out.push(t);
+  });
+  return out;
+}
+function flatTasks(){ return state.tasks.filter(function(t){ return t.type !== "group"; }); }
+
+/* 自然语言解析：中文日期表达 → 节假日/调休 */
+function parseCalNL(text){
+  var year = new Date().getFullYear();
+  var ym = text.match(/(\d{4})\s*年/); if(ym) year = +ym[1];
+  var holidays = {}, makeup = [];
+  function dstr(m, d){ return year + "-" + (m<10?"0":"")+m + "-" + (d<10?"0":"")+d; }
+  // 区间：X月X日到/至X月X日 / X月X日-X月X日
+  var re = /(\d{1,2})月(\d{1,2})[日号]?\s*(?:到|至|-|~)\s*(\d{1,2})月(\d{1,2})[日号]?/g, m;
+  var ranges = [];
+  while((m = re.exec(text))){
+    var a = new Date(year, +m[1]-1, +m[2]), b = new Date(year, +m[3]-1, +m[4]);
+    if(b < a) b = new Date(year+1, +m[3]-1, +m[4]);
+    ranges.push([a, b, m.index]);
+  }
+  // 同月区间：X月X日到X日
+  var re2 = /(\d{1,2})月(\d{1,2})[日号]?\s*(?:到|至)\s*(\d{1,2})[日号]/g;
+  while((m = re2.exec(text))){
+    if(ranges.some(function(r){ return Math.abs(r[2]-m.index) < 4; })) continue;
+    ranges.push([new Date(year, +m[1]-1, +m[2]), new Date(year, +m[1]-1, +m[3]), m.index]);
+  }
+  // 单日：X月X日（排除已在区间内的）
+  var re3 = /(\d{1,2})月(\d{1,2})[日号]/g, singles = [];
+  while((m = re3.exec(text))){
+    var d = new Date(year, +m[1]-1, +m[2]);
+    if(ranges.some(function(r){ return d >= r[0] && d <= r[1]; })) continue;
+    singles.push([d, m.index]);
+  }
+  // 判断每个日期片段是放假还是调休：看附近关键词
+  function kindAt(idx){
+    var ctx = text.slice(Math.max(0, idx-12), idx+16);
+    if(/调休|补班|上班/.test(ctx)) return "makeup";
+    return "holiday";
+  }
+  ranges.forEach(function(r){
+    var k = kindAt(r[2]);
+    var d = new Date(r[0]);
+    while(d <= r[1]){ if(k === "makeup") makeup.push(fmtD(d)); else holidays[fmtD(d)] = 1; d = addDays(d, 1); }
+  });
+  singles.forEach(function(s){
+    if(kindAt(s[1]) === "makeup") makeup.push(fmtD(s[0])); else holidays[fmtD(s[0])] = 1;
+  });
+  return { holidays:holidays, makeup:makeup };
+}
+/* ============ 渲染 ============ */
+var PX_DAY = 28, ROW_H = 34;
+function dateRange(){
+  var ts = flatTasks(), min = null, max = null;
+  ts.forEach(function(t){
+    var s = parseD(t.start), e = parseD(taskEnd(t));
+    if(s && (!min || s < min)) min = s;
+    if(e && (!max || e > max)) max = e;
+  });
+  if(!min){ min = new Date(); min.setHours(0,0,0,0); }
+  if(!max) max = addDays(min, 30);
+  min = addDays(min, -7); max = addDays(max, 14);
+  return { min:min, max:max };
+}
+function X(d, min){ return diffDays(min, d) * PX_DAY; }
+function render(){
+  scheduleAll(); save();
+  renderTable(); renderGantt();
+  updateCalSummary();
+}
+function renderTable(){
+  var el = document.getElementById("taskList"), html = "";
+  visibleTasks().forEach(function(t){
+    var cls = "trow" + (t.type === "group" ? " group" : "") + (selId === t.id ? " sel" : "");
+    var nm = t.type === "group"
+      ? (state.collapsed[t.id] ? "▶ " : "▼ ") + esc(t.name)
+      : t.type === "milestone" ? '<span class="ms-diamond">◆</span>&nbsp;' + esc(t.name) : esc(t.name);
+    var prog = t.type === "group" ? "" : '<div class="progbar"><i style="width:' + t.progress + '%"></i></div>';
+    html += '<div class="' + cls + '" data-id="' + t.id + '">'
+      + '<div class="c-id">' + (t.type === "group" ? "" : t.id.replace("t","")) + "</div>"
+      + '<div class="c-name">' + nm + "</div>"
+      + '<div class="c-owner">' + esc(t.owner || "") + "</div>"
+      + '<div class="c-dur">' + (t.type === "group" ? "" : t.type === "milestone" ? "◆" : t.dur) + "</div>"
+      + '<div class="c-prog">' + prog + "</div>"
+      + '<div class="c-start">' + (t.start || "") + "</div></div>";
+  });
+  el.innerHTML = html || '<div style="padding:20px;color:var(--tx3)">—</div>';
+  el.querySelectorAll(".trow").forEach(function(r){
+    r.addEventListener("click", function(){
+      var t = byId(this.dataset.id);
+      if(t && t.type === "group"){ state.collapsed[t.id] = !state.collapsed[t.id]; render(); return; }
+      selId = this.dataset.id; renderTable(); openModal(this.dataset.id);
+    });
+  });
+}
+function byId(id){ return state.tasks.find(function(t){ return t.id === id; }); }
+function esc(s){ return String(s == null ? "" : s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function renderGantt(){
+  var R = dateRange(), min = R.min, max = R.max;
+  var days = diffDays(min, max) + 1;
+  PX_DAY = state.view === "week" ? 10 : 28;
+  var W = days * PX_DAY;
+  var vis = visibleTasks();
+  // 表头
+  var hh = "";
+  for(var i = 0; i < days; i++){
+    var d = addDays(min, i), x = i * PX_DAY;
+    var isWk = d.getDay() === 0 || d.getDay() === 6, s = fmtD(d);
+    var isHol = cal.holidays[s];
+    var lbl = state.view === "week" ? "" : (d.getDate() === 1 ? (d.getMonth()+1) + "/1" : d.getDate());
+    hh += '<div class="day-cell" style="left:' + x + 'px;width:' + PX_DAY + 'px;background:' + (isHol ? "#fef2f2" : isWk ? "#f9fafb" : "transparent") + '"></div>'
+      + (lbl ? '<div class="day-lbl" style="left:' + x + 'px">' + lbl + "</div>" : "");
+  }
+  document.getElementById("ganttHead").innerHTML = '<div style="position:relative;width:' + W + 'px;height:34px">' + hh + "</div>";
+  // 内容
+  var inner = document.getElementById("ganttInner");
+  inner.style.width = W + "px";
+  var html = "", today = new Date(); today.setHours(0,0,0,0);
+  // 周末/节假日底纹
+  for(var j = 0; j < days; j++){
+    var dd = addDays(min, j), ss = fmtD(dd), xx = j * PX_DAY;
+    if(cal.holidays[ss]) html += '<div class="g-holiday" style="left:' + xx + 'px;width:' + PX_DAY + 'px"></div>';
+    else if(dd.getDay() === 0 || dd.getDay() === 6) html += '<div class="g-weekend" style="left:' + xx + 'px;width:' + PX_DAY + 'px"></div>';
+  }
+  // today线
+  if(today >= min && today <= max) html += '<div class="g-today" style="left:' + X(today, min) + 'px"></div>';
+  // 依赖线 SVG
+  var depSvg = "";
+  vis.forEach(function(t, ri){
+    if(t.type === "group" || !t.deps || !t.deps.length) return;
+    var s = parseD(t.start); if(!s) return;
+    var y1 = ri * ROW_H + ROW_H / 2;
+    t.deps.forEach(function(pid){
+      var p = byId(pid); if(!p) return;
+      var pi = vis.indexOf(p); if(pi < 0) return;
+      var pe = parseD(taskEnd(p)); if(!pe) return;
+      var x1 = X(addDays(pe, 1), min), x2 = X(s, min), y2 = y1, ym = pi * ROW_H + ROW_H / 2;
+      depSvg += '<path class="dep-line" d="M' + x1 + ',' + ym + ' C' + (x1+20) + ',' + ym + ' ' + (x2-20) + ',' + y2 + ' ' + x2 + ',' + y2 + '"/>';
+    });
+  });
+  if(depSvg) html += '<svg class="g-dep" style="left:0;top:0" width="' + W + '" height="' + vis.length * ROW_H + '">' + depSvg + "</svg>";
+  // 任务条
+  vis.forEach(function(t, ri){
+    var y = ri * ROW_H;
+    html += '<div class="g-row' + (t.type === "group" ? " group" : "") + '" style="height:' + ROW_H + 'px"></div>';
+    if(t.type === "group") return;
+    var s = parseD(t.start); if(!s) return;
+    if(t.type === "milestone"){
+      var mx = X(s, min) - 8;
+      html += '<div class="g-ms" data-id="' + t.id + '" style="left:' + mx + 'px;top:' + y + 'px;background:' + (t.color || "#dc2626") + '" title="' + esc(t.name) + '"></div>';
+    } else {
+      var e = parseD(taskEnd(t));
+      var bx = X(s, min), bw = Math.max((diffDays(s, e) + 1) * PX_DAY - 4, 8);
+      html += '<div class="g-bar" data-id="' + t.id + '" style="left:' + bx + 'px;top:' + y + 'px;width:' + bw + 'px;background:' + (t.color || "#2563eb") + '" title="' + esc(t.name) + '">'
+        + '<div class="fill" style="width:' + t.progress + '%"></div>'
+        + '<span class="lbl">' + esc(t.name) + " " + t.progress + '%</span></div>';
+    }
+  });
+  inner.innerHTML = html;
+  inner.style.height = vis.length * ROW_H + "px";
+  // 拖拽条
+  inner.querySelectorAll(".g-bar,.g-ms").forEach(function(b){
+    b.addEventListener("mousedown", function(ev){
+      ev.preventDefault();
+      var t = byId(b.dataset.id); if(!t) return;
+      var sx = ev.clientX, orig = t.start, moved = false;
+      function mv(e2){
+        var dx = Math.round((e2.clientX - sx) / PX_DAY);
+        if(dx !== 0) moved = true;
+        var ns = addDays(parseD(orig), dx);
+        while(!isWorkday(ns)) ns = addDays(ns, dx > 0 ? 1 : -1);
+        t._tmp = fmtD(ns);
+        b.style.opacity = ".6";
+      }
+      function up(){
+        document.removeEventListener("mousemove", mv); document.removeEventListener("mouseup", up);
+        b.style.opacity = "";
+        if(moved && t._tmp){ t.start = t._tmp; }
+        delete t._tmp; render();
+      }
+      document.addEventListener("mousemove", mv); document.addEventListener("mouseup", up);
+    });
+  });
+  // 表格与图表行高同步滚动
+  var body = document.getElementById("ganttBody"), tb = document.querySelector(".table-body");
+  body.onscroll = function(){ tb.scrollTop = body.scrollTop; document.getElementById("ganttHead").scrollLeft = body.scrollLeft; };
+}
+
+/* ============ 编辑弹窗 ============ */
+var selId = null, editId = null;
+function openModal(id){
+  editId = id;
+  var t = id ? byId(id) : null;
+  var isNew = !t;
+  if(isNew) t = { type:"task", name:"", group:"", start:fmtD(new Date()), dur:5, deps:[], owner:"", output:"", progress:0, remarks:"", color:COLORS[0] };
+  document.getElementById("modalTitle").textContent = isNew ? tr("newTask") : tr("editTask");
+  document.getElementById("modalDel").style.display = isNew ? "none" : "";
+  var groups = state.tasks.filter(function(x){ return x.type === "group"; });
+  var gOpts = '<option value="">' + tr("topGroup") + "</option>" + groups.map(function(g){
+    return '<option value="' + g.id + '"' + (t.group === g.id ? " selected" : "") + ">" + esc(g.name) + "</option>";
+  }).join("");
+  var allT = flatTasks().filter(function(x){ return !id || x.id !== id; });
+  var depOpts = allT.map(function(x){
+    var on = (t.deps||[]).indexOf(x.id) >= 0;
+    return '<label style="display:inline-block;margin:2px 8px 2px 0;font-size:12px"><input type="checkbox" class="depCk" value="' + x.id + '"' + (on?" checked":"") + "> " + esc(x.name) + "</label>";
+  }).join("");
+  document.getElementById("modalBody").innerHTML =
+    '<div class="frow"><label>' + tr("fName") + '</label><input id="fName" value="' + esc(t.name) + '"></div>'
+    + '<div class="frow2"><div class="frow"><label>' + tr("fType") + '</label><select id="fType">'
+    + '<option value="task"' + (t.type==="task"?" selected":"") + ">" + tr("tTask") + "</option>"
+    + '<option value="milestone"' + (t.type==="milestone"?" selected":"") + ">" + tr("tMs") + "</option>"
+    + '<option value="group"' + (t.type==="group"?" selected":"") + ">" + tr("tGroup") + "</option></select></div>"
+    + '<div class="frow"><label>' + tr("fGroup") + '</label><select id="fGroup">' + gOpts + "</select></div></div>"
+    + '<div class="frow2"><div class="frow"><label>' + tr("fStart") + '</label><input id="fStart" type="date" value="' + (t.start||"") + '"></div>'
+    + '<div class="frow"><label>' + tr("fDur") + '</label><input id="fDur" type="number" min="0" value="' + t.dur + '"></div></div>'
+    + '<div class="frow"><label>' + tr("fDeps") + '</label><div>' + (depOpts || "—") + "</div></div>"
+    + '<div class="frow2"><div class="frow"><label>' + tr("fOwner") + '</label><input id="fOwner" value="' + esc(t.owner||"") + '"></div>'
+    + '<div class="frow"><label>' + tr("fProg") + '</label><input id="fProg" type="number" min="0" max="100" value="' + t.progress + '"></div></div>'
+    + '<div class="frow"><label>' + tr("fOutput") + '</label><input id="fOutput" value="' + esc(t.output||"") + '"></div>'
+    + '<div class="frow"><label>' + tr("fRemarks") + '</label><input id="fRemarks" value="' + esc(t.remarks||"") + '"></div>'
+    + '<div class="frow"><label>' + tr("fColor") + '</label><input id="fColor" type="color" value="' + (t.color||"#2563eb") + '" style="height:36px;padding:2px"></div>';
+  document.getElementById("modalBg").classList.add("show");
+  setTimeout(function(){ var i = document.getElementById("fName"); if(i) i.focus(); }, 50);
+}
+function closeModal(){ document.getElementById("modalBg").classList.remove("show"); editId = null; }
+function saveModal(){
+  var name = document.getElementById("fName").value.trim();
+  if(!name){ toast(tr("needName")); return; }
+  var deps = Array.prototype.map.call(document.querySelectorAll(".depCk:checked"), function(c){ return c.value; });
+  var data = { name:name, type:document.getElementById("fType").value, group:document.getElementById("fGroup").value,
+    start:document.getElementById("fStart").value, dur:+document.getElementById("fDur").value || 0, deps:deps,
+    owner:document.getElementById("fOwner").value.trim(), output:document.getElementById("fOutput").value.trim(),
+    progress:Math.min(100, Math.max(0, +document.getElementById("fProg").value || 0)),
+    remarks:document.getElementById("fRemarks").value.trim(), color:document.getElementById("fColor").value };
+  if(editId){
+    var t = byId(editId); if(t) Object.assign(t, data);
+  } else {
+    state.tasks.push(mkTask(data));
+  }
+  closeModal(); render();
+}
+/* ============ 细项导入 ============ */
+function openSubModal(){
+  var sel = document.getElementById("subTask");
+  sel.innerHTML = flatTasks().map(function(t){ return '<option value="' + t.id + '"' + (t.id === selId ? " selected" : "") + ">" + esc(t.name) + "</option>"; }).join("");
+  document.getElementById("subText").value = "";
+  document.getElementById("subModalBg").classList.add("show");
+}
+function doSubImport(){
+  var tid = document.getElementById("subTask").value;
+  var parent = byId(tid); if(!parent){ toast(tr("needName")); return; }
+  var lines = document.getElementById("subText").value.split("\n").map(function(s){ return s.trim(); }).filter(Boolean);
+  if(!lines.length){ closeSub(); return; }
+  var pg = parent.group;
+  lines.forEach(function(ln){
+    var parts = ln.split(/[,，]/).map(function(s){ return s.trim(); });
+    var sub = mkTask({ name:parts[0], group:pg, start:parent.start, dur:parts[2] ? (+parts[2]||3) : 3,
+      owner:parts[1]||"", source:"sub:" + parent.id });
+    // 插入到父任务后面
+    var idx = state.tasks.indexOf(parent);
+    state.tasks.splice(idx + 1 + (parent._subCount||0), 0, sub);
+    parent._subCount = (parent._subCount||0) + 1;
+  });
+  // 细项默认前置链：第一条前置=父，第二条前置=第一条...
+  document.getElementById("subModalBg").classList.remove("show");
+  render(); toast(tr("subOk"));
+}
+function closeSub(){ document.getElementById("subModalBg").classList.remove("show"); }
+/* ============ 导入/导出 ============ */
+function exportJSON(){
+  var blob = new Blob([JSON.stringify({ app:"gantt-exec", version:1, state:state, cal:{holidays:cal.holidays, makeup:Object.keys(cal.makeup)} }, null, 2)], {type:"application/json"});
+  var a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+  a.download = "exec-plan-" + fmtD(new Date()).replace(/-/g,"") + ".json"; a.click();
+}
+function importJSONFile(f){
+  var r = new FileReader();
+  r.onload = function(){
+    try{
+      var d = JSON.parse(r.result);
+      // 支持计划工具导出的 JSON（含 state 字段）→ 转为执行层初始任务
+      if(d.state && d.state.dates && !d.state.tasks0){ fromPlanData(d.state); return; }
+      var st = d.state || d;
+      if(st.tasks){ state = st; if(!state.seq) state.seq = 1000; if(!state.collapsed) state.collapsed = {}; render(); toast(tr("importOk")); }
+    }catch(e){ toast("JSON parse error"); }
+  };
+  r.readAsText(f);
+}
+function exportCSV(){
+  var rows = [["ID","Name","Type","Group","Start","Dur","End","Deps","Owner","Output","Progress","Remarks"]];
+  flatTasks().forEach(function(t){
+    rows.push([t.id, t.name, t.type, (byId(t.group)||{}).name||"", t.start, t.dur, taskEnd(t), (t.deps||[]).join(";"), t.owner, t.output, t.progress, t.remarks]);
+  });
+  var csv = "\ufeff" + rows.map(function(r){ return r.map(function(c){ return '"' + String(c==null?"":c).replace(/"/g,'""') + '"'; }).join(","); }).join("\n");
+  var a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], {type:"text/csv"}));
+  a.download = "exec-plan.csv"; a.click();
+}
+/* 从里程碑计划导入 */
+function fromPlan(){
+  var plan = null;
+  try{ plan = JSON.parse(localStorage.getItem("gantt-tool-v1")); }catch(e){}
+  if(!plan || !plan.oem){ toast(tr("noPlan")); return; }
+  fromPlanData({ state:plan });
+}
+function fromPlanData(wrap){
+  var p = wrap.state || wrap;
+  if(!p.oem){ toast(tr("noPlan")); return; }
+  state.tasks = []; state.seq = 1; state.collapsed = {};
+  // 分组：客户里程碑
+  var gMs = mkTask({ name:"客户里程碑", type:"group" }); state.tasks.push(gMs);
+  Object.keys(p.dates || {}).forEach(function(nm){
+    if(p.excluded && p.excluded[nm]) return;
+    if(!p.dates[nm]) return;
+    state.tasks.push(mkTask({ name:nm, type:"milestone", group:gMs.id, start:p.dates[nm], dur:0, source:"ms:" + nm, color:"#dc2626" }));
+  });
+  toast(tr("fromPlanOk")); render();
+}
+/* ============ 工作日历面板 ============ */
+function updateCalSummary(){
+  var h = Object.keys(cal.holidays).length, m = Object.keys(cal.makeup).length;
+  document.getElementById("calSummary").textContent = "节假日 " + h + " 天 · 调休上班 " + m + " 天";
+}
+function doCalParse(){
+  var text = document.getElementById("calInput").value.trim();
+  if(!text) return;
+  var r = parseCalNL(text);
+  var hks = Object.keys(r.holidays), mks = r.makeup;
+  var html = "";
+  if(hks.length) html += "<div>放假 " + hks.length + " 天：" + hks.slice(0, 12).join("、") + (hks.length > 12 ? "…" : "") + "</div>";
+  if(mks.length) html += "<div>调休上班 " + mks.length + " 天：" + mks.join("、") + "</div>";
+  if(!hks.length && !mks.length) html = "<div>未识别出日期</div>";
+  else html += '<div style="margin-top:6px"><button id="btnCalApply" style="background:var(--accent)">确认应用</button></div>';
+  document.getElementById("calPreview").innerHTML = html;
+  var b = document.getElementById("btnCalApply");
+  if(b) b.addEventListener("click", function(){
+    hks.forEach(function(k){ cal.holidays[k] = 1; });
+    mks.forEach(function(k){ cal.makeup[k] = 1; });
+    document.getElementById("calPreview").innerHTML = "";
+    document.getElementById("calInput").value = "";
+    save(); render(); toast(tr("calApplied"));
+  });
+}
+/* ============ 初始化 ============ */
+function init(){
+  try{
+    var u = new URL(location.href), lg = u.searchParams.get("lang");
+    if(lg && I18N[lg]) lang = lg;
+  }catch(e){}
+  load(); applyLang(); render();
+  document.querySelectorAll(".langbtns button").forEach(function(b){
+    b.addEventListener("click", function(){ lang = b.dataset.lang; applyLang(); render(); });
+  });
+  document.getElementById("btnBack").addEventListener("click", function(){ location.href = "index.html"; });
+  document.getElementById("btnAdd").addEventListener("click", function(){ selId = null; openModal(null); });
+  document.getElementById("btnAddGroup").addEventListener("click", function(){
+    var t = mkTask({ name:"新分组", type:"group" }); state.tasks.push(t); render();
+  });
+  document.getElementById("btnAddMs").addEventListener("click", function(){
+    selId = null; editId = null;
+    openModal(null);
+    setTimeout(function(){ var s = document.getElementById("fType"); if(s) s.value = "milestone"; }, 60);
+  });
+  document.querySelectorAll(".viewbtns button").forEach(function(b){
+    b.addEventListener("click", function(){
+      state.view = b.dataset.view;
+      document.querySelectorAll(".viewbtns button").forEach(function(x){ x.classList.toggle("on", x === b); });
+      render();
+    });
+  });
+  document.getElementById("btnFromPlan").addEventListener("click", fromPlan);
+  document.getElementById("btnImportSub").addEventListener("click", openSubModal);
+  document.getElementById("btnExport").addEventListener("click", exportJSON);
+  document.getElementById("btnCSV").addEventListener("click", exportCSV);
+  document.getElementById("btnImport").addEventListener("click", function(){ document.getElementById("fileJSON").click(); });
+  document.getElementById("fileJSON").addEventListener("change", function(){ if(this.files[0]) importJSONFile(this.files[0]); this.value = ""; });
+  document.getElementById("btnCal").addEventListener("click", function(){
+    var p = document.getElementById("calPanel"); p.style.display = p.style.display === "none" ? "" : "none";
+  });
+  document.getElementById("btnCalParse").addEventListener("click", doCalParse);
+  document.getElementById("btnCalReset").addEventListener("click", function(){ resetCal(); save(); render(); toast(tr("calApplied")); });
+  document.getElementById("modalX").addEventListener("click", closeModal);
+  document.getElementById("modalCancel").addEventListener("click", closeModal);
+  document.getElementById("modalOk").addEventListener("click", saveModal);
+  document.getElementById("modalDel").addEventListener("click", function(){
+    if(editId){ state.tasks = state.tasks.filter(function(t){ return t.id !== editId; }); }
+    closeModal(); render();
+  });
+  document.getElementById("modalBg").addEventListener("click", function(e){ if(e.target === this) closeModal(); });
+  document.getElementById("subX").addEventListener("click", closeSub);
+  document.getElementById("subCancel").addEventListener("click", closeSub);
+  document.getElementById("subOk").addEventListener("click", doSubImport);
+  document.getElementById("subModalBg").addEventListener("click", function(e){ if(e.target === this) closeSub(); });
+  document.getElementById("subFile").addEventListener("change", function(){
+    var f = this.files[0]; if(!f) return;
+    var r = new FileReader();
+    r.onload = function(){ document.getElementById("subText").value = r.result; };
+    r.readAsText(f); this.value = "";
+  });
+  document.addEventListener("keydown", function(e){ if(e.key === "Escape"){ closeModal(); closeSub(); } });
+}
+if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+else init();
+})();
+
+</script>
+</body>
+</html>
