@@ -48,12 +48,14 @@ header button:hover{background:var(--steel3)}
 .trow .c-dur{width:52px;justify-content:center;flex-shrink:0}
 .trow .c-prog{width:56px;justify-content:center;flex-shrink:0}
 .trow .c-start{width:86px;justify-content:center;flex-shrink:0;color:var(--tx2)}
+.trow .c-end{width:86px;justify-content:center;flex-shrink:0;color:var(--tx2)}
 .table-head .c-id{width:36px;text-align:center;flex-shrink:0}
 .table-head .c-name{flex:1}
 .table-head .c-owner{width:64px;flex-shrink:0}
 .table-head .c-dur{width:52px;text-align:center;flex-shrink:0}
 .table-head .c-prog{width:56px;text-align:center;flex-shrink:0}
 .table-head .c-start{width:86px;text-align:center;flex-shrink:0}
+.table-head .c-end{width:86px;text-align:center;flex-shrink:0}
 .progbar{width:44px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden}
 .progbar>i{display:block;height:100%;background:var(--accent);border-radius:4px}
 .ms-diamond{color:var(--danger);font-size:14px}
@@ -146,7 +148,7 @@ header button:hover{background:var(--steel3)}
 <div class="main">
   <div class="table-pane">
     <div class="table-head">
-      <div class="c-id">ID</div><div class="c-name" data-i18n="cName">任务名称</div><div class="c-owner" data-i18n="cOwner">负责人</div><div class="c-dur" data-i18n="cDur">工期</div><div class="c-prog" data-i18n="cProg">进度</div><div class="c-start" data-i18n="cStart">开始</div>
+      <div class="c-id">ID</div><div class="c-name" data-i18n="cName">任务名称</div><div class="c-owner" data-i18n="cOwner">负责人</div><div class="c-dur" data-i18n="cDur">工期</div><div class="c-prog" data-i18n="cProg">进度</div><div class="c-start" data-i18n="cStart">开始</div><div class="c-end" data-i18n="cEnd">结束</div>
     </div>
     <div class="table-body" id="taskList"></div>
   </div>
@@ -188,9 +190,9 @@ header button:hover{background:var(--steel3)}
 "use strict";
 /* ============ I18N ============ */
 var I18N = {
-zh:{appTitle:"执行层计划",backToPlan:"← 里程碑计划",addTask:"+ 新增任务",addGroup:"+ 新增分组",addMs:"+ 里程碑",fromPlan:"从计划导入",importSub:"导入细项",vDay:"日",vWeek:"周",workCal:"工作日历",exportJSON:"导出JSON",importJSON:"导入JSON",exportCSV:"导出CSV",cName:"任务名称",cOwner:"负责人",cDur:"工期",cProg:"进度",cStart:"开始",calTitle:"工作日历 · 自然语言导入",calPh:"例如：2026年春节2月15日到2月23日放假，2月14日、2月28日调休上班",calParse:"解析并导入",calReset:"恢复默认",calHint:"支持：X月X日、X月X日至X月X日、放假/调休/补班/上班等关键词，年份缺省为当年。",calModeNL:"自然语言",calModeText:"文本格式",calHintText:"一行一条：2026-10-01~2026-10-07,国庆 表示放假区间；补班 2026-10-10 表示调休上班。",calPhText:"2026-10-01~2026-10-07,国庆\n补班 2026-10-10",del:"删除",cancel:"取消",ok:"确定",importSubT:"导入细项",subTarget:"目标任务",subContent:"细项内容（一行一条，可含负责人、工期，用逗号分隔）",subFile:"或从 CSV 文件导入",editTask:"编辑任务",newTask:"新增任务",newGroup:"新增分组",newMs:"新增里程碑",fName:"名称",fType:"类型",tTask:"任务",tMs:"里程碑",tGroup:"分组",fGroup:"所属分组",fStart:"开始日期",fDur:"工期（工作日）",fDeps:"前置任务（ID逗号分隔）",fOwner:"负责人",fOutput:"输出成果",fProg:"进度%",fRemarks:"备注",fColor:"颜色",needName:"请填写名称",fromPlanOk:"已从计划导入",noPlan:"未找到计划数据",calApplied:"日历已更新",cycleWarn:"检测到循环依赖，已忽略",importOk:"导入成功",subOk:"细项导入成功",topGroup:"顶级"},
-en:{appTitle:"Execution Plan",backToPlan:"← Milestone Plan",addTask:"+ Add Task",addGroup:"+ Add Group",addMs:"+ Milestone",fromPlan:"Import from Plan",importSub:"Import Sub-items",vDay:"Day",vWeek:"Week",workCal:"Work Calendar",exportJSON:"Export JSON",importJSON:"Import JSON",exportCSV:"Export CSV",cName:"Task",cOwner:"Owner",cDur:"Dur.",cProg:"Prog.",cStart:"Start",calTitle:"Work Calendar · Natural Language Import",calPh:"e.g. Spring Festival 2026-02-15 to 2026-02-23 off, 02-14 and 02-28 work",calParse:"Parse & Import",calReset:"Reset",calHint:"Supports date ranges and keywords like off/work. Year defaults to current.",calModeNL:"Natural language",calModeText:"Text format",calHintText:"One per line: 2026-10-01~2026-10-07,National Day = holiday range; Make-up 2026-10-10 = workday.",calPhText:"2026-10-01~2026-10-07,National Day\nMake-up 2026-10-10",del:"Delete",cancel:"Cancel",ok:"OK",importSubT:"Import Sub-items",subTarget:"Target Task",subContent:"One per line, optional owner,duration comma-separated",subFile:"Or import from CSV file",editTask:"Edit Task",newTask:"New Task",newGroup:"New Group",newMs:"New Milestone",fName:"Name",fType:"Type",tTask:"Task",tMs:"Milestone",tGroup:"Group",fGroup:"Group",fStart:"Start Date",fDur:"Duration (workdays)",fDeps:"Predecessors (IDs comma-separated)",fOwner:"Owner",fOutput:"Deliverable",fProg:"Progress %",fRemarks:"Remarks",fColor:"Color",needName:"Name required",fromPlanOk:"Imported from plan",noPlan:"No plan data found",calApplied:"Calendar updated",cycleWarn:"Circular dependency detected and ignored",importOk:"Import OK",subOk:"Sub-items imported",topGroup:"Top"},
-de:{appTitle:"Ausführungsplan",backToPlan:"← Meilensteinplan",addTask:"+ Aufgabe",addGroup:"+ Gruppe",addMs:"+ Meilenstein",fromPlan:"Aus Plan importieren",importSub:"Unterpunkte importieren",vDay:"Tag",vWeek:"Woche",workCal:"Arbeitskalender",exportJSON:"JSON exportieren",importJSON:"JSON importieren",exportCSV:"CSV exportieren",cName:"Aufgabe",cOwner:"Eigner",cDur:"Dauer",cProg:"Fort.",cStart:"Start",calTitle:"Arbeitskalender · Import in natürlicher Sprache",calPh:"z.B. Frühlingsfest 2026-02-15 bis 2026-02-23 frei",calParse:"Parsen & importieren",calReset:"Zurücksetzen",calHint:"Datumsbereiche und Schlüsselwörter werden unterstützt.",calModeNL:"Natürliche Sprache",calModeText:"Textformat",calHintText:"Eine Zeile pro Eintrag: 2026-10-01~2026-10-07,Feiertag = Ferienbereich; Ausgleich 2026-10-10 = Arbeitstag.",calPhText:"2026-10-01~2026-10-07,Feiertag\nAusgleich 2026-10-10",del:"Löschen",cancel:"Abbrechen",ok:"OK",importSubT:"Unterpunkte importieren",subTarget:"Zielaufgabe",subContent:"Eins pro Zeile, optional Eigner,Dauer",subFile:"Oder aus CSV-Datei importieren",editTask:"Aufgabe bearbeiten",newTask:"Neue Aufgabe",newGroup:"Neue Gruppe",newMs:"Neuer Meilenstein",fName:"Name",fType:"Typ",tTask:"Aufgabe",tMs:"Meilenstein",tGroup:"Gruppe",fGroup:"Gruppe",fStart:"Startdatum",fDur:"Dauer (Arbeitstage)",fDeps:"Vorgänger (IDs)",fOwner:"Eigner",fOutput:"Ergebnis",fProg:"Fortschritt %",fRemarks:"Bemerkungen",fColor:"Farbe",needName:"Name erforderlich",fromPlanOk:"Aus Plan importiert",noPlan:"Keine Plandaten",calApplied:"Kalender aktualisiert",cycleWarn:"Zirkuläre Abhängigkeit ignoriert",importOk:"Import OK",subOk:"Unterpunkte importiert",topGroup:"Oberste"}};
+zh:{appTitle:"执行层计划",backToPlan:"← 里程碑计划",addTask:"+ 新增任务",addGroup:"+ 新增分组",addMs:"+ 里程碑",fromPlan:"从计划导入",importSub:"导入细项",vDay:"日",vWeek:"周",workCal:"工作日历",exportJSON:"导出JSON",importJSON:"导入JSON",exportCSV:"导出CSV",cName:"任务名称",cOwner:"负责人",cDur:"工期",cProg:"进度",cStart:"开始",cEnd:"结束",calTitle:"工作日历 · 自然语言导入",calPh:"例如：2026年春节2月15日到2月23日放假，2月14日、2月28日调休上班",calParse:"解析并导入",calReset:"恢复默认",calHint:"支持：X月X日、X月X日至X月X日、放假/调休/补班/上班等关键词，年份缺省为当年。",calModeNL:"自然语言",calModeText:"文本格式",calHintText:"一行一条：2026-10-01~2026-10-07,国庆 表示放假区间；补班 2026-10-10 表示调休上班。",calPhText:"2026-10-01~2026-10-07,国庆\n补班 2026-10-10",del:"删除",cancel:"取消",ok:"确定",importSubT:"导入细项",subTarget:"目标任务",subContent:"细项内容（一行一条，可含负责人、工期，用逗号分隔）",subFile:"或从 CSV 文件导入",editTask:"编辑任务",newTask:"新增任务",newGroup:"新增分组",newMs:"新增里程碑",fName:"名称",fType:"类型",tTask:"任务",tMs:"里程碑",tGroup:"分组",fGroup:"所属分组",fStart:"开始日期",fDur:"工期（工作日）",fDeps:"前置任务（ID逗号分隔）",fOwner:"负责人",fOutput:"输出成果",fProg:"进度%",fRemarks:"备注",fColor:"颜色",needName:"请填写名称",fromPlanOk:"已从计划导入",noPlan:"未找到计划数据",calApplied:"日历已更新",cycleWarn:"检测到循环依赖，已忽略",importOk:"导入成功",subOk:"细项导入成功",topGroup:"顶级",planGroupMs:"客户里程碑",planGroupRec:"推荐任务",planGroupSup:"供应商节点",planGroupCustom:"自定义任务"},
+en:{appTitle:"Execution Plan",backToPlan:"← Milestone Plan",addTask:"+ Add Task",addGroup:"+ Add Group",addMs:"+ Milestone",fromPlan:"Import from Plan",importSub:"Import Sub-items",vDay:"Day",vWeek:"Week",workCal:"Work Calendar",exportJSON:"Export JSON",importJSON:"Import JSON",exportCSV:"Export CSV",cName:"Task",cOwner:"Owner",cDur:"Dur.",cProg:"Prog.",cStart:"Start",cEnd:"End",calTitle:"Work Calendar · Natural Language Import",calPh:"e.g. Spring Festival 2026-02-15 to 2026-02-23 off, 02-14 and 02-28 work",calParse:"Parse & Import",calReset:"Reset",calHint:"Supports date ranges and keywords like off/work. Year defaults to current.",calModeNL:"Natural language",calModeText:"Text format",calHintText:"One per line: 2026-10-01~2026-10-07,National Day = holiday range; Make-up 2026-10-10 = workday.",calPhText:"2026-10-01~2026-10-07,National Day\nMake-up 2026-10-10",del:"Delete",cancel:"Cancel",ok:"OK",importSubT:"Import Sub-items",subTarget:"Target Task",subContent:"One per line, optional owner,duration comma-separated",subFile:"Or import from CSV file",editTask:"Edit Task",newTask:"New Task",newGroup:"New Group",newMs:"New Milestone",fName:"Name",fType:"Type",tTask:"Task",tMs:"Milestone",tGroup:"Group",fGroup:"Group",fStart:"Start Date",fDur:"Duration (workdays)",fDeps:"Predecessors (IDs comma-separated)",fOwner:"Owner",fOutput:"Deliverable",fProg:"Progress %",fRemarks:"Remarks",fColor:"Color",needName:"Name required",fromPlanOk:"Imported from plan",noPlan:"No plan data found",calApplied:"Calendar updated",cycleWarn:"Circular dependency detected and ignored",importOk:"Import OK",subOk:"Sub-items imported",topGroup:"Top",planGroupMs:"Customer Milestones",planGroupRec:"Recommended Tasks",planGroupSup:"Supplier Nodes",planGroupCustom:"Custom Tasks"},
+de:{appTitle:"Ausführungsplan",backToPlan:"← Meilensteinplan",addTask:"+ Aufgabe",addGroup:"+ Gruppe",addMs:"+ Meilenstein",fromPlan:"Aus Plan importieren",importSub:"Unterpunkte importieren",vDay:"Tag",vWeek:"Woche",workCal:"Arbeitskalender",exportJSON:"JSON exportieren",importJSON:"JSON importieren",exportCSV:"CSV exportieren",cName:"Aufgabe",cOwner:"Eigner",cDur:"Dauer",cProg:"Fort.",cStart:"Start",cEnd:"End",calTitle:"Arbeitskalender · Import in natürlicher Sprache",calPh:"z.B. Frühlingsfest 2026-02-15 bis 2026-02-23 frei",calParse:"Parsen & importieren",calReset:"Zurücksetzen",calHint:"Datumsbereiche und Schlüsselwörter werden unterstützt.",calModeNL:"Natürliche Sprache",calModeText:"Textformat",calHintText:"Eine Zeile pro Eintrag: 2026-10-01~2026-10-07,Feiertag = Ferienbereich; Ausgleich 2026-10-10 = Arbeitstag.",calPhText:"2026-10-01~2026-10-07,Feiertag\nAusgleich 2026-10-10",del:"Löschen",cancel:"Abbrechen",ok:"OK",importSubT:"Unterpunkte importieren",subTarget:"Zielaufgabe",subContent:"Eins pro Zeile, optional Eigner,Dauer",subFile:"Oder aus CSV-Datei importieren",editTask:"Aufgabe bearbeiten",newTask:"Neue Aufgabe",newGroup:"Neue Gruppe",newMs:"Neuer Meilenstein",fName:"Name",fType:"Typ",tTask:"Aufgabe",tMs:"Meilenstein",tGroup:"Gruppe",fGroup:"Gruppe",fStart:"Startdatum",fDur:"Dauer (Arbeitstage)",fDeps:"Vorgänger (IDs)",fOwner:"Eigner",fOutput:"Ergebnis",fProg:"Fortschritt %",fRemarks:"Bemerkungen",fColor:"Farbe",needName:"Name erforderlich",fromPlanOk:"Aus Plan importiert",noPlan:"Keine Plandaten",calApplied:"Kalender aktualisiert",cycleWarn:"Zirkuläre Abhängigkeit ignoriert",importOk:"Import OK",subOk:"Unterpunkte importiert",topGroup:"Oberste",planGroupMs:"Kundenmeilensteine",planGroupRec:"Empfohlene Aufgaben",planGroupSup:"Lieferantenknoten",planGroupCustom:"Eigene Aufgaben"}};
 var lang = "zh";
 function tr(k){ return (I18N[lang] && I18N[lang][k]) || I18N.zh[k] || k; }
 function applyLang(){
@@ -233,6 +235,14 @@ function workdaysBetween(a, b){ // a→b 工作日数（含b不含a）
   while(r < b){ r = addDays(r, 1); if(isWorkday(r)) c++; }
   return c;
 }
+/* ============ 里程碑计划数据（与计划页同源，用于全量导入） ============ */
+const OEM_PHASE_SYS = {"BENZ(奔驰)":"vda","BMW(宝马)":"vda","SVW(上汽大众)":"vda","DRAC(东风雷诺)":"anpqp","Nissan(尼桑)":"anpqp","Ford(福特)":"apqp","JAC(江淮)":"apqp","DYK(东风悦达起亚)":"apqp","Chery(奇瑞)":"apqp","SGMW(上汽通用五菱)":"apqp","Geely(吉利)":"apqp","SGM(上汽通用)":"apqp","DPCA(东风标致雪铁龙)":"apqp","Volvo(沃尔沃)":"apqp","PSA":"apqp","CJLR(奇瑞捷豹路虎)":"apqp"};
+
+const OEM_PHASES = {"BENZ(奔驰)":{"ML3":"Data Release","ML4":"First OTS","ML5":"PT1","ML6":"100% Green Release","ML7":"SOP"},"Ford(福特)":{"APQP2":"VP（Verification Prototype）","APQP3":"HB（homologation build）","APQP4":"PP （Pilot Production）","APQP5":"MP/job1（Master Production）"},"JAC(江淮)":{"APQP1":"G2","APQP2":"G7-G8","APQP3":"G9-G12","APQP5":"G13"},"DYK(东风悦达起亚)":{"APQP2":"PROTO","APQP3":"P1","APQP4":"T","APQP5":"SOP"},"Chery(奇瑞)":{"APQP1":"P1","APQP2":"P2","APQP3":"OTS","APQP4":"PVS","APQP5":"SOP"},"SGMW(上汽通用五菱)":{"APQP1":"VPI","APQP2":"LLP T1","APQP3":"OTS","APQP4":"NS","APQP5":"SOP"},"Geely(吉利)":{"APQP1":"PS(Program Start)","APQP2":"VP(Verification Prototype)","APQP3":"TT(Tooling Trail)","APQP4":"PP(Poilt Production)","APQP5":"J1(Job 1)"},"BMW(宝马)":{"ML3":"BBG（Pilot Phase/Bestätigungsbaugruppe）","ML4":"Auflegetage","ML5":"VS1（Pre Series/Vorserie）","ML6":"ISIR（Initial Sample Inspection Release）","ML7":"SOP（Start of Production）","VS0":"PVL/VS0（Process Pre Runners/Prozessvorläufer）","VS2":"VS2（Pre Series/Vorserie）","PrePZS":"Pre-PZS","PZS":"PZS（Process Series/Prozess Series）"},"SVW(上汽大众)":{"ML3":"DF(D-Freigabe)","ML4":"LF(Launch-Freigabe)","ML5":"VFF装车(Vorserien Freigabefahrzeuge)","ML6":"0S装车(0-Serie)","ML7":"SOP(Start Of Production )"},"SGM(上汽通用)":{"APQP1":"PFI","APQP2":"VDR","APQP3":"IVER","APQP4":"PPV","APQP5":"SOPR"},"Nissan(尼桑)":{"ANPQP1":"Customer Awarding","ANPQP2":"Drawing issue and data release","ANPQP3":"VC-LOT","ANPQP4":"PT-LOT","ANPQP5":"SOP"},"CJLR(奇瑞捷豹路虎)":{"APQP2":"1st VP(DV)","APQP3":"1st VP(PV)","APQP4":"PP","APQP5":"MP1/Job1"},"DRAC(东风雷诺)":{"ANPQP3":"TGA","ANPQP4":"AB-PT1","ANPQP5":"SOP"},"DPCA(东风标致雪铁龙)":{"APQP1":"INIT meeing","APQP2":"IOD","APQP3":"VRS样件","APQP4":"EL 造车","APQP5":"AMC"},"Volvo(沃尔沃)":{"APQP1":"Pre-PS","APQP2":"VP","APQP3":"LR","APQP4":"OKTB","APQP5":"J1/MP1"},"PSA":{"APQP1":"PCM","APQP2":"SFR","APQP3":"TKOM","APQP4":"PPMM","APQP5":"SOP"}};
+
+const REC_TASKS = [{"id":"r1","phase":{"apqp":"APQP2","vda":"ML3","anpqp":"ANPQP2"},"so":-3,"eo":0,"name":{"zh":"产品数据冻结","en":"Product data freeze","de":"Produktdaten-Freeze"},"desc":{"zh":"","en":"","de":""}},{"id":"r2","phase":{"apqp":"APQP2","vda":"ML3","anpqp":"ANPQP2"},"so":-10,"eo":-8,"name":{"zh":"数据释放","en":"Data release","de":"Datenfreigabe"},"desc":{"zh":"","en":"","de":""}},{"id":"r3","phase":{"apqp":"APQP2","vda":"ML3","anpqp":"ANPQP2"},"so":-8,"eo":-6,"name":{"zh":"DV样件制造","en":"DV prototype build","de":"DV-Musterbau"},"desc":{"zh":"","en":"","de":""}},{"id":"r4","phase":{"apqp":"APQP2","vda":"ML3","anpqp":"ANPQP2"},"so":-6,"eo":-2,"name":{"zh":"DV试验及报告","en":"DV testing & report","de":"DV-Erprobung und Bericht"},"desc":{"zh":"","en":"","de":""}},{"id":"r5","phase":{"apqp":"APQP3","vda":"ML5","anpqp":"ANPQP3"},"so":-20,"eo":-18,"name":{"zh":"量产数据释放","en":"Mass production data release","de":"Seriendatenfreigabe"},"desc":{"zh":"","en":"","de":""}},{"id":"r6","phase":{"apqp":"APQP3","vda":"ML5","anpqp":"ANPQP3"},"so":-16,"eo":-14,"name":{"zh":"模具/工装发包","en":"Tooling sourcing & order placement","de":"Werkzeugvergabe"},"desc":{"zh":"","en":"","de":""}},{"id":"r7","phase":{"apqp":"APQP3","vda":"VS0","anpqp":"ANPQP3"},"so":-8,"eo":-2,"name":{"zh":"T1试模及整改","en":"T1 tooling tryout & rework","de":"T1-Werkzeugerprobung und Nacharbeit"},"desc":{"zh":"","en":"","de":""}},{"id":"r8","phase":{"apqp":"APQP3","vda":"ML5","anpqp":"ANPQP3"},"so":-8,"eo":-5,"name":{"zh":"PV样件制造","en":"PV prototype build","de":"PV-Musterbau"},"desc":{"zh":"","en":"","de":""}},{"id":"r9","phase":{"apqp":"APQP3","vda":"ML5","anpqp":"ANPQP3"},"so":0,"eo":6,"name":{"zh":"PV试验及报告","en":"PV testing & report","de":"PV-Erprobung und Bericht"},"desc":{"zh":"","en":"","de":""}},{"id":"r10","phase":{"apqp":"APQP3","vda":"PrePZS","anpqp":"ANPQP3"},"so":-4,"eo":-1,"name":{"zh":"OTS样件提交客户认可","en":"OTS sample submission for customer approval","de":"OTS-Mustervorlage zur Kundenfreigabe"},"desc":{"zh":"","en":"","de":""}},{"id":"r11","phase":{"apqp":"APQP4","vda":"PZS","anpqp":"ANPQP4"},"so":1,"eo":5,"name":{"zh":"试生产准备","en":"Trial production preparation","de":"Vorbereitung des Probelaufs"},"desc":{"zh":"","en":"","de":""}},{"id":"r12","phase":{"apqp":"APQP4","vda":"ML6","anpqp":"ANPQP4"},"so":-6,"eo":-2,"name":{"zh":"PPAP文件包准备与提交","en":"PPAP package preparation & submission","de":"PPAP-Unterlagen vorbereiten und einreichen"},"desc":{"zh":"","en":"","de":""}},{"id":"r13","phase":{"apqp":"APQP5","vda":"ML7","anpqp":"ANPQP5"},"so":-4,"eo":-1,"name":{"zh":"产能爬坡验证","en":"Capacity ramp-up verification","de":"Verifizierung des Kapazitätshochlaufs"},"desc":{"zh":"","en":"","de":""}}];
+
+const REC_DEFAULTS = {"r1":{"so":-3,"eo":0},"r2":{"so":-10,"eo":-8},"r3":{"so":-8,"eo":-6},"r4":{"so":-6,"eo":-2},"r5":{"so":-20,"eo":-18},"r6":{"so":-16,"eo":-14},"r7":{"so":-8,"eo":-2},"r8":{"so":-8,"eo":-5},"r9":{"so":0,"eo":6},"r10":{"so":-4,"eo":-1},"r11":{"so":1,"eo":5},"r12":{"so":-6,"eo":-2},"r13":{"so":-4,"eo":-1}};
 /* ============ 数据模型与状态 ============ */
 var LS_KEY = "gantt-exec-v1";
 var COLORS = ["#2563eb","#16a34a","#9333ea","#ea580c","#0891b2","#dc2626","#4f46e5","#0d9488"];
@@ -432,7 +442,8 @@ function renderTable(){
       + '<div class="c-owner">' + esc(t.owner || "") + "</div>"
       + '<div class="c-dur">' + (t.type === "group" ? "" : t.type === "milestone" ? "◆" : t.dur) + "</div>"
       + '<div class="c-prog">' + prog + "</div>"
-      + '<div class="c-start">' + (t.start || "") + "</div></div>";
+      + '<div class="c-start">' + (t.start || "") + "</div>"
+      + '<div class="c-end">' + (t.type === "group" ? "" : taskEnd(t)) + "</div></div>";
   });
   el.innerHTML = html || '<div style="padding:20px;color:var(--tx3)">—</div>';
   el.querySelectorAll(".trow").forEach(function(r){
@@ -628,7 +639,7 @@ function importJSONFile(f){
     try{
       var d = JSON.parse(r.result);
       // 支持计划工具导出的 JSON（含 state 字段）→ 转为执行层初始任务
-      if(d.state && d.state.dates && !d.state.tasks0){ fromPlanData(d.state); return; }
+      if((d.app === "gantt-tool" && d.dates) || (d.state && d.state.dates)){ fromPlanData(d.state || d); return; }
       var st = d.state || d;
       if(st.tasks){ state = st; if(!state.seq) state.seq = 1000; if(!state.collapsed) state.collapsed = {}; render(); toast(tr("importOk")); }
     }catch(e){ toast("JSON parse error"); }
@@ -644,25 +655,86 @@ function exportCSV(){
   var a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], {type:"text/csv"}));
   a.download = "exec-plan.csv"; a.click();
 }
-/* 从里程碑计划导入 */
+/* 从里程碑计划导入：客户里程碑 + 推荐任务 + 供应商节点排 + 自定义任务，全量带入 */
+function planRecCfg(p, id){
+  var d = (typeof REC_DEFAULTS !== "undefined" && REC_DEFAULTS[id]) || {so:0, eo:0};
+  var o = (p.recTasks && p.recTasks[id]) || {};
+  return {
+    on: o.on !== undefined ? !!o.on : true,
+    so: (typeof o.so === "number" && !isNaN(o.so)) ? o.so : d.so,
+    eo: (typeof o.eo === "number" && !isNaN(o.eo)) ? o.eo : d.eo
+  };
+}
+function planResolveAnchor(name, nodeNames){
+  if(!name) return null;
+  var i;
+  for(i = 0; i < nodeNames.length; i++){ if(nodeNames[i] === name) return nodeNames[i]; }
+  var norm = function(x){ return String(x).toLowerCase().replace(/\s+/g, ""); };
+  var target = norm(name);
+  for(i = 0; i < nodeNames.length; i++){ if(norm(nodeNames[i]) === target) return nodeNames[i]; }
+  return null;
+}
+function planPickName(o){ return (o && (o[lang] || o.zh)) || ""; }
 function fromPlan(){
   var plan = null;
   try{ plan = JSON.parse(localStorage.getItem("gantt-tool-v1")); }catch(e){}
   if(!plan || !plan.oem){ toast(tr("noPlan")); return; }
-  fromPlanData({ state:plan });
+  fromPlanData(plan);
 }
-function fromPlanData(wrap){
-  var p = wrap.state || wrap;
-  if(!p.oem){ toast(tr("noPlan")); return; }
+function fromPlanData(p){
+  if(!p || !p.oem){ toast(tr("noPlan")); return; }
   state.tasks = []; state.seq = 1; state.collapsed = {};
-  // 分组：客户里程碑
-  var gMs = mkTask({ name:"客户里程碑", type:"group" }); state.tasks.push(gMs);
-  Object.keys(p.dates || {}).forEach(function(nm){
+  var n = 0, nodeNames = Object.keys(p.dates || {});
+  function grp(name){ var g = mkTask({ name:name, type:"group" }); state.tasks.push(g); return g; }
+  // 1) 客户里程碑（已勾选节点）
+  var gMs = grp(tr("planGroupMs"));
+  nodeNames.forEach(function(nm){
     if(p.excluded && p.excluded[nm]) return;
     if(!p.dates[nm]) return;
     state.tasks.push(mkTask({ name:nm, type:"milestone", group:gMs.id, start:p.dates[nm], dur:0, source:"ms:" + nm, color:"#dc2626" }));
+    n++;
   });
-  toast(tr("fromPlanOk")); render();
+  // 2) 推荐任务（按锚点+周偏移推算起止，换算为工作日工期）
+  var sys = (typeof OEM_PHASE_SYS !== "undefined" && OEM_PHASE_SYS[p.oem]) || "apqp";
+  var phases = (typeof OEM_PHASES !== "undefined" && OEM_PHASES[p.oem]) || {};
+  var gRec = null;
+  (typeof REC_TASKS !== "undefined" ? REC_TASKS : []).forEach(function(rt){
+    var cfg = planRecCfg(p, rt.id);
+    if(!cfg.on) return;
+    var pk = (rt.phase && (rt.phase[sys] || rt.phase.apqp)) || "";
+    var anchor = planResolveAnchor(phases[pk], nodeNames);
+    if(!anchor || (p.excluded && p.excluded[anchor]) || !p.dates[anchor]) return;
+    var ad = parseD(p.dates[anchor]); if(!ad) return;
+    var sd = addDays(ad, cfg.so * 7), ed = addDays(ad, cfg.eo * 7);
+    if(ed < sd) return;
+    if(!gRec) gRec = grp(tr("planGroupRec"));
+    state.tasks.push(mkTask({ name:planPickName(rt.name), type:"task", group:gRec.id,
+      start:fmtD(sd), dur:workdaysBetween(sd, ed) + 1, source:"rec:" + rt.id, color:"#2563eb" }));
+    n++;
+  });
+  // 3) 供应商节点排：每排一组，排内日期为里程碑
+  (p.customMs || []).forEach(function(row){
+    if(!row || !row.dates || !row.dates.length) return;
+    var g = grp(row.name || tr("planGroupSup"));
+    row.dates.forEach(function(it){
+      if(!it || !it.d) return;
+      state.tasks.push(mkTask({ name:it.n || row.name || "", type:"milestone", group:g.id,
+        start:it.d, dur:0, source:"sup:" + (row.name || ""), color:"#9333ea" }));
+      n++;
+    });
+  });
+  // 4) 自定义任务
+  var gCustom = null;
+  (p.tasks || []).forEach(function(ct){
+    if(!ct || !ct.name || !ct.start || !ct.end) return;
+    var sd = parseD(ct.start), ed = parseD(ct.end);
+    if(!sd || !ed || ed < sd) return;
+    if(!gCustom) gCustom = grp(tr("planGroupCustom"));
+    state.tasks.push(mkTask({ name:ct.name, type:"task", group:gCustom.id,
+      start:fmtD(sd), dur:workdaysBetween(sd, ed) + 1, source:"custom", color:"#16a34a" }));
+    n++;
+  });
+  toast(tr("fromPlanOk") + " · " + n); render();
 }
 /* ============ 工作日历面板 ============ */
 function updateCalSummary(){
