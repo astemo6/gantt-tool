@@ -113,6 +113,27 @@ header button:hover{background:var(--steel3)}
 #pvImg{display:block;max-width:calc(90vw - 32px);max-height:calc(85vh - 62px);border:1px solid #e5e7eb;border-radius:6px}
 .dep-line{stroke:#94a3b8;stroke-width:1.5;fill:none}
 @media(max-width:768px){.table-pane{width:300px;min-width:260px}}
+/* ===== 手机端补充适配（仅小屏生效，不改桌面端布局与配色；不动 viewport，不拦截浏览器原生缩放） ===== */
+@media (max-width:768px){
+  /* 顶栏标题缩小 */
+  header{height:auto;min-height:48px;flex-wrap:wrap;padding:6px 10px;row-gap:6px}
+  header h1{font-size:13px}
+  header .sub{display:none}
+  /* 工具条按钮允许换行不溢出，触摸目标不小于 40px */
+  .toolbar{padding:6px 10px;gap:6px}
+  header button,.toolbar button,.viewbtns button,.modal-f button,.cal-panel button{min-height:40px;min-width:40px}
+  .frow input,.frow select,.frow textarea{min-height:40px}
+  /* 左侧任务表允许横向滚动（列宽不压缩），甘特区横向滚动 */
+  .table-pane{width:42%;min-width:0;max-width:none;overflow-x:auto}
+  .table-head,.table-body{min-width:520px}
+  .gantt-pane{min-width:0}
+  /* 表格字号适当缩小 */
+  .table-head{font-size:10px}
+  .trow>div{font-size:11px;padding:6px 4px}
+  .gh-date{font-size:8px}
+  .gh-wd{font-size:7px}
+  .toast{max-width:90vw}
+}
 </style>
 </head>
 <body>
@@ -266,6 +287,14 @@ function workdaysBetween(a, b){ // a→b 工作日数（含b不含a）
 const OEM_PHASE_SYS = {"BENZ(奔驰)":"vda","BMW(宝马)":"vda","SVW(上汽大众)":"vda","DRAC(东风雷诺)":"anpqp","Nissan(尼桑)":"anpqp","Ford(福特)":"apqp","JAC(江淮)":"apqp","DYK(东风悦达起亚)":"apqp","Chery(奇瑞)":"apqp","SGMW(上汽通用五菱)":"apqp","Geely(吉利)":"apqp","SGM(上汽通用)":"apqp","DPCA(东风标致雪铁龙)":"apqp","Volvo(沃尔沃)":"apqp","PSA":"apqp","CJLR(奇瑞捷豹路虎)":"apqp"};
 
 const OEM_PHASES = {"BENZ(奔驰)":{"ML3":"Data Release","ML4":"First OTS","ML5":"PT1","ML6":"100% Green Release","ML7":"SOP"},"Ford(福特)":{"APQP2":"VP（Verification Prototype）","APQP3":"HB（homologation build）","APQP4":"PP （Pilot Production）","APQP5":"MP/job1（Master Production）"},"JAC(江淮)":{"APQP1":"G2","APQP2":"G7-G8","APQP3":"G9-G12","APQP5":"G13"},"DYK(东风悦达起亚)":{"APQP2":"PROTO","APQP3":"P1","APQP4":"T","APQP5":"SOP"},"Chery(奇瑞)":{"APQP1":"P1","APQP2":"P2","APQP3":"OTS","APQP4":"PVS","APQP5":"SOP"},"SGMW(上汽通用五菱)":{"APQP1":"VPI","APQP2":"LLP T1","APQP3":"OTS","APQP4":"NS","APQP5":"SOP"},"Geely(吉利)":{"APQP1":"PS(Program Start)","APQP2":"VP(Verification Prototype)","APQP3":"TT(Tooling Trail)","APQP4":"PP(Poilt Production)","APQP5":"J1(Job 1)"},"BMW(宝马)":{"ML3":"BBG（Pilot Phase/Bestätigungsbaugruppe）","ML4":"Auflegetage","ML5":"VS1（Pre Series/Vorserie）","ML6":"ISIR（Initial Sample Inspection Release）","ML7":"SOP（Start of Production）","VS0":"PVL/VS0（Process Pre Runners/Prozessvorläufer）","VS2":"VS2（Pre Series/Vorserie）","PrePZS":"Pre-PZS","PZS":"PZS（Process Series/Prozess Series）"},"SVW(上汽大众)":{"ML3":"DF(D-Freigabe)","ML4":"LF(Launch-Freigabe)","ML5":"VFF装车(Vorserien Freigabefahrzeuge)","ML6":"0S装车(0-Serie)","ML7":"SOP(Start Of Production )"},"SGM(上汽通用)":{"APQP1":"PFI","APQP2":"VDR","APQP3":"IVER","APQP4":"PPV","APQP5":"SOPR"},"Nissan(尼桑)":{"ANPQP1":"Customer Awarding","ANPQP2":"Drawing issue and data release","ANPQP3":"VC-LOT","ANPQP4":"PT-LOT","ANPQP5":"SOP"},"CJLR(奇瑞捷豹路虎)":{"APQP2":"1st VP(DV)","APQP3":"1st VP(PV)","APQP4":"PP","APQP5":"MP1/Job1"},"DRAC(东风雷诺)":{"ANPQP3":"TGA","ANPQP4":"AB-PT1","ANPQP5":"SOP"},"DPCA(东风标致雪铁龙)":{"APQP1":"INIT meeing","APQP2":"IOD","APQP3":"VRS样件","APQP4":"EL 造车","APQP5":"AMC"},"Volvo(沃尔沃)":{"APQP1":"Pre-PS","APQP2":"VP","APQP3":"LR","APQP4":"OKTB","APQP5":"J1/MP1"},"PSA":{"APQP1":"PCM","APQP2":"SFR","APQP3":"TKOM","APQP4":"PPMM","APQP5":"SOP"}};
+
+/* OEM ↔ URL slug：BMW(宝马) ↔ bmw（照抄计划页实现，归一化匹配以 OEM_PHASE_SYS 的 key 为准） */
+function oemSlug(oem){ var m = String(oem || '').match(/^([A-Za-z0-9]+)/); return m ? m[1].toLowerCase() : ''; }
+function oemFromSlug(slug){
+  slug = String(slug || '').toLowerCase();
+  for(var k in OEM_PHASE_SYS){ if(oemSlug(k) === slug) return k; }
+  return '';
+}
 
 /* 阶段体系名称（三语）：色带标注用。只含标准阶段键（ML0-7/APQP1-5/ANPQP1-5），
    OEM_PHASES 中的非标准键（如 BMW 的 VS0/VS2/PrePZS/PZS）不参与色带 */
@@ -1410,15 +1439,22 @@ function doCalParse(){
 }
 /* ============ 初始化 ============ */
 function init(){
+  var urlOem = "";
   try{
     var u = new URL(location.href), lg = u.searchParams.get("lang");
-    if(lg && I18N[lg]) lang = lg;
+    if(lg === "zh" || lg === "en" || lg === "de") lang = lg;
+    urlOem = oemFromSlug(u.searchParams.get("oem"));
   }catch(e){}
-  load(); applyLang(); render();
+  load(); applyLang();
+  /* URL 带 oem 参数（或里程碑计划数据含 OEM）时，初始化后自动从计划导入一次；无计划数据走现有 noPlan 提示 */
+  var planOem = "";
+  try{ var _plan = JSON.parse(localStorage.getItem("gantt-tool-v1")); if(_plan && _plan.oem) planOem = _plan.oem; }catch(e){}
+  if(urlOem || planOem) fromPlan();
+  render();
   document.querySelectorAll(".langbtns button").forEach(function(b){
     b.addEventListener("click", function(){ lang = b.dataset.lang; applyLang(); render(); });
   });
-  document.getElementById("btnBack").addEventListener("click", function(){ location.href = "index.html"; });
+  document.getElementById("btnBack").addEventListener("click", function(){ location.href = "index.html?lang=" + lang; });
   document.getElementById("btnAdd").addEventListener("click", function(){ selId = null; openModal(null); });
   document.getElementById("btnAddGroup").addEventListener("click", function(){
     var t = mkTask({ name:"新分组", type:"group" }); state.tasks.push(t); render();

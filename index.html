@@ -154,6 +154,25 @@ input.flash{outline:2px solid #2563eb;outline-offset:1px}
   .offs input{width:38px}
   .foot{font-size:10px}
 }
+/* ===== 手机端补充适配（仅小屏生效，不改桌面端布局与配色；不动 viewport，不拦截浏览器原生缩放） ===== */
+@media (max-width:768px){
+  /* 顶栏标题缩小 */
+  .brand{font-size:13px}
+  #projectName{font-size:12px;padding:5px 8px}
+  /* 触摸目标不小于 40px */
+  button{min-height:40px;min-width:40px}
+  input:not([type=checkbox]):not([type=radio]):not([type=hidden]),select,textarea{min-height:40px;min-width:40px}
+  /* 表格字号适当缩小 */
+  .node-row,.rec-row,.task-row{padding-top:6px;padding-bottom:6px}
+  .nname{font-size:11.5px}
+  .rmeta{font-size:10.5px}
+  .task-row{font-size:11.5px}
+  .reftable{font-size:11px}
+  .legend{font-size:11px}
+  /* 工具条换行不溢出：subbar 已 flex-wrap，按钮等宽换行排列 */
+  .subbar{gap:6px}
+  /* 侧边栏默认收起（移动端默认“查看甘特图”标签页，aside 隐藏），切“填写数据”标签页即可展开 */
+}
 </style>
 </head>
 <body class="tab-form">
@@ -1786,7 +1805,13 @@ function init(){
   document.addEventListener('keydown', function(e){ if(e.key === 'Escape') closePreview(); });
   $('btnJSON').addEventListener('click', exportJSON);
   $('btnImport').addEventListener('click', function(){ $('fileJSON').click(); });
-  $('btnExec').addEventListener('click', function(){ location.href = 'exec.html' + (typeof lang !== 'undefined' && lang ? '?lang=' + lang : ''); });
+  $('btnExec').addEventListener('click', function(){
+    /* 跳转执行页：exec.html?oem=<slug>&lang=<lang>；未选 OEM 时不带 oem 参数 */
+    var p = [];
+    if(state.oem) p.push('oem=' + oemSlug(state.oem));
+    if(lang) p.push('lang=' + lang);
+    location.href = 'exec.html' + (p.length ? '?' + p.join('&') : '');
+  });
   $('fileJSON').addEventListener('change', function(){
     if(this.files && this.files[0]) importJSON(this.files[0]);
     this.value = '';
