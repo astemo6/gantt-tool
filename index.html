@@ -356,6 +356,7 @@ zh: {
   toastNoChart:'暂无甘特图可导出，请先填写节点日期',
   toastJSONOk:'JSON 数据已导入', toastJSONBad:'JSON 文件无效，导入失败',
   toastCascade:'已按预设间隔自动填充后续节点日期', toastDateBad:'日期格式无效，请使用 YYYY-MM-DD 或 MM/DD/YYYY',
+  syncDetected:'检测到执行计划同步的里程碑日期更新',
   btnJPG:'导出 JPG', btnPreview:'预览', expPreviewTitle:'导出预览', secExport:'导出设置', creatorPh:'制作者姓名', ckShowCreator:'导出时显示制作者', ckShowDate:'导出时显示日期', logoLeft:'左侧 Logo', logoRight:'右侧 Logo', logoUpload:'上传',
   expHint:'导出的 PDF / JPG 为高分辨率图片，顶部为项目名称；勾选后左下角显示制作者与日期。', expCreator:'制作者', expDate:'日期',
   dragTip:'按住拖动可调整顺序', moveUp:'上移', moveDown:'下移'
@@ -388,6 +389,7 @@ en: {
   toastNoChart:'No chart to export yet — please fill in milestone dates first',
   toastJSONOk:'JSON data imported', toastJSONBad:'Invalid JSON file',
   toastCascade:'Subsequent milestone dates auto-filled by preset intervals', toastDateBad:'Invalid date format, use YYYY-MM-DD or MM/DD/YYYY',
+  syncDetected:'Milestone date updates from execution plan detected',
   btnJPG:'Export JPG', btnPreview:'Preview', expPreviewTitle:'Export Preview', secExport:'Export Settings', creatorPh:'Creator Name', ckShowCreator:'Show Creator in Export', ckShowDate:'Show Date in Export', logoLeft:'Left Logo', logoRight:'Right Logo', logoUpload:'Upload',
   expHint:'Exported PDF / JPG is a high-resolution image with the project name on top; creator and date appear at the bottom-left when checked.', expCreator:'Creator', expDate:'Date',
   dragTip:'Drag to Reorder', moveUp:'Move Up', moveDown:'Move Down'
@@ -420,6 +422,7 @@ de: {
   toastNoChart:'Kein Diagramm zum Exportieren – bitte zuerst Meilensteintermine eintragen',
   toastJSONOk:'JSON-Daten importiert', toastJSONBad:'Ungültige JSON-Datei',
   toastCascade:'Folgemeilensteine automatisch nach voreingestellten Intervallen eingetragen', toastDateBad:'Ungültiges Datumsformat, YYYY-MM-DD oder MM/DD/YYYY verwenden',
+  syncDetected:'Aktualisierte Meilensteindaten vom Ausführungsplan erkannt',
   btnJPG:'JPG-Export', btnPreview:'Vorschau', expPreviewTitle:'Exportvorschau', secExport:'Exporteinstellungen', creatorPh:'Name des Erstellers', ckShowCreator:'Ersteller im Export anzeigen', ckShowDate:'Datum im Export anzeigen', logoLeft:'Logo links', logoRight:'Logo rechts', logoUpload:'Hochladen',
   expHint:'Exportiertes PDF / JPG ist ein hochauflösendes Bild mit dem Projektnamen oben; Ersteller und Datum erscheinen unten links, wenn angehakt.', expCreator:'Ersteller', expDate:'Datum',
   dragTip:'Zum Umsortieren ziehen', moveUp:'Nach oben', moveDown:'Nach unten'
@@ -503,6 +506,8 @@ function save(){
       ckShowCreator:$('ckShowCreator') ? $('ckShowCreator').checked : false,
       ckShowDate:$('ckShowDate') ? $('ckShowDate').checked : false,
       lang:lang };
+    if(state.execSyncAt) data.execSyncAt = state.execSyncAt;
+    if(state.execSyncSeen) data.execSyncSeen = state.execSyncSeen;
     try{
       localStorage.setItem(LS_KEY, JSON.stringify(data));
     }catch(qe){
@@ -528,6 +533,8 @@ function load(){
     if(typeof d.showPhase === 'boolean') state.showPhase = d.showPhase;
     if(typeof d.logoLeft === 'string') state.logoLeft = d.logoLeft;
     if(typeof d.logoRight === 'string') state.logoRight = d.logoRight;
+    if(typeof d.execSyncAt === 'number') state.execSyncAt = d.execSyncAt;
+    if(typeof d.execSyncSeen === 'number') state.execSyncSeen = d.execSyncSeen;
     state._ui = { creatorName:d.creatorName || '', ckShowCreator:!!d.ckShowCreator,
       ckShowDate:!!d.ckShowDate, lang:d.lang };
   }catch(e){}
@@ -1692,6 +1699,12 @@ function init(){
   }
   if(window._urlLang === 'zh' || window._urlLang === 'en' || window._urlLang === 'de'){ lang = window._urlLang; }
   window._urlLang = null;
+  /* 执行计划同步检测：仅初始化时检查一次，避免每次 save/render 重复提示 */
+  if(state.execSyncAt && state.execSyncAt > (state.execSyncSeen || 0)){
+    toast(tr('syncDetected'));
+    state.execSyncSeen = state.execSyncAt;
+    save();
+  }
   $('ckPhase').addEventListener('change', function(){
     state.showPhase = this.checked;
     save(); renderChart();
