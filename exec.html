@@ -93,6 +93,7 @@ header button:hover{background:var(--steel3)}
 .cal-panel textarea{width:100%;height:64px;border:1px solid #cbd5e1;border-radius:6px;padding:8px;font-size:12px;resize:vertical}
 .cal-panel .row{display:flex;gap:8px;margin-top:8px;align-items:center;flex-wrap:wrap}
 .cal-panel button{background:var(--steel2);color:#fff;border:none;border-radius:6px;padding:6px 14px;font-size:12px;cursor:pointer}
+.cal-panel button.on{background:var(--accent)}
 .cal-panel .hint{font-size:11px;color:var(--tx3);margin-top:6px}
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1f2937;color:#fff;padding:10px 20px;border-radius:8px;font-size:13px;z-index:200;display:none}
 .dep-line{stroke:#94a3b8;stroke-width:1.5;fill:none}
@@ -129,6 +130,10 @@ header button:hover{background:var(--steel3)}
 </div>
 <div class="cal-panel" id="calPanel" style="display:none">
   <h3 data-i18n="calTitle">工作日历 · 自然语言导入</h3>
+  <div class="row" style="margin-bottom:6px">
+    <button id="calModeNL" data-i18n="calModeNL">自然语言</button>
+    <button id="calModeText" data-i18n="calModeText">文本格式</button>
+  </div>
   <textarea id="calInput" data-i18n-ph="calPh" placeholder="例如：2026年春节2月15日到2月23日放假，2月14日、2月28日调休上班"></textarea>
   <div class="row">
     <button id="btnCalParse" data-i18n="calParse">解析并导入</button>
@@ -183,9 +188,9 @@ header button:hover{background:var(--steel3)}
 "use strict";
 /* ============ I18N ============ */
 var I18N = {
-zh:{appTitle:"执行层计划",backToPlan:"← 里程碑计划",addTask:"+ 新增任务",addGroup:"+ 新增分组",addMs:"+ 里程碑",fromPlan:"从计划导入",importSub:"导入细项",vDay:"日",vWeek:"周",workCal:"工作日历",exportJSON:"导出JSON",importJSON:"导入JSON",exportCSV:"导出CSV",cName:"任务名称",cOwner:"负责人",cDur:"工期",cProg:"进度",cStart:"开始",calTitle:"工作日历 · 自然语言导入",calPh:"例如：2026年春节2月15日到2月23日放假，2月14日、2月28日调休上班",calParse:"解析并导入",calReset:"恢复默认",calHint:"支持：X月X日、X月X日至X月X日、放假/调休/补班/上班等关键词，年份缺省为当年。",del:"删除",cancel:"取消",ok:"确定",importSubT:"导入细项",subTarget:"目标任务",subContent:"细项内容（一行一条，可含负责人、工期，用逗号分隔）",subFile:"或从 CSV 文件导入",editTask:"编辑任务",newTask:"新增任务",newGroup:"新增分组",newMs:"新增里程碑",fName:"名称",fType:"类型",tTask:"任务",tMs:"里程碑",tGroup:"分组",fGroup:"所属分组",fStart:"开始日期",fDur:"工期（工作日）",fDeps:"前置任务（ID逗号分隔）",fOwner:"负责人",fOutput:"输出成果",fProg:"进度%",fRemarks:"备注",fColor:"颜色",needName:"请填写名称",fromPlanOk:"已从计划导入",noPlan:"未找到计划数据",calApplied:"日历已更新",cycleWarn:"检测到循环依赖，已忽略",importOk:"导入成功",subOk:"细项导入成功",topGroup:"顶级"},
-en:{appTitle:"Execution Plan",backToPlan:"← Milestone Plan",addTask:"+ Add Task",addGroup:"+ Add Group",addMs:"+ Milestone",fromPlan:"Import from Plan",importSub:"Import Sub-items",vDay:"Day",vWeek:"Week",workCal:"Work Calendar",exportJSON:"Export JSON",importJSON:"Import JSON",exportCSV:"Export CSV",cName:"Task",cOwner:"Owner",cDur:"Dur.",cProg:"Prog.",cStart:"Start",calTitle:"Work Calendar · Natural Language Import",calPh:"e.g. Spring Festival 2026-02-15 to 2026-02-23 off, 02-14 and 02-28 work",calParse:"Parse & Import",calReset:"Reset",calHint:"Supports date ranges and keywords like off/work. Year defaults to current.",del:"Delete",cancel:"Cancel",ok:"OK",importSubT:"Import Sub-items",subTarget:"Target Task",subContent:"One per line, optional owner,duration comma-separated",subFile:"Or import from CSV file",editTask:"Edit Task",newTask:"New Task",newGroup:"New Group",newMs:"New Milestone",fName:"Name",fType:"Type",tTask:"Task",tMs:"Milestone",tGroup:"Group",fGroup:"Group",fStart:"Start Date",fDur:"Duration (workdays)",fDeps:"Predecessors (IDs comma-separated)",fOwner:"Owner",fOutput:"Deliverable",fProg:"Progress %",fRemarks:"Remarks",fColor:"Color",needName:"Name required",fromPlanOk:"Imported from plan",noPlan:"No plan data found",calApplied:"Calendar updated",cycleWarn:"Circular dependency detected and ignored",importOk:"Import OK",subOk:"Sub-items imported",topGroup:"Top"},
-de:{appTitle:"Ausführungsplan",backToPlan:"← Meilensteinplan",addTask:"+ Aufgabe",addGroup:"+ Gruppe",addMs:"+ Meilenstein",fromPlan:"Aus Plan importieren",importSub:"Unterpunkte importieren",vDay:"Tag",vWeek:"Woche",workCal:"Arbeitskalender",exportJSON:"JSON exportieren",importJSON:"JSON importieren",exportCSV:"CSV exportieren",cName:"Aufgabe",cOwner:"Eigner",cDur:"Dauer",cProg:"Fort.",cStart:"Start",calTitle:"Arbeitskalender · Import in natürlicher Sprache",calPh:"z.B. Frühlingsfest 2026-02-15 bis 2026-02-23 frei",calParse:"Parsen & importieren",calReset:"Zurücksetzen",calHint:"Datumsbereiche und Schlüsselwörter werden unterstützt.",del:"Löschen",cancel:"Abbrechen",ok:"OK",importSubT:"Unterpunkte importieren",subTarget:"Zielaufgabe",subContent:"Eins pro Zeile, optional Eigner,Dauer",subFile:"Oder aus CSV-Datei importieren",editTask:"Aufgabe bearbeiten",newTask:"Neue Aufgabe",newGroup:"Neue Gruppe",newMs:"Neuer Meilenstein",fName:"Name",fType:"Typ",tTask:"Aufgabe",tMs:"Meilenstein",tGroup:"Gruppe",fGroup:"Gruppe",fStart:"Startdatum",fDur:"Dauer (Arbeitstage)",fDeps:"Vorgänger (IDs)",fOwner:"Eigner",fOutput:"Ergebnis",fProg:"Fortschritt %",fRemarks:"Bemerkungen",fColor:"Farbe",needName:"Name erforderlich",fromPlanOk:"Aus Plan importiert",noPlan:"Keine Plandaten",calApplied:"Kalender aktualisiert",cycleWarn:"Zirkuläre Abhängigkeit ignoriert",importOk:"Import OK",subOk:"Unterpunkte importiert",topGroup:"Oberste"}};
+zh:{appTitle:"执行层计划",backToPlan:"← 里程碑计划",addTask:"+ 新增任务",addGroup:"+ 新增分组",addMs:"+ 里程碑",fromPlan:"从计划导入",importSub:"导入细项",vDay:"日",vWeek:"周",workCal:"工作日历",exportJSON:"导出JSON",importJSON:"导入JSON",exportCSV:"导出CSV",cName:"任务名称",cOwner:"负责人",cDur:"工期",cProg:"进度",cStart:"开始",calTitle:"工作日历 · 自然语言导入",calPh:"例如：2026年春节2月15日到2月23日放假，2月14日、2月28日调休上班",calParse:"解析并导入",calReset:"恢复默认",calHint:"支持：X月X日、X月X日至X月X日、放假/调休/补班/上班等关键词，年份缺省为当年。",calModeNL:"自然语言",calModeText:"文本格式",calHintText:"一行一条：2026-10-01~2026-10-07,国庆 表示放假区间；补班 2026-10-10 表示调休上班。",calPhText:"2026-10-01~2026-10-07,国庆\n补班 2026-10-10",del:"删除",cancel:"取消",ok:"确定",importSubT:"导入细项",subTarget:"目标任务",subContent:"细项内容（一行一条，可含负责人、工期，用逗号分隔）",subFile:"或从 CSV 文件导入",editTask:"编辑任务",newTask:"新增任务",newGroup:"新增分组",newMs:"新增里程碑",fName:"名称",fType:"类型",tTask:"任务",tMs:"里程碑",tGroup:"分组",fGroup:"所属分组",fStart:"开始日期",fDur:"工期（工作日）",fDeps:"前置任务（ID逗号分隔）",fOwner:"负责人",fOutput:"输出成果",fProg:"进度%",fRemarks:"备注",fColor:"颜色",needName:"请填写名称",fromPlanOk:"已从计划导入",noPlan:"未找到计划数据",calApplied:"日历已更新",cycleWarn:"检测到循环依赖，已忽略",importOk:"导入成功",subOk:"细项导入成功",topGroup:"顶级"},
+en:{appTitle:"Execution Plan",backToPlan:"← Milestone Plan",addTask:"+ Add Task",addGroup:"+ Add Group",addMs:"+ Milestone",fromPlan:"Import from Plan",importSub:"Import Sub-items",vDay:"Day",vWeek:"Week",workCal:"Work Calendar",exportJSON:"Export JSON",importJSON:"Import JSON",exportCSV:"Export CSV",cName:"Task",cOwner:"Owner",cDur:"Dur.",cProg:"Prog.",cStart:"Start",calTitle:"Work Calendar · Natural Language Import",calPh:"e.g. Spring Festival 2026-02-15 to 2026-02-23 off, 02-14 and 02-28 work",calParse:"Parse & Import",calReset:"Reset",calHint:"Supports date ranges and keywords like off/work. Year defaults to current.",calModeNL:"Natural language",calModeText:"Text format",calHintText:"One per line: 2026-10-01~2026-10-07,National Day = holiday range; Make-up 2026-10-10 = workday.",calPhText:"2026-10-01~2026-10-07,National Day\nMake-up 2026-10-10",del:"Delete",cancel:"Cancel",ok:"OK",importSubT:"Import Sub-items",subTarget:"Target Task",subContent:"One per line, optional owner,duration comma-separated",subFile:"Or import from CSV file",editTask:"Edit Task",newTask:"New Task",newGroup:"New Group",newMs:"New Milestone",fName:"Name",fType:"Type",tTask:"Task",tMs:"Milestone",tGroup:"Group",fGroup:"Group",fStart:"Start Date",fDur:"Duration (workdays)",fDeps:"Predecessors (IDs comma-separated)",fOwner:"Owner",fOutput:"Deliverable",fProg:"Progress %",fRemarks:"Remarks",fColor:"Color",needName:"Name required",fromPlanOk:"Imported from plan",noPlan:"No plan data found",calApplied:"Calendar updated",cycleWarn:"Circular dependency detected and ignored",importOk:"Import OK",subOk:"Sub-items imported",topGroup:"Top"},
+de:{appTitle:"Ausführungsplan",backToPlan:"← Meilensteinplan",addTask:"+ Aufgabe",addGroup:"+ Gruppe",addMs:"+ Meilenstein",fromPlan:"Aus Plan importieren",importSub:"Unterpunkte importieren",vDay:"Tag",vWeek:"Woche",workCal:"Arbeitskalender",exportJSON:"JSON exportieren",importJSON:"JSON importieren",exportCSV:"CSV exportieren",cName:"Aufgabe",cOwner:"Eigner",cDur:"Dauer",cProg:"Fort.",cStart:"Start",calTitle:"Arbeitskalender · Import in natürlicher Sprache",calPh:"z.B. Frühlingsfest 2026-02-15 bis 2026-02-23 frei",calParse:"Parsen & importieren",calReset:"Zurücksetzen",calHint:"Datumsbereiche und Schlüsselwörter werden unterstützt.",calModeNL:"Natürliche Sprache",calModeText:"Textformat",calHintText:"Eine Zeile pro Eintrag: 2026-10-01~2026-10-07,Feiertag = Ferienbereich; Ausgleich 2026-10-10 = Arbeitstag.",calPhText:"2026-10-01~2026-10-07,Feiertag\nAusgleich 2026-10-10",del:"Löschen",cancel:"Abbrechen",ok:"OK",importSubT:"Unterpunkte importieren",subTarget:"Zielaufgabe",subContent:"Eins pro Zeile, optional Eigner,Dauer",subFile:"Oder aus CSV-Datei importieren",editTask:"Aufgabe bearbeiten",newTask:"Neue Aufgabe",newGroup:"Neue Gruppe",newMs:"Neuer Meilenstein",fName:"Name",fType:"Typ",tTask:"Aufgabe",tMs:"Meilenstein",tGroup:"Gruppe",fGroup:"Gruppe",fStart:"Startdatum",fDur:"Dauer (Arbeitstage)",fDeps:"Vorgänger (IDs)",fOwner:"Eigner",fOutput:"Ergebnis",fProg:"Fortschritt %",fRemarks:"Bemerkungen",fColor:"Farbe",needName:"Name erforderlich",fromPlanOk:"Aus Plan importiert",noPlan:"Keine Plandaten",calApplied:"Kalender aktualisiert",cycleWarn:"Zirkuläre Abhängigkeit ignoriert",importOk:"Import OK",subOk:"Unterpunkte importiert",topGroup:"Oberste"}};
 var lang = "zh";
 function tr(k){ return (I18N[lang] && I18N[lang][k]) || I18N.zh[k] || k; }
 function applyLang(){
@@ -193,6 +198,7 @@ function applyLang(){
   document.querySelectorAll("[data-i18n-ph]").forEach(function(el){ el.placeholder = tr(el.dataset.i18nPh); });
   document.querySelectorAll(".langbtns button").forEach(function(b){ b.classList.toggle("on", b.dataset.lang === lang); });
   document.title = tr("appTitle");
+  if(typeof calMode !== "undefined" && calMode === "text") setCalMode("text");
 }
 function toast(m){ var t = document.getElementById("toast"); t.textContent = m; t.style.display = "block"; clearTimeout(t._h); t._h = setTimeout(function(){ t.style.display = "none"; }, 2200); }
 /* ============ 日期工具 ============ */
@@ -317,6 +323,38 @@ function visibleTasks(){
 }
 function flatTasks(){ return state.tasks.filter(function(t){ return t.type !== "group"; }); }
 
+/* 文本格式解析（hark 兼容）：一行一条
+   2026-10-01~2026-10-07,国庆   → 放假区间（名称可选）
+   2026-10-08,国庆              → 放假单日
+   补班 2026-10-10 / 调休 2026-10-10 → 调休上班 */
+function parseCalText(text){
+  var holidays = {}, makeup = [];
+  text.split("\n").forEach(function(line){
+    line = line.trim(); if(!line) return;
+    var m = line.match(/^(?:补班|调休|make-up|makeup|ausgleich)\s*[,，]?\s*(\d{4}-\d{2}-\d{2})$/i);
+    if(m){ makeup.push(m[1]); return; }
+    var p = line.split(/[,，]/), range = (p[0] || "").trim(), name = (p[1] || "节假日").trim() || "节假日";
+    var r = range.split("~"), a = r[0].trim(), b = (r[1] || r[0]).trim();
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(a)) return;
+    var g = 0;
+    while(a <= b && g++ < 400){ holidays[a] = name; a = fmtD(addDays(parseD(a), 1)); }
+  });
+  return { holidays:holidays, makeup:makeup };
+}
+function calToText(){ // 当前日历 → 文本格式
+  var lines = [], groups = {}, ks = Object.keys(cal.holidays).sort();
+  ks.forEach(function(k){
+    var n = cal.holidays[k], prev = lines.length ? lines[lines.length-1] : null;
+    if(prev && prev.end && fmtD(addDays(parseD(prev.end), 1)) === k && prev.name === n){
+      prev.end = k;
+    } else lines.push({ start:k, end:k, name:n });
+  });
+  var out = lines.map(function(l){
+    return l.start === l.end ? l.start + "," + l.name : l.start + "~" + l.end + "," + l.name;
+  });
+  Object.keys(cal.makeup).sort().forEach(function(k){ out.push("补班 " + k); });
+  return out.join("\n");
+}
 /* 自然语言解析：中文日期表达 → 节假日/调休 */
 function parseCalNL(text){
   var year = new Date().getFullYear();
@@ -631,10 +669,20 @@ function updateCalSummary(){
   var h = Object.keys(cal.holidays).length, m = Object.keys(cal.makeup).length;
   document.getElementById("calSummary").textContent = "节假日 " + h + " 天 · 调休上班 " + m + " 天";
 }
+var calMode = "nl";
+function setCalMode(m){
+  calMode = m;
+  document.getElementById("calModeNL").classList.toggle("on", m === "nl");
+  document.getElementById("calModeText").classList.toggle("on", m === "text");
+  document.querySelector(".cal-panel .hint[data-i18n]").textContent = tr(m === "text" ? "calHintText" : "calHint");
+  document.getElementById("calInput").placeholder = tr(m === "text" ? "calPhText" : "calPh");
+  if(m === "text") document.getElementById("calInput").value = calToText();
+  document.getElementById("calPreview").innerHTML = "";
+}
 function doCalParse(){
   var text = document.getElementById("calInput").value.trim();
   if(!text) return;
-  var r = parseCalNL(text);
+  var r = calMode === "text" ? parseCalText(text) : parseCalNL(text);
   var hks = Object.keys(r.holidays), mks = r.makeup;
   var html = "";
   if(hks.length) html += "<div>放假 " + hks.length + " 天：" + hks.slice(0, 12).join("、") + (hks.length > 12 ? "…" : "") + "</div>";
@@ -644,7 +692,7 @@ function doCalParse(){
   document.getElementById("calPreview").innerHTML = html;
   var b = document.getElementById("btnCalApply");
   if(b) b.addEventListener("click", function(){
-    hks.forEach(function(k){ cal.holidays[k] = 1; });
+    hks.forEach(function(k){ cal.holidays[k] = r.holidays[k] || 1; });
     mks.forEach(function(k){ cal.makeup[k] = 1; });
     document.getElementById("calPreview").innerHTML = "";
     document.getElementById("calInput").value = "";
@@ -688,7 +736,15 @@ function init(){
     var p = document.getElementById("calPanel"); p.style.display = p.style.display === "none" ? "" : "none";
   });
   document.getElementById("btnCalParse").addEventListener("click", doCalParse);
-  document.getElementById("btnCalReset").addEventListener("click", function(){ resetCal(); save(); render(); toast(tr("calApplied")); });
+  document.getElementById("btnCalReset").addEventListener("click", function(){
+    resetCal(); updateCalSummary(); save(); render(); toast(tr("calApplied"));
+    if(calMode === "text") document.getElementById("calInput").value = calToText();
+    document.getElementById("calPreview").innerHTML = "";
+  });
+  document.getElementById("calModeNL").addEventListener("click", function(){ setCalMode("nl"); });
+  document.getElementById("calModeText").addEventListener("click", function(){ setCalMode("text"); });
+  setCalMode("nl");
+  updateCalSummary();
   document.getElementById("modalX").addEventListener("click", closeModal);
   document.getElementById("modalCancel").addEventListener("click", closeModal);
   document.getElementById("modalOk").addEventListener("click", saveModal);
