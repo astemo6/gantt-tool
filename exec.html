@@ -56,6 +56,7 @@ header button:hover{background:var(--steel3)}
 .trow .c-start{width:86px;justify-content:center;flex-shrink:0;color:var(--tx2)}
 .trow .c-end{width:86px;justify-content:center;flex-shrink:0;color:var(--tx2)}
 .trow .c-float{width:64px;justify-content:center;flex-shrink:0;color:var(--tx2)}
+.trow .c-var{width:52px;justify-content:center;flex-shrink:0;color:var(--tx2)}
 .table-head .c-id{width:36px;text-align:center;flex-shrink:0}
 .table-head .c-name{flex:1}
 .table-head .c-owner{width:64px;flex-shrink:0}
@@ -64,10 +65,13 @@ header button:hover{background:var(--steel3)}
 .table-head .c-start{width:86px;text-align:center;flex-shrink:0}
 .table-head .c-end{width:86px;text-align:center;flex-shrink:0}
 .table-head .c-float{width:64px;text-align:center;flex-shrink:0}
+.table-head .c-var{width:52px;text-align:center;flex-shrink:0}
 .progbar{width:44px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden}
 .progbar>i{display:block;height:100%;background:var(--accent);border-radius:4px}
 .ms-diamond{color:var(--danger);font-size:14px}
 .dl-warn{color:var(--danger);margin-left:4px;cursor:help;font-weight:700}
+.ow-warn{margin-left:2px;cursor:help}
+.manual-badge{font-size:11px;margin-left:4px;cursor:help}
 .c-float.crit{color:var(--danger);font-weight:700}
 .gantt-pane{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden}
 .gantt-head{height:44px;background:var(--card);border-bottom:1px solid var(--line);position:relative;overflow:hidden;flex-shrink:0}
@@ -82,6 +86,8 @@ header button:hover{background:var(--steel3)}
 .g-bar.crit .lbl{font-weight:700}
 .g-ms{position:absolute;top:9px;width:16px;height:16px;transform:rotate(45deg);cursor:grab;border-radius:2px}
 .g-ms.crit{box-shadow:0 0 0 2px #7f1d1d}
+.g-base{position:absolute;height:5px;border-radius:2px;background:#9ca3af;opacity:.85;z-index:2;pointer-events:none}
+.g-base-ms{position:absolute;width:8px;height:8px;transform:rotate(45deg);background:#9ca3af;opacity:.85;z-index:2;pointer-events:none}
 .g-today{position:absolute;top:0;bottom:0;width:2px;background:#ef4444;z-index:5}
 .g-weekend{position:absolute;top:0;bottom:0;background:#f3f4f6;z-index:0}
 .g-holiday{position:absolute;top:0;bottom:0;background:#fef2f2;z-index:0}
@@ -175,6 +181,9 @@ header button:hover{background:var(--steel3)}
   <select id="oemSelect" title="OEM"></select>
   <label class="ck"><input type="checkbox" id="ckPhase" checked><span data-i18n="showPhase">阶段</span></label>
   <label class="ck"><input type="checkbox" id="ckCrit"><span data-i18n="criticalPath">关键路径</span></label>
+  <button id="btnBaseline" data-i18n="saveBaseline">保存基线</button>
+  <label class="ck"><input type="checkbox" id="ckBaseline"><span data-i18n="showBaseline">基线对比</span></label>
+  <label class="ck"><input type="checkbox" id="ckResWarn" checked><span data-i18n="resWarn">资源预警</span></label>
   <span class="sep"></span>
   <button id="btnCal" data-i18n="workCal">工作日历</button>
   <span class="sep"></span>
@@ -207,7 +216,7 @@ header button:hover{background:var(--steel3)}
     <div class="table-scroll">
       <div class="table-inner">
         <div class="table-head">
-          <div class="c-id">ID</div><div class="c-name" data-i18n="cName">任务名称</div><div class="c-owner" data-i18n="cOwner">负责人</div><div class="c-dur" data-i18n="cDur">工期</div><div class="c-prog" data-i18n="cProg">进度</div><div class="c-start" data-i18n="cStart">开始</div><div class="c-end" data-i18n="cEnd">结束</div><div class="c-float" data-i18n="floatCol">总浮时</div>
+          <div class="c-id">ID</div><div class="c-name" data-i18n="cName">任务名称</div><div class="c-owner" data-i18n="cOwner">负责人</div><div class="c-dur" data-i18n="cDur">工期</div><div class="c-prog" data-i18n="cProg">进度</div><div class="c-start" data-i18n="cStart">开始</div><div class="c-end" data-i18n="cEnd">结束</div><div class="c-var" data-i18n="varianceCol">偏差</div><div class="c-float" data-i18n="floatCol">总浮时</div>
         </div>
         <div class="table-body" id="taskList"></div>
       </div>
@@ -260,9 +269,9 @@ header button:hover{background:var(--steel3)}
 "use strict";
 /* ============ I18N ============ */
 var I18N = {
-zh:{weekdayNames:["一","二","三","四","五","六","日"],appTitle:"执行层计划",backToPlan:"← 里程碑计划",addTask:"+ 新增任务",addGroup:"+ 新增分组",addMs:"+ 里程碑",fromPlan:"从计划导入",syncBack:"回写里程碑计划",syncBackOk:"已同步到里程碑计划",syncBackEmpty:"没有可同步的里程碑",syncBackFail:"计划数据读取失败",importSub:"导入细项",vDay:"日",vWeek:"周",vMonth:"月",workCal:"工作日历",showPhase:"阶段",oemPlaceholder:"请选择主机厂",exportJSON:"导出JSON",importJSON:"导入JSON",exportCSV:"导出CSV",preview:"预览",exportPDF:"导出 PDF",exportJPG:"导出 JPG",expPreviewTitle:"导出预览",expDate:"日期",legendPhase:"阶段区间",legendTask:"任务",today:"今天",cName:"任务名称",cOwner:"负责人",cDur:"工期",cProg:"进度",cStart:"开始",cEnd:"结束",calTitle:"工作日历 · 自然语言导入",calPh:"例如：2026年春节2月15日到2月23日放假，2月14日、2月28日调休上班",calParse:"解析并导入",calReset:"恢复默认",calHint:"支持：X月X日、X月X日至X月X日、放假/调休/补班/上班等关键词，年份缺省为当年。",calModeNL:"自然语言",calModeText:"文本格式",calHintText:"一行一条：2026-10-01~2026-10-07,国庆 表示放假区间；补班 2026-10-10 表示调休上班。",calPhText:"2026-10-01~2026-10-07,国庆\n补班 2026-10-10",del:"删除",cancel:"取消",ok:"确定",importSubT:"导入细项",subTarget:"目标任务",subContent:"细项内容（一行一条，可含负责人、工期，用逗号分隔）",subFile:"或从 CSV 文件导入",editTask:"编辑任务",newTask:"新增任务",newGroup:"新增分组",newMs:"新增里程碑",fName:"名称",fType:"类型",tTask:"任务",tMs:"里程碑",tGroup:"分组",fGroup:"所属分组",fStart:"开始日期",fDur:"工期（工作日）",fDeps:"前置任务（ID，可带类型与滞后）",fDepsHint:"格式：ID+类型+滞后天数，如 3FS,5SS+2d；-2d 表示提前 2 个工作日；默认 FS（完成→开始）。类型：FS 完成→开始，SS 开始→开始，FF 完成→完成，SF 开始→完成",fDeadline:"期限",deadlineWarn:"结束日期晚于期限",criticalPath:"关键路径",floatCol:"总浮时",fOwner:"负责人",fOutput:"输出成果",fProg:"进度%",fRemarks:"备注",fColor:"颜色",needName:"请填写名称",fromPlanOk:"已从计划导入",noPlan:"未找到计划数据",calApplied:"日历已更新",cycleWarn:"检测到循环依赖，已忽略",importOk:"导入成功",subOk:"细项导入成功",topGroup:"顶级",planGroupMs:"客户里程碑",planGroupRec:"推荐任务",planGroupSup:"供应商节点",planGroupCustom:"自定义任务"},
-en:{weekdayNames:["Mon","Tue","Wed","Thu","Fri","Sat","Sun"],appTitle:"Execution Plan",backToPlan:"← Milestone Plan",addTask:"+ Add Task",addGroup:"+ Add Group",addMs:"+ Milestone",fromPlan:"Import from Plan",syncBack:"Write Back to Plan",syncBackOk:"Synced to milestone plan",syncBackEmpty:"No linked milestones to sync",syncBackFail:"Failed to read plan data",importSub:"Import Sub-items",vDay:"Day",vWeek:"Week",vMonth:"Month",workCal:"Work Calendar",showPhase:"Phases",oemPlaceholder:"Select OEM",exportJSON:"Export JSON",importJSON:"Import JSON",exportCSV:"Export CSV",preview:"Preview",exportPDF:"Export PDF",exportJPG:"Export JPG",expPreviewTitle:"Export Preview",expDate:"Date",legendPhase:"Phase",legendTask:"Task",today:"Today",cName:"Task",cOwner:"Owner",cDur:"Dur.",cProg:"Prog.",cStart:"Start",cEnd:"End",calTitle:"Work Calendar · Natural Language Import",calPh:"e.g. Spring Festival 2026-02-15 to 2026-02-23 off, 02-14 and 02-28 work",calParse:"Parse & Import",calReset:"Reset",calHint:"Supports date ranges and keywords like off/work. Year defaults to current.",calModeNL:"Natural language",calModeText:"Text format",calHintText:"One per line: 2026-10-01~2026-10-07,National Day = holiday range; Make-up 2026-10-10 = workday.",calPhText:"2026-10-01~2026-10-07,National Day\nMake-up 2026-10-10",del:"Delete",cancel:"Cancel",ok:"OK",importSubT:"Import Sub-items",subTarget:"Target Task",subContent:"One per line, optional owner,duration comma-separated",subFile:"Or import from CSV file",editTask:"Edit Task",newTask:"New Task",newGroup:"New Group",newMs:"New Milestone",fName:"Name",fType:"Type",tTask:"Task",tMs:"Milestone",tGroup:"Group",fGroup:"Group",fStart:"Start Date",fDur:"Duration (workdays)",fDeps:"Predecessors (IDs, types & lag)",fDepsHint:"Format: ID+type+lag workdays, e.g. 3FS,5SS+2d; -2d = 2 workdays early; default FS (finish-to-start). Types: FS finish→start, SS start→start, FF finish→finish, SF start→finish",fDeadline:"Deadline",deadlineWarn:"End date is later than the deadline",criticalPath:"Critical Path",floatCol:"Total Float",fOwner:"Owner",fOutput:"Deliverable",fProg:"Progress %",fRemarks:"Remarks",fColor:"Color",needName:"Name required",fromPlanOk:"Imported from plan",noPlan:"No plan data found",calApplied:"Calendar updated",cycleWarn:"Circular dependency detected and ignored",importOk:"Import OK",subOk:"Sub-items imported",topGroup:"Top",planGroupMs:"Customer Milestones",planGroupRec:"Recommended Tasks",planGroupSup:"Supplier Nodes",planGroupCustom:"Custom Tasks"},
-de:{weekdayNames:["Mo","Di","Mi","Do","Fr","Sa","So"],appTitle:"Ausführungsplan",backToPlan:"← Meilensteinplan",addTask:"+ Aufgabe",addGroup:"+ Gruppe",addMs:"+ Meilenstein",fromPlan:"Aus Plan importieren",syncBack:"In Plan zurückschreiben",syncBackOk:"Mit Meilensteinplan synchronisiert",syncBackEmpty:"Keine verknüpften Meilensteine",syncBackFail:"Plandaten konnten nicht gelesen werden",importSub:"Unterpunkte importieren",vDay:"Tag",vWeek:"Woche",vMonth:"Monat",workCal:"Arbeitskalender",showPhase:"Phasen",oemPlaceholder:"OEM wählen",exportJSON:"JSON exportieren",importJSON:"JSON importieren",exportCSV:"CSV exportieren",preview:"Vorschau",exportPDF:"PDF exportieren",exportJPG:"JPG exportieren",expPreviewTitle:"Exportvorschau",expDate:"Datum",legendPhase:"Phasen",legendTask:"Aufgabe",today:"Heute",cName:"Aufgabe",cOwner:"Eigner",cDur:"Dauer",cProg:"Fort.",cStart:"Start",cEnd:"End",calTitle:"Arbeitskalender · Import in natürlicher Sprache",calPh:"z.B. Frühlingsfest 2026-02-15 bis 2026-02-23 frei",calParse:"Parsen & importieren",calReset:"Zurücksetzen",calHint:"Datumsbereiche und Schlüsselwörter werden unterstützt.",calModeNL:"Natürliche Sprache",calModeText:"Textformat",calHintText:"Eine Zeile pro Eintrag: 2026-10-01~2026-10-07,Feiertag = Ferienbereich; Ausgleich 2026-10-10 = Arbeitstag.",calPhText:"2026-10-01~2026-10-07,Feiertag\nAusgleich 2026-10-10",del:"Löschen",cancel:"Abbrechen",ok:"OK",importSubT:"Unterpunkte importieren",subTarget:"Zielaufgabe",subContent:"Eins pro Zeile, optional Eigner,Dauer",subFile:"Oder aus CSV-Datei importieren",editTask:"Aufgabe bearbeiten",newTask:"Neue Aufgabe",newGroup:"Neue Gruppe",newMs:"Neuer Meilenstein",fName:"Name",fType:"Typ",tTask:"Aufgabe",tMs:"Meilenstein",tGroup:"Gruppe",fGroup:"Gruppe",fStart:"Startdatum",fDur:"Dauer (Arbeitstage)",fDeps:"Vorgänger (IDs, Typen & Versatz)",fDepsHint:"Format: ID+Typ+Versatztage, z.B. 3FS,5SS+2d; -2d = 2 Arbeitstage früher; Standard FS (Ende→Start). Typen: FS Ende→Start, SS Start→Start, FF Ende→Ende, SF Start→Ende",fDeadline:"Frist",deadlineWarn:"Enddatum liegt nach der Frist",criticalPath:"Kritischer Pfad",floatCol:"Gesamtpuffer",fOwner:"Eigner",fOutput:"Ergebnis",fProg:"Fortschritt %",fRemarks:"Bemerkungen",fColor:"Farbe",needName:"Name erforderlich",fromPlanOk:"Aus Plan importiert",noPlan:"Keine Plandaten",calApplied:"Kalender aktualisiert",cycleWarn:"Zirkuläre Abhängigkeit ignoriert",importOk:"Import OK",subOk:"Unterpunkte importiert",topGroup:"Oberste",planGroupMs:"Kundenmeilensteine",planGroupRec:"Empfohlene Aufgaben",planGroupSup:"Lieferantenknoten",planGroupCustom:"Eigene Aufgaben"}};
+zh:{weekdayNames:["一","二","三","四","五","六","日"],appTitle:"执行层计划",backToPlan:"← 里程碑计划",addTask:"+ 新增任务",addGroup:"+ 新增分组",addMs:"+ 里程碑",fromPlan:"从计划导入",syncBack:"回写里程碑计划",syncBackOk:"已同步到里程碑计划",syncBackEmpty:"没有可同步的里程碑",syncBackFail:"计划数据读取失败",importSub:"导入细项",vDay:"日",vWeek:"周",vMonth:"月",workCal:"工作日历",showPhase:"阶段",oemPlaceholder:"请选择主机厂",exportJSON:"导出JSON",importJSON:"导入JSON",exportCSV:"导出CSV",preview:"预览",exportPDF:"导出 PDF",exportJPG:"导出 JPG",expPreviewTitle:"导出预览",expDate:"日期",legendPhase:"阶段区间",legendTask:"任务",today:"今天",cName:"任务名称",cOwner:"负责人",cDur:"工期",cProg:"进度",cStart:"开始",cEnd:"结束",calTitle:"工作日历 · 自然语言导入",calPh:"例如：2026年春节2月15日到2月23日放假，2月14日、2月28日调休上班",calParse:"解析并导入",calReset:"恢复默认",calHint:"支持：X月X日、X月X日至X月X日、放假/调休/补班/上班等关键词，年份缺省为当年。",calModeNL:"自然语言",calModeText:"文本格式",calHintText:"一行一条：2026-10-01~2026-10-07,国庆 表示放假区间；补班 2026-10-10 表示调休上班。",calPhText:"2026-10-01~2026-10-07,国庆\n补班 2026-10-10",del:"删除",cancel:"取消",ok:"确定",importSubT:"导入细项",subTarget:"目标任务",subContent:"细项内容（一行一条，可含负责人、工期，用逗号分隔）",subFile:"或从 CSV 文件导入",editTask:"编辑任务",newTask:"新增任务",newGroup:"新增分组",newMs:"新增里程碑",fName:"名称",fType:"类型",tTask:"任务",tMs:"里程碑",tGroup:"分组",fGroup:"所属分组",fStart:"开始日期",fDur:"工期（工作日）",fDeps:"前置任务（ID，可带类型与滞后）",fDepsHint:"格式：ID+类型+滞后天数，如 3FS,5SS+2d；-2d 表示提前 2 个工作日；默认 FS（完成→开始）。类型：FS 完成→开始，SS 开始→开始，FF 完成→完成，SF 开始→完成",fDeadline:"期限",deadlineWarn:"结束日期晚于期限",criticalPath:"关键路径",floatCol:"总浮时",fOwner:"负责人",fOutput:"输出成果",fProg:"进度%",fRemarks:"备注",fColor:"颜色",needName:"请填写名称",fromPlanOk:"已从计划导入",noPlan:"未找到计划数据",calApplied:"日历已更新",cycleWarn:"检测到循环依赖，已忽略",importOk:"导入成功",subOk:"细项导入成功",topGroup:"顶级",planGroupMs:"客户里程碑",planGroupRec:"推荐任务",planGroupSup:"供应商节点",planGroupCustom:"自定义任务",saveBaseline:"保存基线",showBaseline:"基线对比",baselineConfirm:"覆盖已有基线？",baselineSaved:"基线已保存",varianceCol:"偏差",manualSched:"手动排程",resWarn:"资源预警",resWarnTip:"该负责人当日有多个并行任务"},
+en:{weekdayNames:["Mon","Tue","Wed","Thu","Fri","Sat","Sun"],appTitle:"Execution Plan",backToPlan:"← Milestone Plan",addTask:"+ Add Task",addGroup:"+ Add Group",addMs:"+ Milestone",fromPlan:"Import from Plan",syncBack:"Write Back to Plan",syncBackOk:"Synced to milestone plan",syncBackEmpty:"No linked milestones to sync",syncBackFail:"Failed to read plan data",importSub:"Import Sub-items",vDay:"Day",vWeek:"Week",vMonth:"Month",workCal:"Work Calendar",showPhase:"Phases",oemPlaceholder:"Select OEM",exportJSON:"Export JSON",importJSON:"Import JSON",exportCSV:"Export CSV",preview:"Preview",exportPDF:"Export PDF",exportJPG:"Export JPG",expPreviewTitle:"Export Preview",expDate:"Date",legendPhase:"Phase",legendTask:"Task",today:"Today",cName:"Task",cOwner:"Owner",cDur:"Dur.",cProg:"Prog.",cStart:"Start",cEnd:"End",calTitle:"Work Calendar · Natural Language Import",calPh:"e.g. Spring Festival 2026-02-15 to 2026-02-23 off, 02-14 and 02-28 work",calParse:"Parse & Import",calReset:"Reset",calHint:"Supports date ranges and keywords like off/work. Year defaults to current.",calModeNL:"Natural language",calModeText:"Text format",calHintText:"One per line: 2026-10-01~2026-10-07,National Day = holiday range; Make-up 2026-10-10 = workday.",calPhText:"2026-10-01~2026-10-07,National Day\nMake-up 2026-10-10",del:"Delete",cancel:"Cancel",ok:"OK",importSubT:"Import Sub-items",subTarget:"Target Task",subContent:"One per line, optional owner,duration comma-separated",subFile:"Or import from CSV file",editTask:"Edit Task",newTask:"New Task",newGroup:"New Group",newMs:"New Milestone",fName:"Name",fType:"Type",tTask:"Task",tMs:"Milestone",tGroup:"Group",fGroup:"Group",fStart:"Start Date",fDur:"Duration (workdays)",fDeps:"Predecessors (IDs, types & lag)",fDepsHint:"Format: ID+type+lag workdays, e.g. 3FS,5SS+2d; -2d = 2 workdays early; default FS (finish-to-start). Types: FS finish→start, SS start→start, FF finish→finish, SF start→finish",fDeadline:"Deadline",deadlineWarn:"End date is later than the deadline",criticalPath:"Critical Path",floatCol:"Total Float",fOwner:"Owner",fOutput:"Deliverable",fProg:"Progress %",fRemarks:"Remarks",fColor:"Color",needName:"Name required",fromPlanOk:"Imported from plan",noPlan:"No plan data found",calApplied:"Calendar updated",cycleWarn:"Circular dependency detected and ignored",importOk:"Import OK",subOk:"Sub-items imported",topGroup:"Top",planGroupMs:"Customer Milestones",planGroupRec:"Recommended Tasks",planGroupSup:"Supplier Nodes",planGroupCustom:"Custom Tasks",saveBaseline:"Save Baseline",showBaseline:"Baseline Compare",baselineConfirm:"Overwrite existing baseline?",baselineSaved:"Baseline saved",varianceCol:"Variance",manualSched:"Manual scheduling",resWarn:"Resource Alert",resWarnTip:"Owner has overlapping tasks on this day"},
+de:{weekdayNames:["Mo","Di","Mi","Do","Fr","Sa","So"],appTitle:"Ausführungsplan",backToPlan:"← Meilensteinplan",addTask:"+ Aufgabe",addGroup:"+ Gruppe",addMs:"+ Meilenstein",fromPlan:"Aus Plan importieren",syncBack:"In Plan zurückschreiben",syncBackOk:"Mit Meilensteinplan synchronisiert",syncBackEmpty:"Keine verknüpften Meilensteine",syncBackFail:"Plandaten konnten nicht gelesen werden",importSub:"Unterpunkte importieren",vDay:"Tag",vWeek:"Woche",vMonth:"Monat",workCal:"Arbeitskalender",showPhase:"Phasen",oemPlaceholder:"OEM wählen",exportJSON:"JSON exportieren",importJSON:"JSON importieren",exportCSV:"CSV exportieren",preview:"Vorschau",exportPDF:"PDF exportieren",exportJPG:"JPG exportieren",expPreviewTitle:"Exportvorschau",expDate:"Datum",legendPhase:"Phasen",legendTask:"Aufgabe",today:"Heute",cName:"Aufgabe",cOwner:"Eigner",cDur:"Dauer",cProg:"Fort.",cStart:"Start",cEnd:"End",calTitle:"Arbeitskalender · Import in natürlicher Sprache",calPh:"z.B. Frühlingsfest 2026-02-15 bis 2026-02-23 frei",calParse:"Parsen & importieren",calReset:"Zurücksetzen",calHint:"Datumsbereiche und Schlüsselwörter werden unterstützt.",calModeNL:"Natürliche Sprache",calModeText:"Textformat",calHintText:"Eine Zeile pro Eintrag: 2026-10-01~2026-10-07,Feiertag = Ferienbereich; Ausgleich 2026-10-10 = Arbeitstag.",calPhText:"2026-10-01~2026-10-07,Feiertag\nAusgleich 2026-10-10",del:"Löschen",cancel:"Abbrechen",ok:"OK",importSubT:"Unterpunkte importieren",subTarget:"Zielaufgabe",subContent:"Eins pro Zeile, optional Eigner,Dauer",subFile:"Oder aus CSV-Datei importieren",editTask:"Aufgabe bearbeiten",newTask:"Neue Aufgabe",newGroup:"Neue Gruppe",newMs:"Neuer Meilenstein",fName:"Name",fType:"Typ",tTask:"Aufgabe",tMs:"Meilenstein",tGroup:"Gruppe",fGroup:"Gruppe",fStart:"Startdatum",fDur:"Dauer (Arbeitstage)",fDeps:"Vorgänger (IDs, Typen & Versatz)",fDepsHint:"Format: ID+Typ+Versatztage, z.B. 3FS,5SS+2d; -2d = 2 Arbeitstage früher; Standard FS (Ende→Start). Typen: FS Ende→Start, SS Start→Start, FF Ende→Ende, SF Start→Ende",fDeadline:"Frist",deadlineWarn:"Enddatum liegt nach der Frist",criticalPath:"Kritischer Pfad",floatCol:"Gesamtpuffer",fOwner:"Eigner",fOutput:"Ergebnis",fProg:"Fortschritt %",fRemarks:"Bemerkungen",fColor:"Farbe",needName:"Name erforderlich",fromPlanOk:"Aus Plan importiert",noPlan:"Keine Plandaten",calApplied:"Kalender aktualisiert",cycleWarn:"Zirkuläre Abhängigkeit ignoriert",importOk:"Import OK",subOk:"Unterpunkte importiert",topGroup:"Oberste",planGroupMs:"Kundenmeilensteine",planGroupRec:"Empfohlene Aufgaben",planGroupSup:"Lieferantenknoten",planGroupCustom:"Eigene Aufgaben",saveBaseline:"Basisplan speichern",showBaseline:"Basisvergleich",baselineConfirm:"Bestehende Basis überschreiben?",baselineSaved:"Basisplan gespeichert",varianceCol:"Abweichung",manualSched:"Manuelle Planung",resWarn:"Ressourcenwarnung",resWarnTip:"Verantwortlicher hat überlappende Aufgaben"}};
 var lang = "zh";
 function tr(k){ return (I18N[lang] && I18N[lang][k]) || I18N.zh[k] || k; }
 function applyLang(){
@@ -379,7 +388,7 @@ const REC_DEFAULTS = {"r1":{"so":-3,"eo":0},"r2":{"so":-10,"eo":-8},"r3":{"so":-
 /* ============ 数据模型与状态 ============ */
 var LS_KEY = "gantt-exec-v1";
 var COLORS = ["#2563eb","#16a34a","#9333ea","#ea580c","#0891b2","#dc2626","#4f46e5","#0d9488"];
-var state = { tasks:[], seq:1, view:"day", collapsed:{}, planOem:"", showPhase:true, showCrit:false };
+var state = { tasks:[], seq:1, view:"day", collapsed:{}, planOem:"", showPhase:true, showCrit:false, baseline:null, showBaseline:false, resWarn:true };
 function newId(){ return "t" + (state.seq++); }
 function mkTask(o){
   o = o || {};
@@ -387,11 +396,11 @@ function mkTask(o){
     group:o.group||"", start:o.start||fmtD(new Date()), dur:o.dur!=null?o.dur:5,
     end:o.end||"", deps:o.deps||[], deadline:o.deadline||"", owner:o.owner||"", output:o.output||"",
     progress:o.progress||0, remarks:o.remarks||"", color:o.color||COLORS[0],
-    source:o.source||"manual", subs:o.subs||[] };
+    manual:!!o.manual, source:o.source||"manual", subs:o.subs||[] };
 }
 function save(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){} }
 function load(){
-  try{ var d = JSON.parse(localStorage.getItem(LS_KEY)); if(d && d.tasks){ state = d; if(typeof state.showPhase !== "boolean") state.showPhase = true; if(typeof state.showCrit !== "boolean") state.showCrit = false; normalizeState(); return; } }catch(e){}
+  try{ var d = JSON.parse(localStorage.getItem(LS_KEY)); if(d && d.tasks){ state = d; if(typeof state.showPhase !== "boolean") state.showPhase = true; if(typeof state.showCrit !== "boolean") state.showCrit = false; if(typeof state.showBaseline !== "boolean") state.showBaseline = false; if(typeof state.resWarn !== "boolean") state.resWarn = true; normalizeState(); return; } }catch(e){}
   seedSample();
 }
 function seedSample(){
@@ -452,10 +461,11 @@ function depsToText(deps){
     return s;
   }).join(",");
 }
-function normalizeState(){ // 旧数据 deps 字符串数组 → 对象数组；补 deadline 默认值
+function normalizeState(){ // 旧数据 deps 字符串数组 → 对象数组；补 deadline / manual 默认值
   state.tasks.forEach(function(t){
     t.deps = normDeps(t.deps);
     if(!t.deadline) t.deadline = "";
+    if(typeof t.manual !== "boolean") t.manual = false;
   });
 }
 function topoSort(tasks){ // 前置拓扑排序，返回 {order, cyclic}
@@ -494,6 +504,7 @@ function scheduleAll(){
   var byId = {}; ts.forEach(function(t){ byId[t.id] = t; });
   r.order.forEach(function(id){
     var t = byId[id]; if(!t) return;
+    if(t.manual){ t.end = taskEnd(t); return; } // 手动排程：不重排日期，但其日期仍作为后续任务的前置约束
     var latest = null;
     normDeps(t.deps).forEach(function(d){
       var p = byId[d.id]; if(!p || d.id === t.id) return;
@@ -562,6 +573,54 @@ function visibleTasks(){
   return out;
 }
 function flatTasks(){ return state.tasks.filter(function(t){ return t.type !== "group"; }); }
+
+/* ============ 基线快照 ============ */
+function baselineMap(){ // state.baseline（[{id,start,end}]）→ {taskId:{start,end}}
+  var m = {};
+  (state.baseline || []).forEach(function(b){ if(b && b.id) m[b.id] = b; });
+  return m;
+}
+function varianceOf(t, bmap){ // 开始日期相对基线的偏差天数（+晚于基线 / -早于基线）；无基线返回 null
+  if(!bmap) bmap = baselineMap();
+  var b = bmap[t.id];
+  if(!b || !b.start || !t.start) return null;
+  var bs = parseD(b.start), cs = parseD(t.start);
+  if(!bs || !cs) return null;
+  return diffDays(bs, cs);
+}
+function fmtVar(v){ return v === 0 ? "—" : (v > 0 ? "+" + v : String(v)); }
+function saveBaseline(){
+  if(state.baseline && !confirm(tr("baselineConfirm"))) return;
+  state.baseline = flatTasks().filter(function(t){ return !!t.start; }).map(function(t){
+    return { id:t.id, start:t.start, end:t.type === "milestone" ? t.start : taskEnd(t) };
+  });
+  save(); render(); toast(tr("baselineSaved"));
+}
+/* ============ 资源预警 ============ */
+var resWarnMap = {};
+function computeResWarn(){ // 同一负责人同日≥2个任务区间重叠 → 相关任务的负责人单元格标黄⚠（只预警不自动平衡）
+  resWarnMap = {};
+  if(!state.resWarn) return;
+  var byOwner = {};
+  flatTasks().forEach(function(t){
+    if(!t.owner) return;
+    var s = parseD(t.start), e = parseD(taskEnd(t));
+    if(!s || !e) return;
+    (byOwner[t.owner] = byOwner[t.owner] || []).push({ id:t.id, s:s, e:e });
+  });
+  Object.keys(byOwner).forEach(function(owner){
+    var list = byOwner[owner], dayIdx = {};
+    list.forEach(function(it, i){
+      for(var d = new Date(it.s); d <= it.e; d = addDays(d, 1)){
+        var k = fmtD(d);
+        (dayIdx[k] = dayIdx[k] || []).push(i);
+      }
+    });
+    Object.keys(dayIdx).forEach(function(k){
+      if(dayIdx[k].length >= 2) dayIdx[k].forEach(function(i){ resWarnMap[list[i].id] = 1; });
+    });
+  });
+}
 
 /* 文本格式解析（hark 兼容）：一行一条
    2026-10-01~2026-10-07,国庆   → 放假区间（名称可选）
@@ -657,6 +716,15 @@ function dateRange(){
     if(s && (!min || s < min)) min = s;
     if(e && (!max || e > max)) max = e;
   });
+  if(state.showBaseline){ // 基线对比时把基线日期也纳入视野，避免灰条画在屏幕外
+    var bmapR = baselineMap();
+    ts.forEach(function(t){
+      var b = bmapR[t.id]; if(!b) return;
+      var s = parseD(b.start), e = parseD(b.end);
+      if(s && (!min || s < min)) min = s;
+      if(e && (!max || e > max)) max = e;
+    });
+  }
   if(!min){ min = new Date(); min.setHours(0,0,0,0); }
   if(!max) max = addDays(min, 30);
   min = addDays(min, -7); max = addDays(max, 14);
@@ -665,11 +733,13 @@ function dateRange(){
 function X(d, min){ return diffDays(min, d) * PX_DAY; }
 function render(){
   scheduleAll(); save();
+  computeResWarn();
   renderTable(); renderGantt();
   updateCalSummary();
 }
 function renderTable(){
   var el = document.getElementById("taskList"), html = "";
+  var bmap = baselineMap();
   visibleTasks().forEach(function(t){
     var cls = "trow" + (t.type === "group" ? " group" : "") + (selId === t.id ? " sel" : "");
     var crit = state.showCrit && floatMap[t.id] !== undefined && floatMap[t.id] <= 0;
@@ -678,16 +748,22 @@ function renderTable(){
     var nm = t.type === "group"
       ? (state.collapsed[t.id] ? "▶ " : "▼ ") + esc(t.name)
       : t.type === "milestone" ? '<span class="ms-diamond">◆</span>&nbsp;' + esc(t.name) + warnHtml : esc(t.name) + warnHtml;
+    if(t.type !== "group" && t.manual) nm += '<span class="manual-badge" title="' + esc(tr("manualSched")) + '">📌</span>';
+    var ow = esc(t.owner || "");
+    if(t.type !== "group" && resWarnMap[t.id]) ow += '<span class="ow-warn" title="' + esc(tr("resWarnTip")) + '">⚠️</span>';
+    var vv = "—";
+    if(t.type !== "group"){ var v = varianceOf(t, bmap); if(v !== null) vv = fmtVar(v); }
     var prog = t.type === "group" ? "" : '<div class="progbar"><i style="width:' + t.progress + '%"></i></div>';
     var fv = t.type === "group" ? "" : (floatMap[t.id] === undefined ? "—" : floatMap[t.id]);
     html += '<div class="' + cls + '" data-id="' + t.id + '">'
       + '<div class="c-id">' + (t.type === "group" ? "" : t.id.replace("t","")) + "</div>"
       + '<div class="c-name">' + nm + "</div>"
-      + '<div class="c-owner">' + esc(t.owner || "") + "</div>"
+      + '<div class="c-owner">' + ow + "</div>"
       + '<div class="c-dur">' + (t.type === "group" ? "" : t.type === "milestone" ? "◆" : t.dur) + "</div>"
       + '<div class="c-prog">' + prog + "</div>"
       + '<div class="c-start">' + (t.start || "") + "</div>"
       + '<div class="c-end">' + (t.type === "group" ? "" : taskEnd(t)) + "</div>"
+      + '<div class="c-var">' + vv + "</div>"
       + '<div class="c-float' + (crit ? " crit" : "") + '">' + fv + "</div></div>";
   });
   el.innerHTML = html || '<div style="padding:20px;color:var(--tx3)">—</div>';
@@ -735,6 +811,7 @@ function renderGantt(){
   PX_DAY = state.view === "week" ? 10 : (state.view === "month" ? PX_MONTH / 30 : 28);
   var W = days * PX_DAY;
   var vis = visibleTasks();
+  var bmap = baselineMap();
   // 表头：日视图每列两行（M/D + 星期）；周视图在每周第一列画跨周宽度的 M/D~M/D 标签；
   // 月视图每列一个月，列宽按当月实际天数（30天月=PX_MONTH），与 X() 按天映射对齐
   var hh = "";
@@ -857,6 +934,22 @@ function renderGantt(){
         + '<div class="fill" style="width:' + t.progress + '%"></div>'
         + '<span class="lbl">' + esc(t.name) + " " + t.progress + '%</span></div>';
     }
+    // 基线灰条（基线对比开启时，画在任务条下方；里程碑画小灰菱形）
+    if(state.showBaseline){
+      var bb = bmap[t.id];
+      if(bb && bb.start){
+        var bsd = parseD(bb.start);
+        if(bsd){
+          if(t.type === "milestone"){
+            html += '<div class="g-base-ms" style="left:' + (X(bsd, min) - 4) + 'px;top:' + (y + 25) + 'px"></div>';
+          } else {
+            var bed = parseD(bb.end) || bsd;
+            var bbw = Math.max((diffDays(bsd, bed) + 1) * PX_DAY - 4, 4);
+            html += '<div class="g-base" style="left:' + X(bsd, min) + 'px;top:' + (y + 28) + 'px;width:' + bbw + 'px"></div>';
+          }
+        }
+      }
+    }
   });
   inner.innerHTML = html;
   inner.style.height = (BAND_H + vis.length * ROW_H) + "px";
@@ -921,6 +1014,7 @@ function openModal(id){
     + '<div class="frow"><label>' + tr("fDur") + '</label><input id="fDur" type="number" min="0" value="' + t.dur + '"></div></div>'
     + '<div class="frow2"><div class="frow"><label>' + tr("fDeadline") + '</label><input id="fDeadline" type="date" value="' + (t.deadline||"") + '"></div>'
     + '<div class="frow"><label>' + tr("fProg") + '</label><input id="fProg" type="number" min="0" max="100" value="' + t.progress + '"></div></div>'
+    + '<div class="frow"><label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox" id="fManual"' + (t.manual ? " checked" : "") + ' style="width:auto;accent-color:var(--accent)"> ' + tr("manualSched") + '</label></div>'
     + '<div class="frow"><label>' + tr("fDeps") + '</label><input id="fDepsText" value="' + esc(depsToText(t.deps)) + '" placeholder="3FS,5SS+2d">'
     + '<div style="margin-top:6px;max-height:120px;overflow:auto">' + (depOpts || "—") + "</div>"
     + '<div class="hint" data-i18n="fDepsHint" style="font-size:11px;color:var(--tx3);margin-top:4px">' + tr("fDepsHint") + "</div></div>"
@@ -955,6 +1049,7 @@ function saveModal(){
   var data = { name:name, type:document.getElementById("fType").value, group:document.getElementById("fGroup").value,
     start:document.getElementById("fStart").value, dur:+document.getElementById("fDur").value || 0, deps:deps,
     deadline:document.getElementById("fDeadline").value || "",
+    manual:document.getElementById("fManual").checked,
     owner:document.getElementById("fOwner").value.trim(), output:document.getElementById("fOutput").value.trim(),
     progress:Math.min(100, Math.max(0, +document.getElementById("fProg").value || 0)),
     remarks:document.getElementById("fRemarks").value.trim(), color:document.getElementById("fColor").value };
@@ -1006,7 +1101,7 @@ function importJSONFile(f){
       // 支持计划工具导出的 JSON（含 state 字段）→ 转为执行层初始任务
       if((d.app === "gantt-tool" && d.dates) || (d.state && d.state.dates)){ fromPlanData(d.state || d); return; }
       var st = d.state || d;
-      if(st.tasks){ state = st; if(!state.seq) state.seq = 1000; if(!state.collapsed) state.collapsed = {}; if(typeof state.showPhase !== "boolean") state.showPhase = true; if(typeof state.showCrit !== "boolean") state.showCrit = false; normalizeState(); syncOemSelect(); document.getElementById("ckPhase").checked = state.showPhase !== false; document.getElementById("ckCrit").checked = state.showCrit === true; render(); toast(tr("importOk")); }
+      if(st.tasks){ state = st; if(!state.seq) state.seq = 1000; if(!state.collapsed) state.collapsed = {}; if(typeof state.showPhase !== "boolean") state.showPhase = true; if(typeof state.showCrit !== "boolean") state.showCrit = false; if(typeof state.showBaseline !== "boolean") state.showBaseline = false; if(typeof state.resWarn !== "boolean") state.resWarn = true; normalizeState(); syncOemSelect(); document.getElementById("ckPhase").checked = state.showPhase !== false; document.getElementById("ckCrit").checked = state.showCrit === true; render(); toast(tr("importOk")); }
     }catch(e){ toast("JSON parse error"); }
   };
   r.readAsText(f);
@@ -1072,7 +1167,8 @@ function renderExportCanvas(cb){
   var W = days * pxDay;
   var bands = phaseAnchors();
   var BAND_H = bands.length ? 30 : 0;
-  var TABLE_W = 556, HEAD_H = 44, ROW_H = 34;
+  var bmap = baselineMap();
+  var TABLE_W = 608, HEAD_H = 44, ROW_H = 34;
   var TITLE_H = 80, LEGEND_H = 44, FOOT_H = 26;
   var bodyH = HEAD_H + BAND_H + rows * ROW_H;
   var cssW = TABLE_W + W, cssH = TITLE_H + bodyH + LEGEND_H + FOOT_H;
@@ -1091,8 +1187,8 @@ function renderExportCanvas(cb){
   var rowY0 = bandY + BAND_H;   /* 任务行起始 y */
   var bodyBot = rowY0 + rows * ROW_H;
   var sys = state.planOem ? OEM_PHASE_SYS[state.planOem] : '';
-  var NAME_W = TABLE_W - 36 - 64 - 52 - 56 - 86 - 86 - 56;
-  var CX = { id:18, name:36, owner:36 + NAME_W, dur:36 + NAME_W + 64, prog:36 + NAME_W + 64 + 52, start:36 + NAME_W + 64 + 52 + 56, end:36 + NAME_W + 64 + 52 + 56 + 86, float:36 + NAME_W + 64 + 52 + 56 + 86 + 86 };
+  var NAME_W = TABLE_W - 36 - 64 - 52 - 56 - 86 - 86 - 52 - 56;
+  var CX = { id:18, name:36, owner:36 + NAME_W, dur:36 + NAME_W + 64, prog:36 + NAME_W + 64 + 52, start:36 + NAME_W + 64 + 52 + 56, end:36 + NAME_W + 64 + 52 + 56 + 86, vr:36 + NAME_W + 64 + 52 + 56 + 86 + 86, float:36 + NAME_W + 64 + 52 + 56 + 86 + 86 + 52 };
   var today = new Date(); today.setHours(0, 0, 0, 0);
 
   /* ---- 标题（优先取计划页项目名） ---- */
@@ -1120,6 +1216,7 @@ function renderExportCanvas(cb){
     { t:tr('cProg'), x:CX.prog, w:56, ctr:true },
     { t:tr('cStart'), x:CX.start, w:86, ctr:true },
     { t:tr('cEnd'), x:CX.end, w:86, ctr:true },
+    { t:tr('varianceCol'), x:CX.vr, w:52, ctr:true },
     { t:tr('floatCol'), x:CX.float, w:56, ctr:true }
   ];
   heads.forEach(function(hd){
@@ -1262,7 +1359,7 @@ function renderExportCanvas(cb){
     } else {
       ctx.font = expFont(12, false);
       ctx.fillStyle = '#1f2937';
-      ctx.fillText(fitText(ctx, t.name, NAME_W - 12), CX.name + 6, cy);
+      ctx.fillText(fitText(ctx, (t.manual ? '📌 ' : '') + t.name, NAME_W - 12), CX.name + 6, cy);
     }
     /* 负责人 */
     ctx.font = expFont(12, false);
@@ -1282,10 +1379,11 @@ function renderExportCanvas(cb){
         rr(ctx, px, cy - 4, Math.max(pw * t.progress / 100, 2), 8, 4); ctx.fill();
       }
     }
-    /* 开始/结束/总浮时 */
+    /* 开始/结束/偏差/总浮时 */
     ctx.fillStyle = '#4b5563';
     ctx.fillText(t.start || '', CX.start + 43, cy);
     ctx.fillText(isGroup ? '' : taskEnd(t), CX.end + 43, cy);
+    ctx.fillText(isGroup ? '' : (function(){ var v = varianceOf(t, bmap); return v === null ? '—' : fmtVar(v); })(), CX.vr + 26, cy);
     var fv = isGroup ? '' : (floatMap[t.id] === undefined ? '—' : String(floatMap[t.id]));
     var isCrit = state.showCrit && floatMap[t.id] !== undefined && floatMap[t.id] <= 0;
     ctx.fillStyle = isCrit ? '#dc2626' : '#4b5563';
@@ -1335,6 +1433,28 @@ function renderExportCanvas(cb){
           ctx.fillText(fitText(ctx, t.name + ' ' + t.progress + '%', Math.max(bw - 10, 0)), bx + 6, by + bh / 2);
           ctx.restore();
           ctx.textBaseline = 'alphabetic';
+        }
+        /* 基线灰条（基线对比开启时与任务条同步绘制：任务=灰条，里程碑=灰菱形） */
+        if(state.showBaseline){
+          var bb = bmap[t.id];
+          if(bb && bb.start){
+            var bsd = parseD(bb.start);
+            if(bsd){
+              if(t.type === 'milestone'){
+                ctx.save();
+                ctx.translate(hx + X(bsd), ry + 29);
+                ctx.rotate(Math.PI / 4);
+                ctx.fillStyle = '#9ca3af';
+                ctx.fillRect(-4, -4, 8, 8);
+                ctx.restore();
+              } else {
+                var bed = parseD(bb.end) || bsd;
+                var bbw = Math.max((diffDays(bsd, bed) + 1) * pxDay - 4, 4);
+                ctx.fillStyle = '#9ca3af';
+                rr(ctx, hx + X(bsd), ry + 28, bbw, 5, 2); ctx.fill();
+              }
+            }
+          }
         }
       }
     }
@@ -1397,6 +1517,7 @@ function renderExportCanvas(cb){
   });
   if(hasMs) items.push({ c:'#dc2626', t:tr('planGroupMs'), diamond:true });
   if(bands.length) items.push({ c:'#bfdbfe', t:tr('legendPhase'), border:'#60a5fa' });
+  if(state.showBaseline && vis.some(function(t){ return bmap[t.id]; })) items.push({ c:'#9ca3af', t:tr('showBaseline') });
   if(hasRec) items.push({ c:'#2563eb', t:tr('planGroupRec') });
   if(hasSup) items.push({ c:'#9333ea', t:tr('planGroupSup'), diamond:true });
   if(hasCustom) items.push({ c:'#16a34a', t:tr('planGroupCustom') });
@@ -1664,6 +1785,8 @@ function init(){
   buildOemOptions();
   document.getElementById("ckPhase").checked = state.showPhase !== false;
   document.getElementById("ckCrit").checked = state.showCrit === true;
+  document.getElementById("ckBaseline").checked = state.showBaseline === true;
+  document.getElementById("ckResWarn").checked = state.resWarn !== false;
   /* OEM 初始化顺序：URL ?oem= > localStorage 计划数据的 oem > 已保存的 state.planOem */
   var plan = null;
   try{ plan = JSON.parse(localStorage.getItem("gantt-tool-v1")); }catch(e){}
@@ -1711,6 +1834,15 @@ function init(){
   });
   document.getElementById("ckCrit").addEventListener("change", function(){
     state.showCrit = this.checked;
+    save(); render();
+  });
+  document.getElementById("btnBaseline").addEventListener("click", saveBaseline);
+  document.getElementById("ckBaseline").addEventListener("change", function(){
+    state.showBaseline = this.checked;
+    save(); render();
+  });
+  document.getElementById("ckResWarn").addEventListener("change", function(){
+    state.resWarn = this.checked;
     save(); render();
   });
   document.getElementById("btnSyncBack").addEventListener("click", syncBack);
