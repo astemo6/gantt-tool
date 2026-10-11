@@ -28,14 +28,20 @@ header button:hover{background:var(--steel3)}
 .toolbar button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
 .toolbar button.primary:hover{background:#1d4ed8}
 .toolbar .sep{width:1px;height:20px;background:var(--line)}
+.toolbar select{border:1px solid var(--line);border-radius:6px;padding:6px 8px;font-size:12px;color:var(--tx1);background:#fff;cursor:pointer;max-width:220px}
+.toolbar select:hover{border-color:var(--accent)}
+.toolbar .ck{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--tx1);cursor:pointer;user-select:none;white-space:nowrap}
+.toolbar .ck input{margin:0;accent-color:var(--accent);cursor:pointer}
 .viewbtns{display:flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
 .viewbtns button{border:none;border-radius:0;padding:6px 14px}
 .viewbtns button.on{background:var(--steel2);color:#fff}
 .main{flex:1;display:flex;min-height:0}
 .table-pane{width:460px;min-width:340px;max-width:640px;background:var(--side);border-right:1px solid var(--line);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0}
-.table-head{display:flex;background:var(--steel);color:#fff;font-size:11px;font-weight:600;flex-shrink:0}
+/* 表头与表体共用同一滚动容器：竖分割线上下始终对齐；scrollbar-gutter 避免滚动条出现/消失时列宽跳动 */
+.table-scroll{flex:1;overflow:auto;min-height:0;scrollbar-gutter:stable}
+.table-inner{min-width:0}
+.table-head{display:flex;background:var(--steel);color:#fff;font-size:11px;font-weight:600;flex-shrink:0;position:sticky;top:0;z-index:2}
 .table-head>div{padding:8px 6px;border-right:1px solid #4b6a85;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
-.table-body{flex:1;overflow:auto}
 .trow{display:flex;border-bottom:1px solid var(--line2);cursor:pointer;align-items:stretch}
 .trow:hover{background:#eef4ff}
 .trow.sel{background:#dbeafe}
@@ -123,9 +129,10 @@ header button:hover{background:var(--steel3)}
   .toolbar{padding:6px 10px;gap:6px}
   header button,.toolbar button,.viewbtns button,.modal-f button,.cal-panel button{min-height:40px;min-width:40px}
   .frow input,.frow select,.frow textarea{min-height:40px}
-  /* 左侧任务表允许横向滚动（列宽不压缩），甘特区横向滚动 */
+  /* 左侧任务表允许横向滚动（列宽不压缩，表头表体同宽同滚），甘特区横向滚动 */
   .table-pane{width:42%;min-width:0;max-width:none;overflow-x:auto}
-  .table-head,.table-body{min-width:520px}
+  .table-inner{min-width:520px}
+  .toolbar .ck,.toolbar select{min-height:40px}
   .gantt-pane{min-width:0}
   /* 表格字号适当缩小 */
   .table-head{font-size:10px}
@@ -158,6 +165,9 @@ header button:hover{background:var(--steel3)}
     <button data-view="day" class="on" data-i18n="vDay">日</button><button data-view="week" data-i18n="vWeek">周</button><button data-view="month" data-i18n="vMonth">月</button>
   </div>
   <span class="sep"></span>
+  <select id="oemSelect" title="OEM"></select>
+  <label class="ck"><input type="checkbox" id="ckPhase" checked><span data-i18n="showPhase">阶段</span></label>
+  <span class="sep"></span>
   <button id="btnCal" data-i18n="workCal">工作日历</button>
   <span class="sep"></span>
   <button id="btnPDF" data-i18n="exportPDF">导出 PDF</button>
@@ -186,10 +196,14 @@ header button:hover{background:var(--steel3)}
 </div>
 <div class="main">
   <div class="table-pane">
-    <div class="table-head">
-      <div class="c-id">ID</div><div class="c-name" data-i18n="cName">任务名称</div><div class="c-owner" data-i18n="cOwner">负责人</div><div class="c-dur" data-i18n="cDur">工期</div><div class="c-prog" data-i18n="cProg">进度</div><div class="c-start" data-i18n="cStart">开始</div><div class="c-end" data-i18n="cEnd">结束</div>
+    <div class="table-scroll">
+      <div class="table-inner">
+        <div class="table-head">
+          <div class="c-id">ID</div><div class="c-name" data-i18n="cName">任务名称</div><div class="c-owner" data-i18n="cOwner">负责人</div><div class="c-dur" data-i18n="cDur">工期</div><div class="c-prog" data-i18n="cProg">进度</div><div class="c-start" data-i18n="cStart">开始</div><div class="c-end" data-i18n="cEnd">结束</div>
+        </div>
+        <div class="table-body" id="taskList"></div>
+      </div>
     </div>
-    <div class="table-body" id="taskList"></div>
   </div>
   <div class="gantt-pane">
     <div class="gantt-head" id="ganttHead"></div>
@@ -238,9 +252,9 @@ header button:hover{background:var(--steel3)}
 "use strict";
 /* ============ I18N ============ */
 var I18N = {
-zh:{weekdayNames:["一","二","三","四","五","六","日"],appTitle:"执行层计划",backToPlan:"← 里程碑计划",addTask:"+ 新增任务",addGroup:"+ 新增分组",addMs:"+ 里程碑",fromPlan:"从计划导入",syncBack:"回写里程碑计划",syncBackOk:"已同步到里程碑计划",syncBackEmpty:"没有可同步的里程碑",syncBackFail:"计划数据读取失败",importSub:"导入细项",vDay:"日",vWeek:"周",vMonth:"月",workCal:"工作日历",exportJSON:"导出JSON",importJSON:"导入JSON",exportCSV:"导出CSV",preview:"预览",exportPDF:"导出 PDF",exportJPG:"导出 JPG",expPreviewTitle:"导出预览",expDate:"日期",legendPhase:"阶段区间",legendTask:"任务",today:"今天",cName:"任务名称",cOwner:"负责人",cDur:"工期",cProg:"进度",cStart:"开始",cEnd:"结束",calTitle:"工作日历 · 自然语言导入",calPh:"例如：2026年春节2月15日到2月23日放假，2月14日、2月28日调休上班",calParse:"解析并导入",calReset:"恢复默认",calHint:"支持：X月X日、X月X日至X月X日、放假/调休/补班/上班等关键词，年份缺省为当年。",calModeNL:"自然语言",calModeText:"文本格式",calHintText:"一行一条：2026-10-01~2026-10-07,国庆 表示放假区间；补班 2026-10-10 表示调休上班。",calPhText:"2026-10-01~2026-10-07,国庆\n补班 2026-10-10",del:"删除",cancel:"取消",ok:"确定",importSubT:"导入细项",subTarget:"目标任务",subContent:"细项内容（一行一条，可含负责人、工期，用逗号分隔）",subFile:"或从 CSV 文件导入",editTask:"编辑任务",newTask:"新增任务",newGroup:"新增分组",newMs:"新增里程碑",fName:"名称",fType:"类型",tTask:"任务",tMs:"里程碑",tGroup:"分组",fGroup:"所属分组",fStart:"开始日期",fDur:"工期（工作日）",fDeps:"前置任务（ID逗号分隔）",fOwner:"负责人",fOutput:"输出成果",fProg:"进度%",fRemarks:"备注",fColor:"颜色",needName:"请填写名称",fromPlanOk:"已从计划导入",noPlan:"未找到计划数据",calApplied:"日历已更新",cycleWarn:"检测到循环依赖，已忽略",importOk:"导入成功",subOk:"细项导入成功",topGroup:"顶级",planGroupMs:"客户里程碑",planGroupRec:"推荐任务",planGroupSup:"供应商节点",planGroupCustom:"自定义任务"},
-en:{weekdayNames:["Mon","Tue","Wed","Thu","Fri","Sat","Sun"],appTitle:"Execution Plan",backToPlan:"← Milestone Plan",addTask:"+ Add Task",addGroup:"+ Add Group",addMs:"+ Milestone",fromPlan:"Import from Plan",syncBack:"Write Back to Plan",syncBackOk:"Synced to milestone plan",syncBackEmpty:"No linked milestones to sync",syncBackFail:"Failed to read plan data",importSub:"Import Sub-items",vDay:"Day",vWeek:"Week",vMonth:"Month",workCal:"Work Calendar",exportJSON:"Export JSON",importJSON:"Import JSON",exportCSV:"Export CSV",preview:"Preview",exportPDF:"Export PDF",exportJPG:"Export JPG",expPreviewTitle:"Export Preview",expDate:"Date",legendPhase:"Phase",legendTask:"Task",today:"Today",cName:"Task",cOwner:"Owner",cDur:"Dur.",cProg:"Prog.",cStart:"Start",cEnd:"End",calTitle:"Work Calendar · Natural Language Import",calPh:"e.g. Spring Festival 2026-02-15 to 2026-02-23 off, 02-14 and 02-28 work",calParse:"Parse & Import",calReset:"Reset",calHint:"Supports date ranges and keywords like off/work. Year defaults to current.",calModeNL:"Natural language",calModeText:"Text format",calHintText:"One per line: 2026-10-01~2026-10-07,National Day = holiday range; Make-up 2026-10-10 = workday.",calPhText:"2026-10-01~2026-10-07,National Day\nMake-up 2026-10-10",del:"Delete",cancel:"Cancel",ok:"OK",importSubT:"Import Sub-items",subTarget:"Target Task",subContent:"One per line, optional owner,duration comma-separated",subFile:"Or import from CSV file",editTask:"Edit Task",newTask:"New Task",newGroup:"New Group",newMs:"New Milestone",fName:"Name",fType:"Type",tTask:"Task",tMs:"Milestone",tGroup:"Group",fGroup:"Group",fStart:"Start Date",fDur:"Duration (workdays)",fDeps:"Predecessors (IDs comma-separated)",fOwner:"Owner",fOutput:"Deliverable",fProg:"Progress %",fRemarks:"Remarks",fColor:"Color",needName:"Name required",fromPlanOk:"Imported from plan",noPlan:"No plan data found",calApplied:"Calendar updated",cycleWarn:"Circular dependency detected and ignored",importOk:"Import OK",subOk:"Sub-items imported",topGroup:"Top",planGroupMs:"Customer Milestones",planGroupRec:"Recommended Tasks",planGroupSup:"Supplier Nodes",planGroupCustom:"Custom Tasks"},
-de:{weekdayNames:["Mo","Di","Mi","Do","Fr","Sa","So"],appTitle:"Ausführungsplan",backToPlan:"← Meilensteinplan",addTask:"+ Aufgabe",addGroup:"+ Gruppe",addMs:"+ Meilenstein",fromPlan:"Aus Plan importieren",syncBack:"In Plan zurückschreiben",syncBackOk:"Mit Meilensteinplan synchronisiert",syncBackEmpty:"Keine verknüpften Meilensteine",syncBackFail:"Plandaten konnten nicht gelesen werden",importSub:"Unterpunkte importieren",vDay:"Tag",vWeek:"Woche",vMonth:"Monat",workCal:"Arbeitskalender",exportJSON:"JSON exportieren",importJSON:"JSON importieren",exportCSV:"CSV exportieren",preview:"Vorschau",exportPDF:"PDF exportieren",exportJPG:"JPG exportieren",expPreviewTitle:"Exportvorschau",expDate:"Datum",legendPhase:"Phasen",legendTask:"Aufgabe",today:"Heute",cName:"Aufgabe",cOwner:"Eigner",cDur:"Dauer",cProg:"Fort.",cStart:"Start",cEnd:"End",calTitle:"Arbeitskalender · Import in natürlicher Sprache",calPh:"z.B. Frühlingsfest 2026-02-15 bis 2026-02-23 frei",calParse:"Parsen & importieren",calReset:"Zurücksetzen",calHint:"Datumsbereiche und Schlüsselwörter werden unterstützt.",calModeNL:"Natürliche Sprache",calModeText:"Textformat",calHintText:"Eine Zeile pro Eintrag: 2026-10-01~2026-10-07,Feiertag = Ferienbereich; Ausgleich 2026-10-10 = Arbeitstag.",calPhText:"2026-10-01~2026-10-07,Feiertag\nAusgleich 2026-10-10",del:"Löschen",cancel:"Abbrechen",ok:"OK",importSubT:"Unterpunkte importieren",subTarget:"Zielaufgabe",subContent:"Eins pro Zeile, optional Eigner,Dauer",subFile:"Oder aus CSV-Datei importieren",editTask:"Aufgabe bearbeiten",newTask:"Neue Aufgabe",newGroup:"Neue Gruppe",newMs:"Neuer Meilenstein",fName:"Name",fType:"Typ",tTask:"Aufgabe",tMs:"Meilenstein",tGroup:"Gruppe",fGroup:"Gruppe",fStart:"Startdatum",fDur:"Dauer (Arbeitstage)",fDeps:"Vorgänger (IDs)",fOwner:"Eigner",fOutput:"Ergebnis",fProg:"Fortschritt %",fRemarks:"Bemerkungen",fColor:"Farbe",needName:"Name erforderlich",fromPlanOk:"Aus Plan importiert",noPlan:"Keine Plandaten",calApplied:"Kalender aktualisiert",cycleWarn:"Zirkuläre Abhängigkeit ignoriert",importOk:"Import OK",subOk:"Unterpunkte importiert",topGroup:"Oberste",planGroupMs:"Kundenmeilensteine",planGroupRec:"Empfohlene Aufgaben",planGroupSup:"Lieferantenknoten",planGroupCustom:"Eigene Aufgaben"}};
+zh:{weekdayNames:["一","二","三","四","五","六","日"],appTitle:"执行层计划",backToPlan:"← 里程碑计划",addTask:"+ 新增任务",addGroup:"+ 新增分组",addMs:"+ 里程碑",fromPlan:"从计划导入",syncBack:"回写里程碑计划",syncBackOk:"已同步到里程碑计划",syncBackEmpty:"没有可同步的里程碑",syncBackFail:"计划数据读取失败",importSub:"导入细项",vDay:"日",vWeek:"周",vMonth:"月",workCal:"工作日历",showPhase:"阶段",oemPlaceholder:"请选择主机厂",exportJSON:"导出JSON",importJSON:"导入JSON",exportCSV:"导出CSV",preview:"预览",exportPDF:"导出 PDF",exportJPG:"导出 JPG",expPreviewTitle:"导出预览",expDate:"日期",legendPhase:"阶段区间",legendTask:"任务",today:"今天",cName:"任务名称",cOwner:"负责人",cDur:"工期",cProg:"进度",cStart:"开始",cEnd:"结束",calTitle:"工作日历 · 自然语言导入",calPh:"例如：2026年春节2月15日到2月23日放假，2月14日、2月28日调休上班",calParse:"解析并导入",calReset:"恢复默认",calHint:"支持：X月X日、X月X日至X月X日、放假/调休/补班/上班等关键词，年份缺省为当年。",calModeNL:"自然语言",calModeText:"文本格式",calHintText:"一行一条：2026-10-01~2026-10-07,国庆 表示放假区间；补班 2026-10-10 表示调休上班。",calPhText:"2026-10-01~2026-10-07,国庆\n补班 2026-10-10",del:"删除",cancel:"取消",ok:"确定",importSubT:"导入细项",subTarget:"目标任务",subContent:"细项内容（一行一条，可含负责人、工期，用逗号分隔）",subFile:"或从 CSV 文件导入",editTask:"编辑任务",newTask:"新增任务",newGroup:"新增分组",newMs:"新增里程碑",fName:"名称",fType:"类型",tTask:"任务",tMs:"里程碑",tGroup:"分组",fGroup:"所属分组",fStart:"开始日期",fDur:"工期（工作日）",fDeps:"前置任务（ID逗号分隔）",fOwner:"负责人",fOutput:"输出成果",fProg:"进度%",fRemarks:"备注",fColor:"颜色",needName:"请填写名称",fromPlanOk:"已从计划导入",noPlan:"未找到计划数据",calApplied:"日历已更新",cycleWarn:"检测到循环依赖，已忽略",importOk:"导入成功",subOk:"细项导入成功",topGroup:"顶级",planGroupMs:"客户里程碑",planGroupRec:"推荐任务",planGroupSup:"供应商节点",planGroupCustom:"自定义任务"},
+en:{weekdayNames:["Mon","Tue","Wed","Thu","Fri","Sat","Sun"],appTitle:"Execution Plan",backToPlan:"← Milestone Plan",addTask:"+ Add Task",addGroup:"+ Add Group",addMs:"+ Milestone",fromPlan:"Import from Plan",syncBack:"Write Back to Plan",syncBackOk:"Synced to milestone plan",syncBackEmpty:"No linked milestones to sync",syncBackFail:"Failed to read plan data",importSub:"Import Sub-items",vDay:"Day",vWeek:"Week",vMonth:"Month",workCal:"Work Calendar",showPhase:"Phases",oemPlaceholder:"Select OEM",exportJSON:"Export JSON",importJSON:"Import JSON",exportCSV:"Export CSV",preview:"Preview",exportPDF:"Export PDF",exportJPG:"Export JPG",expPreviewTitle:"Export Preview",expDate:"Date",legendPhase:"Phase",legendTask:"Task",today:"Today",cName:"Task",cOwner:"Owner",cDur:"Dur.",cProg:"Prog.",cStart:"Start",cEnd:"End",calTitle:"Work Calendar · Natural Language Import",calPh:"e.g. Spring Festival 2026-02-15 to 2026-02-23 off, 02-14 and 02-28 work",calParse:"Parse & Import",calReset:"Reset",calHint:"Supports date ranges and keywords like off/work. Year defaults to current.",calModeNL:"Natural language",calModeText:"Text format",calHintText:"One per line: 2026-10-01~2026-10-07,National Day = holiday range; Make-up 2026-10-10 = workday.",calPhText:"2026-10-01~2026-10-07,National Day\nMake-up 2026-10-10",del:"Delete",cancel:"Cancel",ok:"OK",importSubT:"Import Sub-items",subTarget:"Target Task",subContent:"One per line, optional owner,duration comma-separated",subFile:"Or import from CSV file",editTask:"Edit Task",newTask:"New Task",newGroup:"New Group",newMs:"New Milestone",fName:"Name",fType:"Type",tTask:"Task",tMs:"Milestone",tGroup:"Group",fGroup:"Group",fStart:"Start Date",fDur:"Duration (workdays)",fDeps:"Predecessors (IDs comma-separated)",fOwner:"Owner",fOutput:"Deliverable",fProg:"Progress %",fRemarks:"Remarks",fColor:"Color",needName:"Name required",fromPlanOk:"Imported from plan",noPlan:"No plan data found",calApplied:"Calendar updated",cycleWarn:"Circular dependency detected and ignored",importOk:"Import OK",subOk:"Sub-items imported",topGroup:"Top",planGroupMs:"Customer Milestones",planGroupRec:"Recommended Tasks",planGroupSup:"Supplier Nodes",planGroupCustom:"Custom Tasks"},
+de:{weekdayNames:["Mo","Di","Mi","Do","Fr","Sa","So"],appTitle:"Ausführungsplan",backToPlan:"← Meilensteinplan",addTask:"+ Aufgabe",addGroup:"+ Gruppe",addMs:"+ Meilenstein",fromPlan:"Aus Plan importieren",syncBack:"In Plan zurückschreiben",syncBackOk:"Mit Meilensteinplan synchronisiert",syncBackEmpty:"Keine verknüpften Meilensteine",syncBackFail:"Plandaten konnten nicht gelesen werden",importSub:"Unterpunkte importieren",vDay:"Tag",vWeek:"Woche",vMonth:"Monat",workCal:"Arbeitskalender",showPhase:"Phasen",oemPlaceholder:"OEM wählen",exportJSON:"JSON exportieren",importJSON:"JSON importieren",exportCSV:"CSV exportieren",preview:"Vorschau",exportPDF:"PDF exportieren",exportJPG:"JPG exportieren",expPreviewTitle:"Exportvorschau",expDate:"Datum",legendPhase:"Phasen",legendTask:"Aufgabe",today:"Heute",cName:"Aufgabe",cOwner:"Eigner",cDur:"Dauer",cProg:"Fort.",cStart:"Start",cEnd:"End",calTitle:"Arbeitskalender · Import in natürlicher Sprache",calPh:"z.B. Frühlingsfest 2026-02-15 bis 2026-02-23 frei",calParse:"Parsen & importieren",calReset:"Zurücksetzen",calHint:"Datumsbereiche und Schlüsselwörter werden unterstützt.",calModeNL:"Natürliche Sprache",calModeText:"Textformat",calHintText:"Eine Zeile pro Eintrag: 2026-10-01~2026-10-07,Feiertag = Ferienbereich; Ausgleich 2026-10-10 = Arbeitstag.",calPhText:"2026-10-01~2026-10-07,Feiertag\nAusgleich 2026-10-10",del:"Löschen",cancel:"Abbrechen",ok:"OK",importSubT:"Unterpunkte importieren",subTarget:"Zielaufgabe",subContent:"Eins pro Zeile, optional Eigner,Dauer",subFile:"Oder aus CSV-Datei importieren",editTask:"Aufgabe bearbeiten",newTask:"Neue Aufgabe",newGroup:"Neue Gruppe",newMs:"Neuer Meilenstein",fName:"Name",fType:"Typ",tTask:"Aufgabe",tMs:"Meilenstein",tGroup:"Gruppe",fGroup:"Gruppe",fStart:"Startdatum",fDur:"Dauer (Arbeitstage)",fDeps:"Vorgänger (IDs)",fOwner:"Eigner",fOutput:"Ergebnis",fProg:"Fortschritt %",fRemarks:"Bemerkungen",fColor:"Farbe",needName:"Name erforderlich",fromPlanOk:"Aus Plan importiert",noPlan:"Keine Plandaten",calApplied:"Kalender aktualisiert",cycleWarn:"Zirkuläre Abhängigkeit ignoriert",importOk:"Import OK",subOk:"Unterpunkte importiert",topGroup:"Oberste",planGroupMs:"Kundenmeilensteine",planGroupRec:"Empfohlene Aufgaben",planGroupSup:"Lieferantenknoten",planGroupCustom:"Eigene Aufgaben"}};
 var lang = "zh";
 function tr(k){ return (I18N[lang] && I18N[lang][k]) || I18N.zh[k] || k; }
 function applyLang(){
@@ -296,6 +310,18 @@ function oemFromSlug(slug){
   return '';
 }
 
+/* 执行页工具条 OEM 下拉：选项与里程碑页一致（OEM_PHASE_SYS 全部 16 个 key） */
+function buildOemOptions(){
+  var sel = document.getElementById("oemSelect");
+  sel.innerHTML = '<option value="">' + esc(tr("oemPlaceholder")) + "</option>" + Object.keys(OEM_PHASE_SYS).map(function(o){
+    return '<option value="' + esc(o) + '">' + esc(o) + "</option>";
+  }).join("");
+}
+function syncOemSelect(){
+  var sel = document.getElementById("oemSelect");
+  if(sel) sel.value = state.planOem || "";
+}
+
 /* 阶段体系名称（三语）：色带标注用。只含标准阶段键（ML0-7/APQP1-5/ANPQP1-5），
    OEM_PHASES 中的非标准键（如 BMW 的 VS0/VS2/PrePZS/PZS）不参与色带 */
 const PHASE_NAMES = {
@@ -331,7 +357,7 @@ const REC_DEFAULTS = {"r1":{"so":-3,"eo":0},"r2":{"so":-10,"eo":-8},"r3":{"so":-
 /* ============ 数据模型与状态 ============ */
 var LS_KEY = "gantt-exec-v1";
 var COLORS = ["#2563eb","#16a34a","#9333ea","#ea580c","#0891b2","#dc2626","#4f46e5","#0d9488"];
-var state = { tasks:[], seq:1, view:"day", collapsed:{}, planOem:"" };
+var state = { tasks:[], seq:1, view:"day", collapsed:{}, planOem:"", showPhase:true };
 function newId(){ return "t" + (state.seq++); }
 function mkTask(o){
   o = o || {};
@@ -343,7 +369,7 @@ function mkTask(o){
 }
 function save(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){} }
 function load(){
-  try{ var d = JSON.parse(localStorage.getItem(LS_KEY)); if(d && d.tasks){ state = d; return; } }catch(e){}
+  try{ var d = JSON.parse(localStorage.getItem(LS_KEY)); if(d && d.tasks){ state = d; if(typeof state.showPhase !== "boolean") state.showPhase = true; return; } }catch(e){}
   seedSample();
 }
 function seedSample(){
@@ -554,6 +580,7 @@ function esc(s){ return String(s == null ? "" : s).replace(/&/g,"&amp;").replace
 /* 阶段色带锚点：按 OEM 标准阶段体系（ML0-7/APQP1-5/ANPQP1-5）解析锚点客户里程碑日期。
    无日期的阶段跳过；按日期排序。BMW 等 OEM 的非标准阶段键（VS0/VS2/PrePZS/PZS）不参与。 */
 function phaseAnchors(){
+  if(state.showPhase === false) return [];
   if(!state.planOem) return [];
   var sys = (typeof OEM_PHASE_SYS !== "undefined" && OEM_PHASE_SYS[state.planOem]) || "";
   var names = (typeof PHASE_NAMES !== "undefined" && PHASE_NAMES[sys]) || null;
@@ -718,9 +745,10 @@ function renderGantt(){
       document.addEventListener("mousemove", mv); document.addEventListener("mouseup", up);
     });
   });
-  // 表格与图表行高同步滚动
-  var body = document.getElementById("ganttBody"), tb = document.querySelector(".table-body");
-  body.onscroll = function(){ tb.scrollTop = body.scrollTop; document.getElementById("ganttHead").scrollLeft = body.scrollLeft; };
+  // 表格与图表行高同步滚动（双向；表头与表体共用同一滚动容器，竖分割线始终对齐）
+  var body = document.getElementById("ganttBody"), ts = document.querySelector(".table-scroll");
+  body.onscroll = function(){ ts.scrollTop = body.scrollTop; document.getElementById("ganttHead").scrollLeft = body.scrollLeft; };
+  ts.onscroll = function(){ body.scrollTop = ts.scrollTop; };
 }
 
 /* ============ 编辑弹窗 ============ */
@@ -817,7 +845,7 @@ function importJSONFile(f){
       // 支持计划工具导出的 JSON（含 state 字段）→ 转为执行层初始任务
       if((d.app === "gantt-tool" && d.dates) || (d.state && d.state.dates)){ fromPlanData(d.state || d); return; }
       var st = d.state || d;
-      if(st.tasks){ state = st; if(!state.seq) state.seq = 1000; if(!state.collapsed) state.collapsed = {}; render(); toast(tr("importOk")); }
+      if(st.tasks){ state = st; if(!state.seq) state.seq = 1000; if(!state.collapsed) state.collapsed = {}; if(typeof state.showPhase !== "boolean") state.showPhase = true; syncOemSelect(); document.getElementById("ckPhase").checked = state.showPhase !== false; render(); toast(tr("importOk")); }
     }catch(e){ toast("JSON parse error"); }
   };
   r.readAsText(f);
@@ -1380,7 +1408,7 @@ function fromPlanData(p){
       start:fmtD(sd), dur:workdaysBetween(sd, ed) + 1, source:"custom", color:"#16a34a" }));
     n++;
   });
-  toast(tr("fromPlanOk") + " · " + n); render();
+  toast(tr("fromPlanOk") + " · " + n); syncOemSelect(); render();
 }
 /* ============ 回写里程碑计划（手动双向同步：执行页 → 计划页） ============ */
 function syncBack(){
@@ -1446,13 +1474,25 @@ function init(){
     urlOem = oemFromSlug(u.searchParams.get("oem"));
   }catch(e){}
   load(); applyLang();
-  /* URL 带 oem 参数（或里程碑计划数据含 OEM）时，初始化后自动从计划导入一次；无计划数据走现有 noPlan 提示 */
-  var planOem = "";
-  try{ var _plan = JSON.parse(localStorage.getItem("gantt-tool-v1")); if(_plan && _plan.oem) planOem = _plan.oem; }catch(e){}
-  if(urlOem || planOem) fromPlan();
+  buildOemOptions();
+  document.getElementById("ckPhase").checked = state.showPhase !== false;
+  /* OEM 初始化顺序：URL ?oem= > localStorage 计划数据的 oem > 已保存的 state.planOem */
+  var plan = null;
+  try{ plan = JSON.parse(localStorage.getItem("gantt-tool-v1")); }catch(e){}
+  var planOem = (plan && plan.oem) || "";
+  if(urlOem || planOem){
+    if(plan){
+      if(urlOem && plan.oem !== urlOem) plan = Object.assign({}, plan, {oem:urlOem});
+      fromPlanData(plan);
+    } else {
+      state.planOem = urlOem || planOem;
+      toast(tr("noPlan"));
+    }
+  }
+  syncOemSelect();
   render();
   document.querySelectorAll(".langbtns button").forEach(function(b){
-    b.addEventListener("click", function(){ lang = b.dataset.lang; applyLang(); render(); });
+    b.addEventListener("click", function(){ lang = b.dataset.lang; applyLang(); buildOemOptions(); syncOemSelect(); render(); });
   });
   document.getElementById("btnBack").addEventListener("click", function(){ location.href = "index.html?lang=" + lang; });
   document.getElementById("btnAdd").addEventListener("click", function(){ selId = null; openModal(null); });
@@ -1472,6 +1512,15 @@ function init(){
     });
   });
   document.getElementById("btnFromPlan").addEventListener("click", fromPlan);
+  document.getElementById("oemSelect").addEventListener("change", function(){
+    /* 手动切换 OEM 只切换阶段色带体系（对应阶段），不清空现有任务，避免丢数据 */
+    state.planOem = this.value;
+    save(); render();
+  });
+  document.getElementById("ckPhase").addEventListener("change", function(){
+    state.showPhase = this.checked;
+    save(); render();
+  });
   document.getElementById("btnSyncBack").addEventListener("click", syncBack);
   document.getElementById("btnImportSub").addEventListener("click", openSubModal);
   document.getElementById("btnExport").addEventListener("click", exportJSON);
