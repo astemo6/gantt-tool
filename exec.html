@@ -89,6 +89,11 @@ body.resizing .col-resize{display:block}
 .col-menu label{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--tx1);padding:4px 2px;cursor:pointer;user-select:none;white-space:nowrap}
 .col-menu label.dis{opacity:.45;cursor:default}
 .col-menu input{margin:0;accent-color:var(--accent)}
+/* 模板库下拉菜单（复用 col-menu 容器样式；分组标题+条目按钮） */
+.tpl-g{font-size:11px;font-weight:600;color:var(--tx3);padding:8px 2px 2px}
+.tpl-it{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;background:none;border:none;padding:6px 8px;font-size:12px;cursor:pointer;color:var(--tx1);border-radius:4px;text-align:left}
+.tpl-it:hover{background:#eef4ff;color:var(--accent)}
+.tpl-n{color:var(--tx3);font-size:11px;flex-shrink:0}
 .progbar{width:44px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden}
 .progbar>i{display:block;height:100%;background:var(--accent);border-radius:4px}
 .ms-diamond{color:var(--danger);font-size:14px}
@@ -196,6 +201,7 @@ body.resizing .col-resize{display:block}
   <button id="btnFromPlan" data-i18n="fromPlan">从计划导入</button>
   <button id="btnSyncBack" data-i18n="syncBack">回写里程碑计划</button>
   <button id="btnImportSub" data-i18n="importSub">导入细项</button>
+  <button id="btnTPL" data-i18n="tplBtn">模板</button>
   <span class="sep"></span>
   <div class="viewbtns">
     <button data-view="day" class="on" data-i18n="vDay">日</button><button data-view="week" data-i18n="vWeek">周</button><button data-view="month" data-i18n="vMonth">月</button>
@@ -219,6 +225,10 @@ body.resizing .col-resize{display:block}
   <button id="btnImport" data-i18n="importJSON">导入JSON</button>
   <input type="file" id="fileJSON" accept=".json" style="display:none">
   <button id="btnCSV" data-i18n="exportCSV">导出CSV</button>
+  <span class="sep"></span>
+  <button id="btnExpXML" data-i18n="expXml">导出 XML</button>
+  <button id="btnImpXML" data-i18n="impXml">导入 XML</button>
+  <input type="file" id="fileXML" accept=".xml" style="display:none">
 </div>
 <div class="cal-panel" id="calPanel" style="display:none">
   <h3 data-i18n="calTitle">工作日历 · 自然语言导入</h3>
@@ -253,6 +263,7 @@ body.resizing .col-resize{display:block}
 </div>
 
 <div id="colMenu" class="col-menu"></div>
+<div id="tplMenu" class="col-menu" style="display:none;width:280px"></div>
 <div class="modal-bg" id="modalBg">
   <div class="modal">
     <div class="modal-h"><span id="modalTitle">编辑任务</span><button id="modalX">×</button></div>
@@ -294,9 +305,9 @@ body.resizing .col-resize{display:block}
 "use strict";
 /* ============ I18N ============ */
 var I18N = {
-zh:{weekdayNames:["一","二","三","四","五","六","日"],appTitle:"执行层计划",backToPlan:"← 里程碑计划",addTask:"+ 新增任务",addGroup:"+ 新增分组",addMs:"+ 里程碑",fromPlan:"从计划导入",syncBack:"回写里程碑计划",syncBackOk:"已同步到里程碑计划",syncBackEmpty:"没有可同步的里程碑",syncBackFail:"计划数据读取失败",importSub:"导入细项",vDay:"日",vWeek:"周",vMonth:"月",workCal:"工作日历",showPhase:"阶段",oemPlaceholder:"请选择主机厂",exportJSON:"导出JSON",importJSON:"导入JSON",exportCSV:"导出CSV",preview:"预览",exportPDF:"导出 PDF",exportJPG:"导出 JPG",expPreviewTitle:"导出预览",expDate:"日期",legendPhase:"阶段区间",legendTask:"任务",today:"今天",cName:"任务名称",cOwner:"负责人",cDur:"工期",cProg:"进度",cStart:"开始",cEnd:"结束",calTitle:"工作日历 · 自然语言导入",calPh:"例如：2026年春节2月15日到2月23日放假，2月14日、2月28日调休上班",calParse:"解析并导入",calReset:"恢复默认",calHint:"支持：X月X日、X月X日至X月X日、放假/调休/补班/上班等关键词，年份缺省为当年。",calModeNL:"自然语言",calModeText:"文本格式",calHintText:"一行一条：2026-10-01~2026-10-07,国庆 表示放假区间；补班 2026-10-10 表示调休上班。",calPhText:"2026-10-01~2026-10-07,国庆\n补班 2026-10-10",del:"删除",cancel:"取消",ok:"确定",importSubT:"导入细项",subTarget:"目标任务",subContent:"细项内容（一行一条，可含负责人、工期，用逗号分隔）",subFile:"或从 CSV 文件导入",editTask:"编辑任务",newTask:"新增任务",newGroup:"新增分组",newMs:"新增里程碑",fName:"名称",fType:"类型",tTask:"任务",tMs:"里程碑",tGroup:"分组",fGroup:"所属分组",fStart:"开始日期",fDur:"工期（工作日）",fDeps:"前置任务（ID，可带类型与滞后）",fDepsHint:"格式：ID+类型+滞后天数，如 3FS,5SS+2d；-2d 表示提前 2 个工作日；默认 FS（完成→开始）。类型：FS 完成→开始，SS 开始→开始，FF 完成→完成，SF 开始→完成",fDeadline:"期限",deadlineWarn:"结束日期晚于期限",criticalPath:"关键路径",floatCol:"总浮时",fOwner:"负责人",fOutput:"输出成果",fProg:"进度%",fRemarks:"备注",fColor:"颜色",needName:"请填写名称",fromPlanOk:"已从计划导入",noPlan:"未找到计划数据",calApplied:"日历已更新",cycleWarn:"检测到循环依赖，已忽略",importOk:"导入成功",subOk:"细项导入成功",topGroup:"顶级",planGroupMs:"客户里程碑",planGroupRec:"推荐任务",planGroupSup:"供应商节点",planGroupCustom:"自定义任务",saveBaseline:"保存基线",showBaseline:"基线对比",baselineConfirm:"覆盖已有基线？",baselineSaved:"基线已保存",varianceCol:"偏差",manualSched:"手动排程",resWarn:"资源预警",resWarnTip:"该负责人当日有多个并行任务",colSettings:"列",colFixed:"固定列",colReset:"双击表头右边缘恢复默认宽度",oemAutoImport:"已导入{0}的里程碑",oemNoData:"里程碑计划中没有该 OEM 的数据",oemImportConfirm:"切换 OEM 将重新导入里程碑，当前任务会被替换，继续？"},
-en:{weekdayNames:["Mon","Tue","Wed","Thu","Fri","Sat","Sun"],appTitle:"Execution Plan",backToPlan:"← Milestone Plan",addTask:"+ Add Task",addGroup:"+ Add Group",addMs:"+ Milestone",fromPlan:"Import from Plan",syncBack:"Write Back to Plan",syncBackOk:"Synced to milestone plan",syncBackEmpty:"No linked milestones to sync",syncBackFail:"Failed to read plan data",importSub:"Import Sub-items",vDay:"Day",vWeek:"Week",vMonth:"Month",workCal:"Work Calendar",showPhase:"Phases",oemPlaceholder:"Select OEM",exportJSON:"Export JSON",importJSON:"Import JSON",exportCSV:"Export CSV",preview:"Preview",exportPDF:"Export PDF",exportJPG:"Export JPG",expPreviewTitle:"Export Preview",expDate:"Date",legendPhase:"Phase",legendTask:"Task",today:"Today",cName:"Task",cOwner:"Owner",cDur:"Dur.",cProg:"Prog.",cStart:"Start",cEnd:"End",calTitle:"Work Calendar · Natural Language Import",calPh:"e.g. Spring Festival 2026-02-15 to 2026-02-23 off, 02-14 and 02-28 work",calParse:"Parse & Import",calReset:"Reset",calHint:"Supports date ranges and keywords like off/work. Year defaults to current.",calModeNL:"Natural language",calModeText:"Text format",calHintText:"One per line: 2026-10-01~2026-10-07,National Day = holiday range; Make-up 2026-10-10 = workday.",calPhText:"2026-10-01~2026-10-07,National Day\nMake-up 2026-10-10",del:"Delete",cancel:"Cancel",ok:"OK",importSubT:"Import Sub-items",subTarget:"Target Task",subContent:"One per line, optional owner,duration comma-separated",subFile:"Or import from CSV file",editTask:"Edit Task",newTask:"New Task",newGroup:"New Group",newMs:"New Milestone",fName:"Name",fType:"Type",tTask:"Task",tMs:"Milestone",tGroup:"Group",fGroup:"Group",fStart:"Start Date",fDur:"Duration (workdays)",fDeps:"Predecessors (IDs, types & lag)",fDepsHint:"Format: ID+type+lag workdays, e.g. 3FS,5SS+2d; -2d = 2 workdays early; default FS (finish-to-start). Types: FS finish→start, SS start→start, FF finish→finish, SF start→finish",fDeadline:"Deadline",deadlineWarn:"End date is later than the deadline",criticalPath:"Critical Path",floatCol:"Total Float",fOwner:"Owner",fOutput:"Deliverable",fProg:"Progress %",fRemarks:"Remarks",fColor:"Color",needName:"Name required",fromPlanOk:"Imported from plan",noPlan:"No plan data found",calApplied:"Calendar updated",cycleWarn:"Circular dependency detected and ignored",importOk:"Import OK",subOk:"Sub-items imported",topGroup:"Top",planGroupMs:"Customer Milestones",planGroupRec:"Recommended Tasks",planGroupSup:"Supplier Nodes",planGroupCustom:"Custom Tasks",saveBaseline:"Save Baseline",showBaseline:"Baseline Compare",baselineConfirm:"Overwrite existing baseline?",baselineSaved:"Baseline saved",varianceCol:"Variance",manualSched:"Manual scheduling",resWarn:"Resource Alert",resWarnTip:"Owner has overlapping tasks on this day",colSettings:"Columns",colFixed:"Fixed",colReset:"Double-click header edge to reset width",oemAutoImport:"Milestones imported for {0}",oemNoData:"No milestone data for this OEM",oemImportConfirm:"Switching OEM will re-import milestones and replace current tasks. Continue?"},
-de:{weekdayNames:["Mo","Di","Mi","Do","Fr","Sa","So"],appTitle:"Ausführungsplan",backToPlan:"← Meilensteinplan",addTask:"+ Aufgabe",addGroup:"+ Gruppe",addMs:"+ Meilenstein",fromPlan:"Aus Plan importieren",syncBack:"In Plan zurückschreiben",syncBackOk:"Mit Meilensteinplan synchronisiert",syncBackEmpty:"Keine verknüpften Meilensteine",syncBackFail:"Plandaten konnten nicht gelesen werden",importSub:"Unterpunkte importieren",vDay:"Tag",vWeek:"Woche",vMonth:"Monat",workCal:"Arbeitskalender",showPhase:"Phasen",oemPlaceholder:"OEM wählen",exportJSON:"JSON exportieren",importJSON:"JSON importieren",exportCSV:"CSV exportieren",preview:"Vorschau",exportPDF:"PDF exportieren",exportJPG:"JPG exportieren",expPreviewTitle:"Exportvorschau",expDate:"Datum",legendPhase:"Phasen",legendTask:"Aufgabe",today:"Heute",cName:"Aufgabe",cOwner:"Eigner",cDur:"Dauer",cProg:"Fort.",cStart:"Start",cEnd:"End",calTitle:"Arbeitskalender · Import in natürlicher Sprache",calPh:"z.B. Frühlingsfest 2026-02-15 bis 2026-02-23 frei",calParse:"Parsen & importieren",calReset:"Zurücksetzen",calHint:"Datumsbereiche und Schlüsselwörter werden unterstützt.",calModeNL:"Natürliche Sprache",calModeText:"Textformat",calHintText:"Eine Zeile pro Eintrag: 2026-10-01~2026-10-07,Feiertag = Ferienbereich; Ausgleich 2026-10-10 = Arbeitstag.",calPhText:"2026-10-01~2026-10-07,Feiertag\nAusgleich 2026-10-10",del:"Löschen",cancel:"Abbrechen",ok:"OK",importSubT:"Unterpunkte importieren",subTarget:"Zielaufgabe",subContent:"Eins pro Zeile, optional Eigner,Dauer",subFile:"Oder aus CSV-Datei importieren",editTask:"Aufgabe bearbeiten",newTask:"Neue Aufgabe",newGroup:"Neue Gruppe",newMs:"Neuer Meilenstein",fName:"Name",fType:"Typ",tTask:"Aufgabe",tMs:"Meilenstein",tGroup:"Gruppe",fGroup:"Gruppe",fStart:"Startdatum",fDur:"Dauer (Arbeitstage)",fDeps:"Vorgänger (IDs, Typen & Versatz)",fDepsHint:"Format: ID+Typ+Versatztage, z.B. 3FS,5SS+2d; -2d = 2 Arbeitstage früher; Standard FS (Ende→Start). Typen: FS Ende→Start, SS Start→Start, FF Ende→Ende, SF Start→Ende",fDeadline:"Frist",deadlineWarn:"Enddatum liegt nach der Frist",criticalPath:"Kritischer Pfad",floatCol:"Gesamtpuffer",fOwner:"Eigner",fOutput:"Ergebnis",fProg:"Fortschritt %",fRemarks:"Bemerkungen",fColor:"Farbe",needName:"Name erforderlich",fromPlanOk:"Aus Plan importiert",noPlan:"Keine Plandaten",calApplied:"Kalender aktualisiert",cycleWarn:"Zirkuläre Abhängigkeit ignoriert",importOk:"Import OK",subOk:"Unterpunkte importiert",topGroup:"Oberste",planGroupMs:"Kundenmeilensteine",planGroupRec:"Empfohlene Aufgaben",planGroupSup:"Lieferantenknoten",planGroupCustom:"Eigene Aufgaben",saveBaseline:"Basisplan speichern",showBaseline:"Basisvergleich",baselineConfirm:"Bestehende Basis überschreiben?",baselineSaved:"Basisplan gespeichert",varianceCol:"Abweichung",manualSched:"Manuelle Planung",resWarn:"Ressourcenwarnung",resWarnTip:"Verantwortlicher hat überlappende Aufgaben",colSettings:"Spalten",colFixed:"Fest",colReset:"Doppelklick auf Kopfrand setzt Breite zurück",oemAutoImport:"Meilensteine für {0} importiert",oemNoData:"Keine Meilensteindaten für diesen OEM",oemImportConfirm:"OEM-Wechsel importiert Meilensteine neu und ersetzt aktuelle Aufgaben. Fortfahren?"}};
+zh:{weekdayNames:["一","二","三","四","五","六","日"],appTitle:"执行层计划",backToPlan:"← 里程碑计划",addTask:"+ 新增任务",addGroup:"+ 新增分组",addMs:"+ 里程碑",fromPlan:"从计划导入",syncBack:"回写里程碑计划",syncBackOk:"已同步到里程碑计划",syncBackEmpty:"没有可同步的里程碑",syncBackFail:"计划数据读取失败",importSub:"导入细项",vDay:"日",vWeek:"周",vMonth:"月",workCal:"工作日历",showPhase:"阶段",oemPlaceholder:"请选择主机厂",exportJSON:"导出JSON",importJSON:"导入JSON",exportCSV:"导出CSV",preview:"预览",exportPDF:"导出 PDF",exportJPG:"导出 JPG",expPreviewTitle:"导出预览",expDate:"日期",legendPhase:"阶段区间",legendTask:"任务",today:"今天",cName:"任务名称",cOwner:"负责人",cDur:"工期",cProg:"进度",cStart:"开始",cEnd:"结束",calTitle:"工作日历 · 自然语言导入",calPh:"例如：2026年春节2月15日到2月23日放假，2月14日、2月28日调休上班",calParse:"解析并导入",calReset:"恢复默认",calHint:"支持：X月X日、X月X日至X月X日、放假/调休/补班/上班等关键词，年份缺省为当年。",calModeNL:"自然语言",calModeText:"文本格式",calHintText:"一行一条：2026-10-01~2026-10-07,国庆 表示放假区间；补班 2026-10-10 表示调休上班。",calPhText:"2026-10-01~2026-10-07,国庆\n补班 2026-10-10",del:"删除",cancel:"取消",ok:"确定",importSubT:"导入细项",subTarget:"目标任务",subContent:"细项内容（一行一条，可含负责人、工期，用逗号分隔）",subFile:"或从 CSV 文件导入",editTask:"编辑任务",newTask:"新增任务",newGroup:"新增分组",newMs:"新增里程碑",fName:"名称",fType:"类型",tTask:"任务",tMs:"里程碑",tGroup:"分组",fGroup:"所属分组",fStart:"开始日期",fDur:"工期（工作日）",fDeps:"前置任务（ID，可带类型与滞后）",fDepsHint:"格式：ID+类型+滞后天数，如 3FS,5SS+2d；-2d 表示提前 2 个工作日；默认 FS（完成→开始）。类型：FS 完成→开始，SS 开始→开始，FF 完成→完成，SF 开始→完成",fDeadline:"期限",deadlineWarn:"结束日期晚于期限",criticalPath:"关键路径",floatCol:"总浮时",fOwner:"负责人",fOutput:"输出成果",fProg:"进度%",fRemarks:"备注",fColor:"颜色",needName:"请填写名称",fromPlanOk:"已从计划导入",noPlan:"未找到计划数据",calApplied:"日历已更新",cycleWarn:"检测到循环依赖，已忽略",importOk:"导入成功",subOk:"细项导入成功",topGroup:"顶级",planGroupMs:"客户里程碑",planGroupRec:"推荐任务",planGroupSup:"供应商节点",planGroupCustom:"自定义任务",saveBaseline:"保存基线",showBaseline:"基线对比",baselineConfirm:"覆盖已有基线？",baselineSaved:"基线已保存",varianceCol:"偏差",manualSched:"手动排程",resWarn:"资源预警",resWarnTip:"该负责人当日有多个并行任务",colSettings:"列",colFixed:"固定列",colReset:"双击表头右边缘恢复默认宽度",oemAutoImport:"已导入{0}的里程碑",oemNoData:"里程碑计划中没有该 OEM 的数据",oemImportConfirm:"切换 OEM 将重新导入里程碑，当前任务会被替换，继续？",tplBtn:"模板",tplConfirm:"插入模板任务到当前计划？",tplOk:"模板已插入",expXml:"导出 XML",impXml:"导入 XML",impXmlConfirm:"导入将替换当前任务，继续？"},
+en:{weekdayNames:["Mon","Tue","Wed","Thu","Fri","Sat","Sun"],appTitle:"Execution Plan",backToPlan:"← Milestone Plan",addTask:"+ Add Task",addGroup:"+ Add Group",addMs:"+ Milestone",fromPlan:"Import from Plan",syncBack:"Write Back to Plan",syncBackOk:"Synced to milestone plan",syncBackEmpty:"No linked milestones to sync",syncBackFail:"Failed to read plan data",importSub:"Import Sub-items",vDay:"Day",vWeek:"Week",vMonth:"Month",workCal:"Work Calendar",showPhase:"Phases",oemPlaceholder:"Select OEM",exportJSON:"Export JSON",importJSON:"Import JSON",exportCSV:"Export CSV",preview:"Preview",exportPDF:"Export PDF",exportJPG:"Export JPG",expPreviewTitle:"Export Preview",expDate:"Date",legendPhase:"Phase",legendTask:"Task",today:"Today",cName:"Task",cOwner:"Owner",cDur:"Dur.",cProg:"Prog.",cStart:"Start",cEnd:"End",calTitle:"Work Calendar · Natural Language Import",calPh:"e.g. Spring Festival 2026-02-15 to 2026-02-23 off, 02-14 and 02-28 work",calParse:"Parse & Import",calReset:"Reset",calHint:"Supports date ranges and keywords like off/work. Year defaults to current.",calModeNL:"Natural language",calModeText:"Text format",calHintText:"One per line: 2026-10-01~2026-10-07,National Day = holiday range; Make-up 2026-10-10 = workday.",calPhText:"2026-10-01~2026-10-07,National Day\nMake-up 2026-10-10",del:"Delete",cancel:"Cancel",ok:"OK",importSubT:"Import Sub-items",subTarget:"Target Task",subContent:"One per line, optional owner,duration comma-separated",subFile:"Or import from CSV file",editTask:"Edit Task",newTask:"New Task",newGroup:"New Group",newMs:"New Milestone",fName:"Name",fType:"Type",tTask:"Task",tMs:"Milestone",tGroup:"Group",fGroup:"Group",fStart:"Start Date",fDur:"Duration (workdays)",fDeps:"Predecessors (IDs, types & lag)",fDepsHint:"Format: ID+type+lag workdays, e.g. 3FS,5SS+2d; -2d = 2 workdays early; default FS (finish-to-start). Types: FS finish→start, SS start→start, FF finish→finish, SF start→finish",fDeadline:"Deadline",deadlineWarn:"End date is later than the deadline",criticalPath:"Critical Path",floatCol:"Total Float",fOwner:"Owner",fOutput:"Deliverable",fProg:"Progress %",fRemarks:"Remarks",fColor:"Color",needName:"Name required",fromPlanOk:"Imported from plan",noPlan:"No plan data found",calApplied:"Calendar updated",cycleWarn:"Circular dependency detected and ignored",importOk:"Import OK",subOk:"Sub-items imported",topGroup:"Top",planGroupMs:"Customer Milestones",planGroupRec:"Recommended Tasks",planGroupSup:"Supplier Nodes",planGroupCustom:"Custom Tasks",saveBaseline:"Save Baseline",showBaseline:"Baseline Compare",baselineConfirm:"Overwrite existing baseline?",baselineSaved:"Baseline saved",varianceCol:"Variance",manualSched:"Manual scheduling",resWarn:"Resource Alert",resWarnTip:"Owner has overlapping tasks on this day",colSettings:"Columns",colFixed:"Fixed",colReset:"Double-click header edge to reset width",oemAutoImport:"Milestones imported for {0}",oemNoData:"No milestone data for this OEM",oemImportConfirm:"Switching OEM will re-import milestones and replace current tasks. Continue?",tplBtn:"Templates",tplConfirm:"Insert template tasks into the current plan?",tplOk:"Template inserted",expXml:"Export XML",impXml:"Import XML",impXmlConfirm:"Import will replace current tasks. Continue?"},
+de:{weekdayNames:["Mo","Di","Mi","Do","Fr","Sa","So"],appTitle:"Ausführungsplan",backToPlan:"← Meilensteinplan",addTask:"+ Aufgabe",addGroup:"+ Gruppe",addMs:"+ Meilenstein",fromPlan:"Aus Plan importieren",syncBack:"In Plan zurückschreiben",syncBackOk:"Mit Meilensteinplan synchronisiert",syncBackEmpty:"Keine verknüpften Meilensteine",syncBackFail:"Plandaten konnten nicht gelesen werden",importSub:"Unterpunkte importieren",vDay:"Tag",vWeek:"Woche",vMonth:"Monat",workCal:"Arbeitskalender",showPhase:"Phasen",oemPlaceholder:"OEM wählen",exportJSON:"JSON exportieren",importJSON:"JSON importieren",exportCSV:"CSV exportieren",preview:"Vorschau",exportPDF:"PDF exportieren",exportJPG:"JPG exportieren",expPreviewTitle:"Exportvorschau",expDate:"Datum",legendPhase:"Phasen",legendTask:"Aufgabe",today:"Heute",cName:"Aufgabe",cOwner:"Eigner",cDur:"Dauer",cProg:"Fort.",cStart:"Start",cEnd:"End",calTitle:"Arbeitskalender · Import in natürlicher Sprache",calPh:"z.B. Frühlingsfest 2026-02-15 bis 2026-02-23 frei",calParse:"Parsen & importieren",calReset:"Zurücksetzen",calHint:"Datumsbereiche und Schlüsselwörter werden unterstützt.",calModeNL:"Natürliche Sprache",calModeText:"Textformat",calHintText:"Eine Zeile pro Eintrag: 2026-10-01~2026-10-07,Feiertag = Ferienbereich; Ausgleich 2026-10-10 = Arbeitstag.",calPhText:"2026-10-01~2026-10-07,Feiertag\nAusgleich 2026-10-10",del:"Löschen",cancel:"Abbrechen",ok:"OK",importSubT:"Unterpunkte importieren",subTarget:"Zielaufgabe",subContent:"Eins pro Zeile, optional Eigner,Dauer",subFile:"Oder aus CSV-Datei importieren",editTask:"Aufgabe bearbeiten",newTask:"Neue Aufgabe",newGroup:"Neue Gruppe",newMs:"Neuer Meilenstein",fName:"Name",fType:"Typ",tTask:"Aufgabe",tMs:"Meilenstein",tGroup:"Gruppe",fGroup:"Gruppe",fStart:"Startdatum",fDur:"Dauer (Arbeitstage)",fDeps:"Vorgänger (IDs, Typen & Versatz)",fDepsHint:"Format: ID+Typ+Versatztage, z.B. 3FS,5SS+2d; -2d = 2 Arbeitstage früher; Standard FS (Ende→Start). Typen: FS Ende→Start, SS Start→Start, FF Ende→Ende, SF Start→Ende",fDeadline:"Frist",deadlineWarn:"Enddatum liegt nach der Frist",criticalPath:"Kritischer Pfad",floatCol:"Gesamtpuffer",fOwner:"Eigner",fOutput:"Ergebnis",fProg:"Fortschritt %",fRemarks:"Bemerkungen",fColor:"Farbe",needName:"Name erforderlich",fromPlanOk:"Aus Plan importiert",noPlan:"Keine Plandaten",calApplied:"Kalender aktualisiert",cycleWarn:"Zirkuläre Abhängigkeit ignoriert",importOk:"Import OK",subOk:"Unterpunkte importiert",topGroup:"Oberste",planGroupMs:"Kundenmeilensteine",planGroupRec:"Empfohlene Aufgaben",planGroupSup:"Lieferantenknoten",planGroupCustom:"Eigene Aufgaben",saveBaseline:"Basisplan speichern",showBaseline:"Basisvergleich",baselineConfirm:"Bestehende Basis überschreiben?",baselineSaved:"Basisplan gespeichert",varianceCol:"Abweichung",manualSched:"Manuelle Planung",resWarn:"Ressourcenwarnung",resWarnTip:"Verantwortlicher hat überlappende Aufgaben",colSettings:"Spalten",colFixed:"Fest",colReset:"Doppelklick auf Kopfrand setzt Breite zurück",oemAutoImport:"Meilensteine für {0} importiert",oemNoData:"Keine Meilensteindaten für diesen OEM",oemImportConfirm:"OEM-Wechsel importiert Meilensteine neu und ersetzt aktuelle Aufgaben. Fortfahren?",tplBtn:"Vorlagen",tplConfirm:"Vorlagenaufgaben in den aktuellen Plan einfügen?",tplOk:"Vorlage eingefügt",expXml:"XML-Export",impXml:"XML-Import",impXmlConfirm:"Der Import ersetzt die aktuellen Aufgaben. Fortfahren?"}};
 var lang = "zh";
 function tr(k){ return (I18N[lang] && I18N[lang][k]) || I18N.zh[k] || k; }
 function applyLang(){
@@ -410,6 +421,137 @@ const PHASE_NAMES = {
 const REC_TASKS = [{"id":"r1","phase":{"apqp":"APQP2","vda":"ML3","anpqp":"ANPQP2"},"so":-3,"eo":0,"name":{"zh":"产品数据冻结","en":"Product data freeze","de":"Produktdaten-Freeze"},"desc":{"zh":"","en":"","de":""}},{"id":"r2","phase":{"apqp":"APQP2","vda":"ML3","anpqp":"ANPQP2"},"so":-10,"eo":-8,"name":{"zh":"数据释放","en":"Data release","de":"Datenfreigabe"},"desc":{"zh":"","en":"","de":""}},{"id":"r3","phase":{"apqp":"APQP2","vda":"ML3","anpqp":"ANPQP2"},"so":-8,"eo":-6,"name":{"zh":"DV样件制造","en":"DV prototype build","de":"DV-Musterbau"},"desc":{"zh":"","en":"","de":""}},{"id":"r4","phase":{"apqp":"APQP2","vda":"ML3","anpqp":"ANPQP2"},"so":-6,"eo":-2,"name":{"zh":"DV试验及报告","en":"DV testing & report","de":"DV-Erprobung und Bericht"},"desc":{"zh":"","en":"","de":""}},{"id":"r5","phase":{"apqp":"APQP3","vda":"ML5","anpqp":"ANPQP3"},"so":-20,"eo":-18,"name":{"zh":"量产数据释放","en":"Mass production data release","de":"Seriendatenfreigabe"},"desc":{"zh":"","en":"","de":""}},{"id":"r6","phase":{"apqp":"APQP3","vda":"ML5","anpqp":"ANPQP3"},"so":-16,"eo":-14,"name":{"zh":"模具/工装发包","en":"Tooling sourcing & order placement","de":"Werkzeugvergabe"},"desc":{"zh":"","en":"","de":""}},{"id":"r7","phase":{"apqp":"APQP3","vda":"VS0","anpqp":"ANPQP3"},"so":-8,"eo":-2,"name":{"zh":"T1试模及整改","en":"T1 tooling tryout & rework","de":"T1-Werkzeugerprobung und Nacharbeit"},"desc":{"zh":"","en":"","de":""}},{"id":"r8","phase":{"apqp":"APQP3","vda":"ML5","anpqp":"ANPQP3"},"so":-8,"eo":-5,"name":{"zh":"PV样件制造","en":"PV prototype build","de":"PV-Musterbau"},"desc":{"zh":"","en":"","de":""}},{"id":"r9","phase":{"apqp":"APQP3","vda":"ML5","anpqp":"ANPQP3"},"so":0,"eo":6,"name":{"zh":"PV试验及报告","en":"PV testing & report","de":"PV-Erprobung und Bericht"},"desc":{"zh":"","en":"","de":""}},{"id":"r10","phase":{"apqp":"APQP3","vda":"PrePZS","anpqp":"ANPQP3"},"so":-4,"eo":-1,"name":{"zh":"OTS样件提交客户认可","en":"OTS sample submission for customer approval","de":"OTS-Mustervorlage zur Kundenfreigabe"},"desc":{"zh":"","en":"","de":""}},{"id":"r11","phase":{"apqp":"APQP4","vda":"PZS","anpqp":"ANPQP4"},"so":1,"eo":5,"name":{"zh":"试生产准备","en":"Trial production preparation","de":"Vorbereitung des Probelaufs"},"desc":{"zh":"","en":"","de":""}},{"id":"r12","phase":{"apqp":"APQP4","vda":"ML6","anpqp":"ANPQP4"},"so":-6,"eo":-2,"name":{"zh":"PPAP文件包准备与提交","en":"PPAP package preparation & submission","de":"PPAP-Unterlagen vorbereiten und einreichen"},"desc":{"zh":"","en":"","de":""}},{"id":"r13","phase":{"apqp":"APQP5","vda":"ML7","anpqp":"ANPQP5"},"so":-4,"eo":-1,"name":{"zh":"产能爬坡验证","en":"Capacity ramp-up verification","de":"Verifizierung des Kapazitätshochlaufs"},"desc":{"zh":"","en":"","de":""}}];
 
 const REC_DEFAULTS = {"r1":{"so":-3,"eo":0},"r2":{"so":-10,"eo":-8},"r3":{"so":-8,"eo":-6},"r4":{"so":-6,"eo":-2},"r5":{"so":-20,"eo":-18},"r6":{"so":-16,"eo":-14},"r7":{"so":-8,"eo":-2},"r8":{"so":-8,"eo":-5},"r9":{"so":0,"eo":6},"r10":{"so":-4,"eo":-1},"r11":{"so":1,"eo":5},"r12":{"so":-6,"eo":-2},"r13":{"so":-4,"eo":-1}};
+
+/* ============ 交付物模板库：APQP / VDA-MLA / ANPQP（三语名称） ============ */
+const TPL_APQP = [
+  {key:"APQP1", name:{zh:"计划和确定项目",en:"Plan and Define Program",de:"Programm planen und definieren"}, items:[
+    {zh:"项目计划",en:"Program Plan",de:"Projektplan"},
+    {zh:"初始过程流程图",en:"Initial Process Flow Diagram",de:"Initialer Prozessflussplan"},
+    {zh:"产品设计输入要求",en:"Product Design Input Requirements",de:"Produktdesign-Eingangsanforderungen"},
+    {zh:"设计目标",en:"Design Goals",de:"Designziele"},
+    {zh:"产品保证计划",en:"Product Assurance Plan",de:"Produktsicherungsplan"},
+    {zh:"初始物料清单",en:"Initial Bill of Materials",de:"Initiale Stückliste"}
+  ]},
+  {key:"APQP2", name:{zh:"产品设计和开发",en:"Product Design and Development",de:"Produktdesign und -entwicklung"}, items:[
+    {zh:"产品设计",en:"Product Design",de:"Produktdesign"},
+    {zh:"设计失效模式及后果分析(DFMEA)",en:"Design FMEA",de:"Design-FMEA"},
+    {zh:"可制造性与装配设计",en:"Design for Manufacturability & Assembly",de:"Fertigungs- und montagegerechte Gestaltung"},
+    {zh:"图纸与技术规范",en:"Drawings & Specifications",de:"Zeichnungen und Spezifikationen"},
+    {zh:"设计验证计划",en:"Design Verification Plan",de:"Design-Verifikationsplan"},
+    {zh:"新设备与工装需求",en:"New Equipment & Tooling Requirements",de:"Anforderungen neuer Anlagen und Werkzeuge"}
+  ]},
+  {key:"APQP3", name:{zh:"过程设计和开发",en:"Process Design and Development",de:"Prozessdesign und -entwicklung"}, items:[
+    {zh:"过程流程图",en:"Process Flow Diagram",de:"Prozessflussplan"},
+    {zh:"过程失效模式及后果分析(PFMEA)",en:"Process FMEA",de:"Prozess-FMEA"},
+    {zh:"过程控制计划",en:"Process Control Plan",de:"Prozesslenkungsplan"},
+    {zh:"过程规格",en:"Process Specifications",de:"Prozessspezifikationen"},
+    {zh:"测量系统分析计划",en:"MSA Plan",de:"MSA-Plan"},
+    {zh:"试生产控制计划",en:"Pilot Control Plan",de:"Probefertigungs-Lenkungsplan"},
+    {zh:"包装标准",en:"Packaging Standards",de:"Verpackungsstandards"}
+  ]},
+  {key:"APQP4", name:{zh:"产品和过程确认",en:"Product and Process Validation",de:"Produkt- und Prozessvalidierung"}, items:[
+    {zh:"测量系统分析",en:"Measurement System Analysis",de:"Messsystemanalyse"},
+    {zh:"初始过程能力研究",en:"Initial Process Capability Study",de:"Initiale Prozessfähigkeitsstudie"},
+    {zh:"生产件批准(PPAP)",en:"PPAP",de:"Produktionsprozess- und Produktfreigabe (PPAP)"},
+    {zh:"生产确认运行",en:"Production Validation Run",de:"Produktionsvalidierungslauf"},
+    {zh:"产能验证",en:"Capacity Verification",de:"Kapazitätsprüfung"},
+    {zh:"质量认定",en:"Quality Sign-off",de:"Qualitätsfreigabe"}
+  ]},
+  {key:"APQP5", name:{zh:"生产",en:"Production",de:"Produktion"}, items:[
+    {zh:"生产控制计划",en:"Production Control Plan",de:"Produktionslenkungsplan"},
+    {zh:"过程监控",en:"Process Monitoring",de:"Prozessüberwachung"},
+    {zh:"产能爬坡",en:"Capacity Ramp-up",de:"Kapazitätshochlauf"},
+    {zh:"顾客反馈与纠正措施",en:"Customer Feedback & Corrective Action",de:"Kundenfeedback und Korrekturmaßnahmen"},
+    {zh:"过程审核",en:"Process Audit",de:"Prozessaudit"},
+    {zh:"持续改进",en:"Continual Improvement",de:"Kontinuierliche Verbesserung"}
+  ]}
+];
+const TPL_MLA = [
+  {key:"ML1", name:{zh:"创新批准",en:"Innovation Release",de:"Innovationsfreigabe"}, items:[
+    {zh:"创新批准申请",en:"Innovation Approval Application",de:"Antrag auf Innovationsfreigabe"},
+    {zh:"项目目标定义",en:"Project Objectives Definition",de:"Projektzieldefinition"},
+    {zh:"初始项目计划",en:"Initial Project Plan",de:"Initialer Projektplan"},
+    {zh:"里程碑计划",en:"Milestone Plan",de:"Meilensteinplan"}
+  ]},
+  {key:"ML2", name:{zh:"合同授予需求管理",en:"Requirements Management for Contract Award",de:"Anforderungsmanagement für Vergabe"}, items:[
+    {zh:"需求清单",en:"Requirements List",de:"Anforderungsliste"},
+    {zh:"项目目标协议",en:"Project Target Agreement",de:"Projektzielvereinbarung"},
+    {zh:"技术规范草案",en:"Draft Technical Specification",de:"Entwurf der technischen Spezifikation"},
+    {zh:"项目组织与职责",en:"Project Organization & Responsibilities",de:"Projektorganisation und Verantwortlichkeiten"}
+  ]},
+  {key:"ML3", name:{zh:"技术规格释放",en:"Release of Technical Specifications",de:"Freigabe technische Spezifikation"}, items:[
+    {zh:"技术规格书",en:"Technical Specification",de:"Technische Spezifikation"},
+    {zh:"设计冻结",en:"Design Freeze",de:"Design-Freeze"},
+    {zh:"CAD数据释放",en:"CAD Data Release",de:"CAD-Datenfreigabe"},
+    {zh:"初始物料清单",en:"Initial Bill of Materials",de:"Initiale Stückliste"},
+    {zh:"下单计划",en:"Ordering Plan",de:"Vergabeplan"}
+  ]},
+  {key:"ML4", name:{zh:"生产规划完成",en:"Production Planning Completed",de:"Produktionsplanung abgeschlossen"}, items:[
+    {zh:"生产规划",en:"Production Planning",de:"Produktionsplanung"},
+    {zh:"工装规划",en:"Tooling Planning",de:"Werkzeugplanung"},
+    {zh:"物流规划",en:"Logistics Planning",de:"Logistikplanung"},
+    {zh:"产能规划",en:"Capacity Planning",de:"Kapazitätsplanung"},
+    {zh:"质量规划",en:"Quality Planning",de:"Qualitätsplanung"}
+  ]},
+  {key:"ML5", name:{zh:"量产件与工装就绪",en:"Production-Level Parts & Tools Available",de:"Serienwerkzeugreife Teile verfügbar"}, items:[
+    {zh:"工装就绪",en:"Tools Ready",de:"Werkzeuge fertiggestellt"},
+    {zh:"样件制造",en:"Sample Parts Build",de:"Musterteilefertigung"},
+    {zh:"过程验证",en:"Process Validation",de:"Prozessvalidierung"},
+    {zh:"初始样品检验",en:"Initial Sample Inspection",de:"Erstmusterprüfung"},
+    {zh:"测量系统分析",en:"Measurement System Analysis",de:"Messsystemanalyse"}
+  ]},
+  {key:"ML6", name:{zh:"产品与过程批准",en:"Product & Process Approval",de:"Produkt- und Prozessfreigabe"}, items:[
+    {zh:"PPAP文件包",en:"PPAP Package",de:"PPAP-Unterlagen"},
+    {zh:"过程审核报告",en:"Process Audit Report",de:"Prozessaudit-Bericht"},
+    {zh:"产品批准",en:"Product Approval",de:"Produktfreigabe"},
+    {zh:"过程批准",en:"Process Approval",de:"Prozessfreigabe"},
+    {zh:"批量生产放行",en:"Release for Series Production",de:"Freigabe für Serienproduktion"}
+  ]},
+  {key:"ML7", name:{zh:"移交生产",en:"Handover to Production",de:"Übergabe an Serie"}, items:[
+    {zh:"移交文件",en:"Handover Documentation",de:"Übergabedokumentation"},
+    {zh:"SOP准备",en:"SOP Preparation",de:"SOP-Vorbereitung"},
+    {zh:"产能爬坡计划",en:"Ramp-up Plan",de:"Hochlaufplan"},
+    {zh:"培训完成",en:"Training Completed",de:"Schulung abgeschlossen"},
+    {zh:"生产启动",en:"Production Start",de:"Produktionsstart"}
+  ]}
+];
+const TPL_ANPQP = [
+  {key:"ANPQP1", name:{zh:"策划",en:"Plan and Define Program",de:"Planung und Programmdefinition"}, items:[
+    {zh:"项目计划",en:"Program Plan",de:"Projektplan"},
+    {zh:"质量策划大纲",en:"Quality Planning Outline",de:"Qualitätsplanungsüberblick"},
+    {zh:"初始过程流程图",en:"Initial Process Flow Diagram",de:"Initialer Prozessflussplan"},
+    {zh:"产品设计输入要求",en:"Product Design Input Requirements",de:"Produktdesign-Eingangsanforderungen"},
+    {zh:"项目里程碑计划",en:"Project Milestone Plan",de:"Projekt-Meilensteinplan"}
+  ]},
+  {key:"ANPQP2", name:{zh:"产品设计和开发",en:"Product Design and Development",de:"Produktdesign und -entwicklung"}, items:[
+    {zh:"产品设计",en:"Product Design",de:"Produktdesign"},
+    {zh:"设计失效模式分析(DFMEA)",en:"Design FMEA",de:"Design-FMEA"},
+    {zh:"设计验证计划",en:"Design Verification Plan",de:"Design-Verifikationsplan"},
+    {zh:"图纸与技术规范",en:"Drawings & Specifications",de:"Zeichnungen und Spezifikationen"},
+    {zh:"样件制造计划",en:"Prototype Build Plan",de:"Prototypenfertigungsplan"}
+  ]},
+  {key:"ANPQP3", name:{zh:"过程设计和开发",en:"Process Design and Development",de:"Prozessdesign und -entwicklung"}, items:[
+    {zh:"过程流程图",en:"Process Flow Diagram",de:"Prozessflussplan"},
+    {zh:"过程失效模式分析(PFMEA)",en:"Process FMEA",de:"Prozess-FMEA"},
+    {zh:"过程控制计划",en:"Process Control Plan",de:"Prozesslenkungsplan"},
+    {zh:"过程规格",en:"Process Specifications",de:"Prozessspezifikationen"},
+    {zh:"测量系统分析计划",en:"MSA Plan",de:"MSA-Plan"}
+  ]},
+  {key:"ANPQP4", name:{zh:"产品和过程确认",en:"Product and Process Validation",de:"Produkt- und Prozessvalidierung"}, items:[
+    {zh:"试生产运行",en:"Trial Production Run",de:"Probelauf"},
+    {zh:"过程能力研究",en:"Process Capability Study",de:"Prozessfähigkeitsstudie"},
+    {zh:"生产件批准(PPAP)",en:"PPAP",de:"Produktionsprozess- und Produktfreigabe (PPAP)"},
+    {zh:"质量确认",en:"Quality Validation",de:"Qualitätsvalidierung"},
+    {zh:"产能验证",en:"Capacity Verification",de:"Kapazitätsprüfung"}
+  ]},
+  {key:"ANPQP5", name:{zh:"生产",en:"Production",de:"Produktion"}, items:[
+    {zh:"生产控制计划",en:"Production Control Plan",de:"Produktionslenkungsplan"},
+    {zh:"过程监控",en:"Process Monitoring",de:"Prozessüberwachung"},
+    {zh:"过程审核",en:"Process Audit",de:"Prozessaudit"},
+    {zh:"持续改进",en:"Continual Improvement",de:"Kontinuierliche Verbesserung"},
+    {zh:"顾客反馈处理",en:"Customer Feedback Handling",de:"Kundenfeedback-Bearbeitung"}
+  ]}
+];
 /* ============ 数据模型与状态 ============ */
 var LS_KEY = "gantt-exec-v1";
 var COLORS = ["#2563eb","#16a34a","#9333ea","#ea580c","#0891b2","#dc2626","#4f46e5","#0d9488"];
@@ -872,6 +1014,49 @@ function toggleColMenu(){
   });
 }
 function closeColMenu(){ var m = document.getElementById("colMenu"); if(m) m.style.display = "none"; }
+/* ============ 交付物模板库（模板下拉菜单） ============ */
+var TPL_LIBS = [["APQP", TPL_APQP], ["VDA-MLA", TPL_MLA], ["ANPQP", TPL_ANPQP]];
+function findTemplate(key){
+  var hit = null;
+  TPL_LIBS.forEach(function(lib){ lib[1].forEach(function(tp){ if(!hit && tp.key === key) hit = tp; }); });
+  return hit;
+}
+function menuBtnOf(target, id){ var b = document.getElementById(id); return !!(b && (b === target || b.contains(target))); }
+function toggleTplMenu(){
+  var m = document.getElementById("tplMenu");
+  if(m.style.display === "block"){ closeTplMenu(); return; }
+  var html = '<h4>' + esc(tr("tplBtn")) + "</h4>";
+  TPL_LIBS.forEach(function(lib){
+    html += '<div class="tpl-g">' + esc(lib[0]) + "</div>";
+    lib[1].forEach(function(tp){
+      html += '<button class="tpl-it" data-key="' + esc(tp.key) + '"><span>' + esc(tp.key + " " + planPickName(tp.name)) + '</span><span class="tpl-n">' + tp.items.length + "</span></button>";
+    });
+  });
+  m.innerHTML = html;
+  m.querySelectorAll(".tpl-it").forEach(function(b){
+    b.addEventListener("click", function(){
+      closeTplMenu();
+      var tp = findTemplate(b.dataset.key);
+      if(tp && confirm(tr("tplConfirm"))) insertTemplate(tp);
+    });
+  });
+  var r = document.getElementById("btnTPL").getBoundingClientRect();
+  m.style.display = "block";
+  m.style.top = (r.bottom + 4) + "px";
+  m.style.left = Math.max(8, Math.min(r.left, window.innerWidth - 300)) + "px";
+}
+function closeTplMenu(){ var m = document.getElementById("tplMenu"); if(m) m.style.display = "none"; }
+/* 插入模板：新建分组承载交付物，任务名=交付物名，工期默认5天、开始=今天、负责人空、前置空 */
+function insertTemplate(tp){
+  var g = mkTask({ name:tp.key + " " + planPickName(tp.name), type:"group", start:"", dur:0 });
+  state.tasks.push(g);
+  var today = fmtD(new Date());
+  tp.items.forEach(function(it){
+    state.tasks.push(mkTask({ name:planPickName(it), type:"task", group:g.id, start:today, dur:5, owner:"", deps:[] }));
+  });
+  save(); render();
+  toast(tr("tplOk") + " · " + tp.items.length);
+}
 function renderTable(){
   var el = document.getElementById("taskList"), html = "";
   var bmap = baselineMap();
@@ -1253,6 +1438,109 @@ function exportCSV(){
   var a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], {type:"text/csv"}));
   a.download = "exec-plan.csv"; a.click();
 }
+/* ============ MS Project XML（MSPDI）导入/导出 ============ */
+/* 依赖类型 ↔ MSPDI PredecessorLink/Type 映射（约定：0=FF, 1=FS, 2=SF, 3=SS） */
+var MSPDI_DEP = { FF:0, FS:1, SF:2, SS:3 };
+var MSPDI_DEP_R = { "0":"FF", "1":"FS", "2":"SF", "3":"SS" };
+function planProjectName(){
+  var plan = null;
+  try{ plan = JSON.parse(localStorage.getItem('gantt-tool-v1')); }catch(e){}
+  var nm = (plan && plan.projectName || '').trim().replace(/[\\/:*?"<>|]/g, '').slice(0, 40);
+  return nm || 'exec-plan';
+}
+function xmlTag(name, val){ return "<" + name + ">" + esc(val) + "</" + name + ">"; }
+function isoDT(d){ return fmtD(d) + "T00:00:00"; }
+function exportXML(){
+  var ts = flatTasks();
+  var uidOf = {};
+  ts.forEach(function(t, i){ uidOf[t.id] = i + 1; });
+  var L = [];
+  L.push('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>');
+  L.push('<Project xmlns="http://schemas.microsoft.com/project">');
+  L.push(xmlTag("SaveVersion", "14"));
+  L.push(xmlTag("Name", planProjectName()));
+  L.push(xmlTag("CreationDate", isoDT(new Date())));
+  L.push("<Tasks>");
+  ts.forEach(function(t){
+    var uid = uidOf[t.id];
+    var s = parseD(t.start);
+    var e = t.type === "milestone" ? s : parseD(taskEnd(t));
+    var durH = t.type === "milestone" ? 0 : Math.max(+t.dur || 0, 0) * 8;
+    L.push("<Task>");
+    L.push(xmlTag("UID", uid));
+    L.push(xmlTag("ID", uid));
+    L.push(xmlTag("Name", t.name));
+    if(t.type === "milestone") L.push(xmlTag("Milestone", "1"));
+    if(s) L.push(xmlTag("Start", isoDT(s)));
+    if(e) L.push(xmlTag("Finish", isoDT(e)));
+    L.push(xmlTag("Duration", "PT" + durH + "H0M0S"));
+    normDeps(t.deps).forEach(function(d){
+      var pu = uidOf[d.id];
+      if(pu == null) return;
+      L.push("<PredecessorLink>");
+      L.push(xmlTag("PredecessorUID", pu));
+      L.push(xmlTag("Type", MSPDI_DEP[d.type] != null ? MSPDI_DEP[d.type] : 1));
+      L.push(xmlTag("CrossProject", "0"));
+      L.push(xmlTag("LinkLag", (+d.lag || 0) * 480)); /* 滞后工作日 → 分钟 */
+      L.push(xmlTag("LagFormat", "7"));
+      L.push("</PredecessorLink>");
+    });
+    L.push("</Task>");
+  });
+  L.push("</Tasks>");
+  L.push("</Project>");
+  dlURL(URL.createObjectURL(new Blob([L.join("\n")], { type:"application/xml" })), planProjectName() + "_" + fmtD(new Date()).replace(/-/g, "") + ".xml");
+}
+function xmlTagText(parent, tag){
+  var els = parent.getElementsByTagName(tag);
+  return els.length ? String(els[0].textContent || "").trim() : "";
+}
+function importXMLFile(f){
+  var r = new FileReader();
+  r.onload = function(){
+    try{
+      var doc = new DOMParser().parseFromString(String(r.result), "text/xml");
+      if(doc.getElementsByTagName("parsererror").length){ toast("XML parse error"); return; }
+      var taskEls = doc.getElementsByTagName("Task");
+      if(!taskEls.length){ toast("No tasks found in XML"); return; }
+      if(!confirm(tr("impXmlConfirm"))) return;
+      var uidMap = {}, imported = [];
+      Array.prototype.forEach.call(taskEls, function(el){
+        var name = xmlTagText(el, "Name");
+        if(!name) return;
+        var uid = xmlTagText(el, "UID") || xmlTagText(el, "ID");
+        var s = parseD(xmlTagText(el, "Start").slice(0, 10));
+        var fi = parseD(xmlTagText(el, "Finish").slice(0, 10));
+        var ms = xmlTagText(el, "Milestone") === "1" || xmlTagText(el, "Milestone") === "true";
+        var dur = 0;
+        if(s && fi) dur = workdaysBetween(s, fi) + 1;
+        var dm = xmlTagText(el, "Duration").match(/PT\s*(?:(\d+)H)?(?:(\d+)M)?/);
+        if(dm){ var dd = Math.round(((+dm[1] || 0) + (+dm[2] || 0) / 60) / 8); if(dd > dur) dur = dd; }
+        if(!s) s = new Date();
+        if(!fi || fi <= s){ ms = true; dur = 0; }
+        var t = mkTask({ name:name, type: ms ? "milestone" : "task", start:fmtD(s), dur: ms ? 0 : dur, owner:"", deps:[] });
+        t.source = "xml";
+        if(uid) uidMap[uid] = t.id;
+        imported.push({ t:t, el:el });
+      });
+      imported.forEach(function(it){
+        Array.prototype.forEach.call(it.el.getElementsByTagName("PredecessorLink"), function(lEl){
+          var pid = uidMap[xmlTagText(lEl, "PredecessorUID")];
+          var ty = MSPDI_DEP_R[xmlTagText(lEl, "Type")];
+          if(!pid || !ty) return;
+          var lag = Math.round((parseInt(xmlTagText(lEl, "LinkLag"), 10) || 0) / 480); /* 分钟 → 工作日 */
+          it.t.deps.push({ id:pid, type:ty, lag:lag });
+        });
+      });
+      state.tasks = imported.map(function(it){ return it.t; });
+      state.collapsed = {};
+      normalizeState();
+      save(); render();
+      toast(tr("importOk") + " · " + imported.length);
+    }catch(e){ toast("XML parse error"); }
+  };
+  r.readAsText(f);
+}
 /* ============ 导出：甘特图 → PDF / JPG / 预览（风格与计划页统一：600dpi、双层表头、标题、图例、页脚日期） ============ */
 var $ = function(id){ return document.getElementById(id); };
 var EXPORT_DPI = 600;
@@ -1289,11 +1577,7 @@ function fitText(ctx, text, maxW){ /* 超宽截断加省略号 */
   return text + '…';
 }
 function exportFileBase(){
-  var plan = null;
-  try{ plan = JSON.parse(localStorage.getItem('gantt-tool-v1')); }catch(e){}
-  var nm = (plan && plan.projectName || '').trim().replace(/[\\/:*?"<>|]/g, '').slice(0, 40);
-  if(!nm) nm = 'exec-plan';
-  return nm + '_' + fmtD(new Date()).replace(/-/g, '');
+  return planProjectName() + '_' + fmtD(new Date()).replace(/-/g, '');
 }
 /* 把执行页甘特图（左侧任务表：任务名称/负责人/工期/进度/开始/结束 + 右侧时间轴：任务条/里程碑菱形/阶段色带/依赖线）绘制到 canvas */
 function renderExportCanvas(cb){
@@ -1953,17 +2237,15 @@ function init(){
   syncOemSelect();
   render();
   document.querySelectorAll(".langbtns button").forEach(function(b){
-    b.addEventListener("click", function(){ lang = b.dataset.lang; applyLang(); buildOemOptions(); syncOemSelect(); render(); });
+    b.addEventListener("click", function(){ lang = b.dataset.lang; applyLang(); buildOemOptions(); syncOemSelect(); closeTplMenu(); render(); });
   });
   document.getElementById("btnBack").addEventListener("click", function(){ location.href = "index.html?lang=" + lang; });
   document.getElementById("btnCols").addEventListener("click", function(e){ e.stopPropagation(); toggleColMenu(); });
-  document.addEventListener("click", function(e){ // 列菜单点击外部自动关闭
+  document.addEventListener("click", function(e){ // 列/模板菜单点击外部自动关闭
     var m = document.getElementById("colMenu");
-    if(!m || m.style.display !== "block") return;
-    if(m.contains(e.target)) return;
-    var b = document.getElementById("btnCols");
-    if(b && (b === e.target || b.contains(e.target))) return;
-    closeColMenu();
+    if(m && m.style.display === "block" && !m.contains(e.target) && !menuBtnOf(e.target, "btnCols")) closeColMenu();
+    var tm = document.getElementById("tplMenu");
+    if(tm && tm.style.display === "block" && !tm.contains(e.target) && !menuBtnOf(e.target, "btnTPL")) closeTplMenu();
   });
   document.getElementById("btnAdd").addEventListener("click", function(){ selId = null; openModal(null); });
   document.getElementById("btnAddGroup").addEventListener("click", function(){
@@ -2025,6 +2307,10 @@ function init(){
   document.getElementById("pvClose").addEventListener("click", closePreview);
   document.getElementById("pvModal").addEventListener("click", function(e){ if(e.target === this) closePreview(); });
   document.getElementById("btnCSV").addEventListener("click", exportCSV);
+  document.getElementById("btnExpXML").addEventListener("click", exportXML);
+  document.getElementById("btnImpXML").addEventListener("click", function(){ document.getElementById("fileXML").click(); });
+  document.getElementById("fileXML").addEventListener("change", function(){ if(this.files[0]) importXMLFile(this.files[0]); this.value = ""; });
+  document.getElementById("btnTPL").addEventListener("click", function(e){ e.stopPropagation(); toggleTplMenu(); });
   document.getElementById("btnImport").addEventListener("click", function(){ document.getElementById("fileJSON").click(); });
   document.getElementById("fileJSON").addEventListener("change", function(){ if(this.files[0]) importJSONFile(this.files[0]); this.value = ""; });
   document.getElementById("btnCal").addEventListener("click", function(){
@@ -2058,7 +2344,7 @@ function init(){
     r.onload = function(){ document.getElementById("subText").value = r.result; };
     r.readAsText(f); this.value = "";
   });
-  document.addEventListener("keydown", function(e){ if(e.key === "Escape"){ closeModal(); closeSub(); closePreview(); closeColMenu(); } });
+  document.addEventListener("keydown", function(e){ if(e.key === "Escape"){ closeModal(); closeSub(); closePreview(); closeColMenu(); closeTplMenu(); } });
 }
 if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
 else init();
